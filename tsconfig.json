@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    // A base para os caminhos relativos
+    "baseUrl": ".",
+    // Define nossos aliases
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "strict": true
+  }
+}
