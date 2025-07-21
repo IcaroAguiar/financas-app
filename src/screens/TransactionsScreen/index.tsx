@@ -1,77 +1,114 @@
 // @/screens/TransactionsScreen/index.tsx
-import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import React, { useState, useCallback } from "react";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import AddTransactionModal from "@/components/AddTransactionModal";
+import { CreateTransactionData } from '@/api/transactionService';
+import { Alert } from "react-native";
+
+
+// Importando nossos componentes e tipos
 import TransactionItem from "@/components/TransactionItem";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import { theme } from "@/styles/theme";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-// DADOS MOCKADOS (provisórios, até conectarmos na API no Dia 7)
-const MOCK_TRANSACTIONS = [
-  {
-    id: "1",
-    description: "Salário",
-    category: "Receitas",
-    amount: 5000,
-    type: "RECEITA" as const,
-  },
-  {
-    id: "2",
-    description: "Aluguel",
-    category: "Moradia",
-    amount: 1500,
-    type: "DESPESA" as const,
-  },
-  {
-    id: "3",
-    description: "Supermercado",
-    category: "Alimentação",
-    amount: 450,
-    type: "DESPESA" as const,
-  },
-  {
-    id: "4",
-    description: "Venda de Item",
-    category: "Receitas",
-    amount: 250,
-    type: "RECEITA" as const,
-  },
-];
+import { getTransactions, createTransaction } from "@/api/transactionService";
+import { Transaction } from "@/types/transactions";
+import { styles } from "./styles"; // Importando os estilos do arquivo separado
 
 export default function TransactionsScreen() {
-  const handleAddTransaction = () => {
-    // No Dia 7, isso abrirá um modal/nova tela
-    console.log("Abrir modal de nova transação");
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false); // Estado para controlar o modal
+
+  const handleSaveTransaction = async (
+    data: Omit<CreateTransactionData, "date">
+  ) => {
+    // Adicionamos a data atual ao objeto
+    const transactionData: CreateTransactionData = {
+      ...data,
+      date: new Date().toISOString(),
+    };
+
+    try {
+      // Chama a nossa API para criar a transação
+      await createTransaction(transactionData);
+
+      // Fecha o modal e atualiza a lista de transações
+      setIsModalVisible(false);
+      setIsLoading(true); // Mostra o loading enquanto a lista é atualizada
+      await loadTransactions();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "Não foi possível salvar a transação.";
+      Alert.alert("Erro", errorMessage);
+    }
   };
+  const loadTransactions = async () => {
+    try {
+      const data = await getTransactions();
+      setTransactions(data);
+    } catch (error) {
+      console.error("Erro ao buscar transações:", error);
+      // Aqui poderíamos mostrar um alerta para o usuário
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsLoading(true);
+      loadTransactions();
+    }, [])
+  );
+
+  // const handleAddTransaction = () => {
+  //   console.log("Abrir modal de nova transação");
+  // };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Minhas Transações</Text>
 
-      <FlatList
-        data={MOCK_TRANSACTIONS}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TransactionItem {...item} />}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }} // O padding horizontal agora vai aqui
-        showsVerticalScrollIndicator={false}
-      />
+      {transactions.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            Nenhuma transação registrada ainda. Pressione '+' para adicionar sua
+            primeira!
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={transactions}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TransactionItem
+              description={item.description}
+              category={item.category?.name || "Sem Categoria"}
+              amount={item.amount}
+              type={item.type}
+            />
+          )}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
 
-      <FloatingActionButton onPress={handleAddTransaction} />
+      <FloatingActionButton onPress={() => setIsModalVisible(true)} />
+      <AddTransactionModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSave={handleSaveTransaction}
+      />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    // O padding principal foi removido daqui e colocado na FlatList e no Title
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.textPrimary,
-    marginBottom: 20,
-    paddingHorizontal: 20, // Padding para o título
-    paddingTop: 10, // Um pequeno respiro no topo
-  },
-});

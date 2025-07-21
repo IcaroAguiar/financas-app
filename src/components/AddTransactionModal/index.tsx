@@ -1,0 +1,130 @@
+// @/components/AddTransactionModal/index.tsx
+import React, { useState } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  Button,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { styles } from "./styles";
+import CustomInput from "@/components/CustomInput";
+import { TransactionType } from "@/types/transactions";
+import CustomButton from "@/components/CustomButton";
+import { theme } from "@/styles/theme";
+import { CreateTransactionData } from '@/api/transactionService';
+
+
+interface AddTransactionModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSave: (data: Omit<CreateTransactionData, "date">) => void;
+}
+
+export default function AddTransactionModal({
+  visible,
+  onClose,
+  onSave,
+}: AddTransactionModalProps) {
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [type, setType] = useState<TransactionType>("DESPESA"); // Despesa como padrão
+
+  const handleSave = () => {
+    // Validação
+    if (!description || !amount) {
+      Alert.alert("Erro", "Descrição e valor são obrigatórios.");
+      return;
+    }
+    // Lógica para salvar virá no Dia 9
+    onSave({ description, amount: parseFloat(amount), type });
+  };
+
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onClose}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Text style={styles.title}>Nova Transação</Text>
+
+          <View style={styles.typeSelector}>
+            <TouchableOpacity
+              style={[
+                styles.typeButton,
+                type === "DESPESA"
+                  ? styles.typeButtonSelected
+                  : styles.typeButtonUnselected,
+              ]}
+              onPress={() => setType("DESPESA")}
+            >
+              <Text
+                style={[
+                  styles.typeText,
+                  type === "DESPESA"
+                    ? styles.typeTextSelected
+                    : styles.typeTextUnselected,
+                ]}
+              >
+                Despesa
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.typeButton,
+                type === "RECEITA"
+                  ? styles.typeButtonSelected
+                  : styles.typeButtonUnselected,
+              ]}
+              onPress={() => setType("RECEITA")}
+            >
+              <Text
+                style={[
+                  styles.typeText,
+                  type === "RECEITA"
+                    ? styles.typeTextSelected
+                    : styles.typeTextUnselected,
+                ]}
+              >
+                Receita
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <CustomInput
+            placeholder="Descrição (Ex: Supermercado)"
+            value={description}
+            onChangeText={setDescription}
+          />
+          <CustomInput
+            placeholder="Valor (Ex: 150.00)"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+          />
+
+          <View style={styles.actionButtonsContainer}>
+            {/* Botão de Cancelar agora tem largura controlada */}
+            <View style={styles.buttonWrapper}>
+              <CustomButton
+                title="Cancelar"
+                variant="ghost"
+                onPress={onClose}
+              />
+            </View>
+
+            {/* Botão de Salvar também */}
+            <View style={styles.buttonWrapper}>
+              <CustomButton title="Salvar" onPress={handleSave} />
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}

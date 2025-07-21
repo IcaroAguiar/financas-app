@@ -9,6 +9,7 @@ import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { ActivityIndicator, Alert } from "react-native";
+import BrandHeader from "@/components/BrandHeader";
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [email, setEmail] = useState<string>("");
@@ -37,7 +38,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Bem-vindo de Volta!</Text>
+      <BrandHeader />
 
       <CustomInput
         placeholder="E-mail"
