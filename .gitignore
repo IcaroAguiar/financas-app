@@ -36,5 +36,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# APK files (build artifacts)
+*.apk
 
 .env
