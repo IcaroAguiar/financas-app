@@ -7,7 +7,6 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   content: {
-    flex: 1,
     paddingHorizontal: theme.spacing.md, // More conservative padding (12 instead of 16)
     paddingBottom: 100, // Espaço para a tab bar
   },
@@ -57,13 +56,13 @@ export const styles = StyleSheet.create({
   incomeAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.success,
+    color: theme.colors.surface, // Branco puro
     marginBottom: theme.spacing.xs,
   },
   expenseAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.error,
+    color: theme.colors.surface, // Branco puro
     marginBottom: theme.spacing.xs,
   },
   balanceItemLabel: {

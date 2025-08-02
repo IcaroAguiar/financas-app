@@ -27,7 +27,7 @@ export default function TransactionsScreen() {
   } = useTransactions();
   
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [filterType, setFilterType] = useState<"ALL" | "RECEBIMENTO" | "DESPESA">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "RECEITA" | "DESPESA">("ALL");
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
 
   const handleSaveTransaction = async (
@@ -145,12 +145,12 @@ export default function TransactionsScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.filterButton, filterType === "RECEBIMENTO" && styles.activeFilterButton]}
-              onPress={() => setFilterType("RECEBIMENTO")}
+              style={[styles.filterButton, filterType === "RECEITA" && styles.activeFilterButton]}
+              onPress={() => setFilterType("RECEITA")}
             >
-              <Icon name="coins" size={16} color={filterType === "RECEBIMENTO" ? theme.colors.surface : theme.colors.success} />
-              <Text style={[styles.filterText, filterType === "RECEBIMENTO" && styles.activeFilterText]}>
-                Recebimentos
+              <Icon name="coins" size={16} color={filterType === "RECEITA" ? theme.colors.surface : theme.colors.success} />
+              <Text style={[styles.filterText, filterType === "RECEITA" && styles.activeFilterText]}>
+                Receitas
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -179,7 +179,7 @@ export default function TransactionsScreen() {
             <Text style={styles.emptyText}>
               {filterType === 'ALL' 
                 ? 'Nenhuma transação encontrada.\nToque no + para adicionar sua primeira!'
-                : `Nenhuma ${filterType.toLowerCase()} encontrada.`
+                : `Nenhuma ${filterType === 'RECEITA' ? 'receita' : 'despesa'} encontrada.`
               }
             </Text>
           </View>

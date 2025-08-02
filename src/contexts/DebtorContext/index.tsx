@@ -37,8 +37,12 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const response = await getDebtors();
       setDebtors(response);
     } catch (error: any) {
-      console.error('Erro ao carregar devedores:', error);
-      Alert.alert('Erro', 'Não foi possível carregar os devedores.');
+      console.error('Erro ao carregar devedores:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        Alert.alert('Erro de Autenticação', 'Você precisa fazer login novamente.');
+      } else {
+        Alert.alert('Erro', 'Não foi possível carregar os devedores.');
+      }
     } finally {
       setLoading(false);
     }
@@ -49,8 +53,12 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const response = await getDebts();
       setDebts(response);
     } catch (error: any) {
-      console.error('Erro ao carregar dívidas:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as dívidas.');
+      console.error('Erro ao carregar dívidas:', error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        Alert.alert('Erro de Autenticação', 'Você precisa fazer login novamente.');
+      } else {
+        Alert.alert('Erro', 'Não foi possível carregar as dívidas.');
+      }
     }
   };
 
@@ -95,12 +103,12 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
 
   const getTotalDebtForDebtor = (debtorId: string): number => {
     return debts
-      .filter(debt => debt.debtorId === debtorId && debt.status === 'PENDENTE')
+      .filter(debt => debt.debtorId === debtorId && (debt.status === 'PENDENTE' || !debt.status))
       .reduce((total, debt) => total + debt.totalAmount, 0);
   };
 
   const getPendingDebtsForDebtor = (debtorId: string): number => {
-    return debts.filter(debt => debt.debtorId === debtorId && debt.status === 'PENDENTE').length;
+    return debts.filter(debt => debt.debtorId === debtorId && (debt.status === 'PENDENTE' || !debt.status)).length;
   };
 
   useEffect(() => {

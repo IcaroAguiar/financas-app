@@ -32,12 +32,12 @@ function AppRoutes() {
     <AppTab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size, focused }) => {
-          let iconName: 'home' | 'home-filled' | 'list' | 'list-search' | 'bell' | 'users' | 'user' = "home";
+          let iconName: 'home' | 'home-filled' | 'dollar-sign' | 'list-search' | 'bell' | 'users' | 'user' = "home" ;
           
           if (route.name === "Dashboard")
             iconName = focused ? "home-filled" : "home";
           if (route.name === "Transactions")
-            iconName = focused ? "list-search" : "list";
+            iconName = focused ? "dollar-sign" : "dollar-sign";
           if (route.name === "Reminders")
             iconName = "bell";
           if (route.name === "Debtors")

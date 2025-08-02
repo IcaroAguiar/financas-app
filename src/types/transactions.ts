@@ -1,6 +1,6 @@
 // @/types/transaction.ts
 import { Category } from "@/types/category";
-export type TransactionType = "RECEBIMENTO" | "DESPESA";
+export type TransactionType = "RECEITA" | "DESPESA";
 
 export interface Transaction {
   id: string;

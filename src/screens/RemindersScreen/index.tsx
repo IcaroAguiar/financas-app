@@ -3,6 +3,8 @@ import { View, Text, FlatList, Alert, RefreshControl, ActivityIndicator } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
+import FloatingActionButton from '@/components/FloatingActionButton';
+import AddReminderModal from '@/components/AddReminderModal';
 import { useDebtors } from '@/contexts/DebtorContext';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { theme } from '@/styles/theme';
@@ -23,6 +25,7 @@ export default function RemindersScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddReminder, setShowAddReminder] = useState(false);
 
   // Generate reminders from debts and upcoming dates
   useEffect(() => {
@@ -89,6 +92,19 @@ export default function RemindersScreen() {
         }
       ]
     );
+  };
+
+  const addCustomReminder = (reminderData: Omit<Reminder, 'id' | 'isCompleted'>) => {
+    const newReminder: Reminder = {
+      id: `custom-${Date.now()}`,
+      ...reminderData,
+      isCompleted: false,
+    };
+
+    setReminders(prev => {
+      const updated = [...prev, newReminder];
+      return updated.sort((a, b) => a.date.getTime() - b.date.getTime());
+    });
   };
 
   const renderReminder = ({ item }: { item: Reminder }) => (
@@ -162,14 +178,14 @@ export default function RemindersScreen() {
           />
         )}
 
-        <CustomButton
-          title="Novo Lembrete"
-          onPress={() => {
-            // TODO: Implementar modal para criar novo lembrete
-            Alert.alert('Em breve', 'Funcionalidade será implementada em breve!');
-          }}
-          size="medium"
-          style={styles.newReminderButton}
+        <FloatingActionButton
+          onPress={() => setShowAddReminder(true)}
+        />
+
+        <AddReminderModal
+          visible={showAddReminder}
+          onClose={() => setShowAddReminder(false)}
+          onSubmit={addCustomReminder}
         />
       </View>
     </SafeAreaView>

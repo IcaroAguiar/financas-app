@@ -5,7 +5,7 @@ import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 
 
-type TransactionType = "RECEBIMENTO" | "DESPESA";
+type TransactionType = "RECEITA" | "DESPESA";
 
 interface TransactionItemProps {
   description: string;
@@ -22,7 +22,7 @@ export default function TransactionItem({
   type,
   date,
 }: TransactionItemProps) {
-  const isRevenue = type === "RECEBIMENTO";
+  const isRevenue = type === "RECEITA";
   const amountColor = isRevenue ? theme.colors.primary : "#E53E3E"; // Vermelho para despesa
   const iconName = isRevenue ? "arrow-up-circle" : "arrow-down-circle";
   const iconColor = isRevenue ? theme.colors.primary : "#E53E3E";

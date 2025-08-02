@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Alert, Linking, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Alert, Linking, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
-import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
+import FloatingActionButton from '@/components/FloatingActionButton';
 import DebtDetailsModal from '@/components/DebtDetailsModal';
+import AddDebtorModal from '@/components/AddDebtorModal';
 import { useDebtors } from '@/contexts/DebtorContext';
-import { Debtor as ApiDebtor } from '@/api/debtorService';
+import { Debtor as ApiDebtor, Debt as ApiDebt } from '@/api/debtorService';
 import { theme } from '@/styles/theme';
 
 // Debtor interface imported from debtorService.ts
@@ -41,12 +42,16 @@ export default function DebtorsScreen() {
     loading, 
     refreshing, 
     refreshData, 
+    addDebtor,
     getTotalDebtForDebtor, 
-    getPendingDebtsForDebtor 
+    getPendingDebtsForDebtor,
+    getDebtsByDebtorId
   } = useDebtors();
 
   const [selectedDebtor, setSelectedDebtor] = useState<ApiDebtor | null>(null);
   const [showDebtDetails, setShowDebtDetails] = useState(false);
+  const [showAddDebtor, setShowAddDebtor] = useState(false);
+
 
   // Mock debt details with installments
   const getDebtorDebts = (debtorId: string): Debt[] => {
@@ -259,23 +264,73 @@ export default function DebtorsScreen() {
       </View>
       
       <View style={styles.debtorActions}>
-        <CustomButton
-          title="Ver Detalhes"
+        <TouchableOpacity
+          style={[
+            styles.viewDebtsButton,
+            {
+              backgroundColor: theme.colors.primary,
+              paddingVertical: 14,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+              minHeight: 48,
+              alignItems: 'center',
+              justifyContent: 'center',
+              elevation: 2,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.05,
+              shadowRadius: 3,
+            }
+          ]}
           onPress={() => {
             setSelectedDebtor(item);
             setShowDebtDetails(true);
           }}
-          size="small"
-          style={styles.viewDebtsButton}
-        />
+        >
+          <Text style={{
+            color: theme.colors.surface,
+            fontSize: 14,
+            fontWeight: '600',
+            fontFamily: theme.fonts.bold,
+            textAlign: 'center'
+          }}>
+            Ver Detalhes
+          </Text>
+        </TouchableOpacity>
+        
         {getTotalDebtForDebtor(item.id) > 0 && (item.email || item.phone) && (
-          <CustomButton
-            title="Cobrar"
+          <TouchableOpacity
+            style={[
+              styles.chargeButton,
+              {
+                backgroundColor: theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.primary,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                minHeight: 48,
+                alignItems: 'center',
+                justifyContent: 'center',
+                elevation: 1,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+              }
+            ]}
             onPress={() => showContactOptions(item)}
-            size="small"
-            variant="secondary"
-            style={styles.chargeButton}
-          />
+          >
+            <Text style={{
+              color: theme.colors.primary,
+              fontSize: 14,
+              fontWeight: '600',
+              fontFamily: theme.fonts.bold,
+              textAlign: 'center'
+            }}>
+              Cobrar
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -289,20 +344,28 @@ export default function DebtorsScreen() {
           <Text style={styles.summaryTitle}>Resumo</Text>
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{debtors.length}</Text>
-              <Text style={styles.statLabel}>Devedores</Text>
+              <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {debtors.length}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                Devedores
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+              <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
                 R$ {debtors.reduce((sum, debtor) => sum + getTotalDebtForDebtor(debtor.id), 0).toFixed(2)}
               </Text>
-              <Text style={styles.statLabel}>Total em Dívidas</Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                Total Dívidas
+              </Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>
+              <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
                 {debtors.reduce((sum, debtor) => sum + getPendingDebtsForDebtor(debtor.id), 0)}
               </Text>
-              <Text style={styles.statLabel}>Dívidas Pendentes</Text>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                Pendentes
+              </Text>
             </View>
           </View>
         </View>
@@ -311,6 +374,13 @@ export default function DebtorsScreen() {
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
             <Text style={{ marginTop: 16, color: theme.colors.textSecondary }}>Carregando devedores...</Text>
+          </View>
+        ) : debtors.length === 0 ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <Text style={{ fontSize: 18, color: theme.colors.textPrimary, marginBottom: 8 }}>Nenhum devedor encontrado</Text>
+            <Text style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+              Adicione um novo devedor usando o botão + ou verifique sua conexão com a internet
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -330,19 +400,33 @@ export default function DebtorsScreen() {
           />
         )}
 
-        <CustomButton
-          title="Novo Devedor"
-          onPress={() => Alert.alert('Em breve', 'Funcionalidade será implementada!')}
-          size="medium"
-          style={styles.newDebtorButton}
+        <FloatingActionButton 
+          onPress={() => setShowAddDebtor(true)} 
         />
 
         <DebtDetailsModal
           visible={showDebtDetails}
-          debtor={selectedDebtor as any}
-          debts={selectedDebtor ? [] : []} // TODO: implement getDebtsByDebtorId from context
+          debtor={selectedDebtor ? {
+            ...selectedDebtor,
+            totalDebt: getTotalDebtForDebtor(selectedDebtor.id),
+            pendingDebts: getPendingDebtsForDebtor(selectedDebtor.id),
+            overdueDebts: 0 // TODO: Implement overdue calculation when needed
+          } : null}
+          debts={selectedDebtor ? getDebtsByDebtorId(selectedDebtor.id).map((debt: ApiDebt) => ({
+            ...debt,
+            originalAmount: debt.totalAmount, // Use totalAmount as originalAmount for API debts
+            isInstallment: false, // API debts don't have installment info yet
+            dueDate: new Date(debt.dueDate), // Convert string to Date
+            installments: [], // No installments from API yet
+          })) : []}
           onClose={() => setShowDebtDetails(false)}
           onMarkInstallmentPaid={handleMarkInstallmentPaid}
+        />
+
+        <AddDebtorModal
+          visible={showAddDebtor}
+          onClose={() => setShowAddDebtor(false)}
+          onSubmit={addDebtor}
         />
       </View>
     </SafeAreaView>

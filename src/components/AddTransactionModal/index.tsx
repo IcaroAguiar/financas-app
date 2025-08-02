@@ -1,5 +1,5 @@
 // @/components/AddTransactionModal/index.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -21,16 +21,23 @@ interface AddTransactionModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (data: Omit<CreateTransactionData, "date">) => void;
+  initialType?: TransactionType;
 }
 
 export default function AddTransactionModal({
   visible,
   onClose,
   onSave,
+  initialType = "DESPESA",
 }: AddTransactionModalProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [type, setType] = useState<TransactionType>("DESPESA"); // Despesa como padrão
+  const [type, setType] = useState<TransactionType>(initialType);
+
+  // Update type when initialType changes
+  useEffect(() => {
+    setType(initialType);
+  }, [initialType]);
 
   const handleSave = () => {
     // Validação
@@ -44,14 +51,14 @@ export default function AddTransactionModal({
 
   return (
     <Modal
-      animationType="fade"
+      animationType="slide"
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
         <KeyboardAwareScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
           enableOnAndroid={true}
           enableAutomaticScroll={true}
@@ -86,16 +93,16 @@ export default function AddTransactionModal({
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                type === "RECEBIMENTO"
+                type === "RECEITA"
                   ? styles.typeButtonSelected
                   : styles.typeButtonUnselected,
               ]}
-              onPress={() => setType("RECEBIMENTO")}
+              onPress={() => setType("RECEITA")}
             >
               <Text
                 style={[
                   styles.typeText,
-                  type === "RECEBIMENTO"
+                  type === "RECEITA"
                     ? styles.typeTextSelected
                     : styles.typeTextUnselected,
                 ]}

@@ -1,3 +1,4 @@
+// @/screens/ProfileScreen/styles.ts
 import { StyleSheet } from 'react-native';
 import { theme } from '@/styles/theme';
 
@@ -6,154 +7,140 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.md, // More conservative padding (12 instead of 16)
+  scrollViewContent: {
+    padding: theme.spacing.lg,
+    paddingBottom: 40,
   },
+
+  // --- Cards de Resumo no Topo ---
   summaryContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.sections,
     gap: theme.spacing.md,
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    padding: theme.spacing.md, // Reduced padding for smaller screens
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: theme.spacing.lg,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
-  },
-  summaryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(42, 157, 143, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
   },
   summaryValue: {
-    fontSize: 14, // Reduced from 16 for smaller screens
-    fontWeight: '700',
+    fontSize: 16,
+    fontFamily: theme.fonts.bold,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
-    textAlign: 'center',
-    flexShrink: 1, // Allow text to shrink if necessary
+    marginTop: theme.spacing.sm,
   },
   summaryLabel: {
-    ...theme.typography.caption,
+    fontSize: 12,
+    fontFamily: theme.fonts.regular,
     color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xs,
     textAlign: 'center',
   },
+
+  // --- Card de Informações Pessoais ---
   profileCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
     padding: theme.spacing.xl,
+    alignItems: 'center',
     marginBottom: theme.spacing.sections,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.xl,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
   },
   avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    marginBottom: theme.spacing.lg,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
   avatarText: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 32,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.surface,
   },
-  infoSection: {
-    marginBottom: theme.spacing.xl,
-  },
-  sectionTitle: {
-    ...theme.typography.subheader,
+  userName: {
+    fontSize: 22,
+    fontFamily: theme.fonts.bold,
     color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.lg,
-  },
-  fieldContainer: {
-    marginBottom: theme.spacing.lg,
-  },
-  fieldLabel: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
-  fieldValue: {
-    ...theme.typography.subheader,
-    color: theme.colors.textPrimary,
-    paddingVertical: theme.spacing.sm,
+  userEmail: {
+    fontSize: 14,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sections,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: theme.spacing.md,
+  editButtonWrapper: {
+    width: '85%',
+    alignSelf: 'center',
   },
-  editButtonContainer: {
-    // Container for single edit button - no flexDirection: 'row'
-    marginTop: theme.spacing.sm,
-  },
-  editButton: {
-    // Let CustomButton handle its own styling
-  },
-  saveButton: {
-    flex: 1,
-  },
-  cancelButton: {
-    flex: 1,
-  },
-  settingsSection: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    padding: theme.spacing.xl,
+
+  // --- Seção de Opções ---
+  optionsContainer: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: theme.spacing.lg,
     marginBottom: theme.spacing.sections,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  settingButton: {
-    marginBottom: theme.spacing.md,
-    borderColor: theme.colors.primary,
+    shadowRadius: 2,
+    elevation: 1,
     borderWidth: 1,
-    borderRadius: 22, // Extra rounded for modern look
+    borderColor: theme.colors.borderLight,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.lg,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  optionText: {
+    fontSize: 16,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textPrimary,
+    marginLeft: theme.spacing.md,
+  },
+
+  // --- Botão de Sair ---
   logoutContainer: {
-    marginTop: theme.spacing.sections,
-    marginBottom: 120, // Extra space for tab bar + safe area
-    paddingHorizontal: theme.spacing.md,
-  },
-  logoutButton: {
-    borderColor: theme.colors.error,
-    borderWidth: 1,
-    borderRadius: 22, // Extra rounded for modern look
-  },
-  logoutButtonText: {
-    color: theme.colors.error,
-  },
-  signOutButton: {
-    // Deprecated - using logoutButton instead
-  },
+    marginTop: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+  }
 });

@@ -33,7 +33,7 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
 
   const calculateSummary = (transactions: Transaction[]) => {
     const totalIncome = transactions
-      .filter(t => t.type === "RECEBIMENTO")
+      .filter(t => t.type === "RECEITA")
       .reduce((sum, t) => sum + t.amount, 0);
     
     const totalExpenses = transactions

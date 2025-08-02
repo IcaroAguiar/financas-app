@@ -30,21 +30,30 @@ export const styles = StyleSheet.create({
   summaryStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
+    paddingHorizontal: 6,
+    minHeight: 60,
+    justifyContent: 'center',
+    maxWidth: '33.33%',
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: theme.colors.primary,
-    marginBottom: 4,
+    marginBottom: 6,
+    textAlign: 'center',
+    width: '100%',
   },
   statLabel: {
     fontSize: 12,
     color: theme.colors.textSecondary,
     textAlign: 'center',
+    fontWeight: '500',
+    width: '100%',
   },
   listContainer: {
     paddingBottom: 100,
@@ -128,7 +137,7 @@ export const styles = StyleSheet.create({
   },
   newDebtorButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 80, // Adjusted to account for tab bar
     left: 20,
     right: 20,
   },

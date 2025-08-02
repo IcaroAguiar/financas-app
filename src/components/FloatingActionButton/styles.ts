@@ -5,7 +5,7 @@ import { theme } from "@/styles/theme";
 export const styles = StyleSheet.create({
   container: {
     position: "absolute", // Flutua sobre o conteúdo
-    bottom: 30,
+    bottom: 90, // Increased to account for tab bar height (60px + 30px margin)
     right: 30,
     width: 60,
     height: 60,

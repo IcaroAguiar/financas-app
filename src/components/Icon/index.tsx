@@ -6,7 +6,7 @@ export interface IconProps {
   name: 'home' | 'home-filled' | 'list' | 'list-search' | 'plus' | 'bell' | 'users' | 'user' | 
         'trending-up' | 'trending-down' | 'bar-chart' | 'mail' | 'phone' | 'calendar' | 
         'dollar-sign' | 'receipt' | 'wallet' | 'coins' | 'close' | 'alert-circle' | 'checkmark-circle' | 'clock' | 
-        'help-circle' | 'minus';
+        'help-circle' | 'minus' | 'brief-case' | 'brief-case-filled' | 'check-circle' | 'x' | 'credit-card';
   size?: number;
   color?: string;
 }
@@ -34,9 +34,14 @@ const iconMap = {
   'close': FeatherIcons.X,
   'alert-circle': FeatherIcons.AlertCircle,
   'checkmark-circle': FeatherIcons.CheckCircle,
+  'check-circle': FeatherIcons.CheckCircle,
   'clock': FeatherIcons.Clock,
   'help-circle': FeatherIcons.HelpCircle,
   'minus': FeatherIcons.Minus,
+  'brief-case': FeatherIcons.Briefcase,
+  'brief-case-filled': FeatherIcons.Briefcase,
+  'x': FeatherIcons.X,
+  'credit-card': FeatherIcons.CreditCard,
 };
 
 export default function Icon({ name, size = 24, color = '#000', ...props }: IconProps) {

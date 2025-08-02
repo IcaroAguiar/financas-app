@@ -51,12 +51,20 @@ interface ThemeTypography {
   bodyBold: { fontSize: number; fontWeight: '700'; lineHeight: number };
 }
 
+interface ThemeBorderRadius {
+  sm: number;
+  md: number;
+  lg: number;
+  xl: number;
+}
+
 export interface AppTheme {
   colors: ThemeColors;
   fonts: ThemeFonts;
   spacing: ThemeSpacing;
   iconSizes: ThemeIconSizes;
   typography: ThemeTypography;
+  borderRadius: ThemeBorderRadius;
 }
 
 // O objeto 'theme' é a nossa fonte única da verdade para estilos
@@ -106,5 +114,11 @@ export const theme: AppTheme = {
     caption: { fontSize: 12, fontWeight: '400', lineHeight: 16 },
     bodyMedium: { fontSize: 15, fontWeight: '500', lineHeight: 20 },
     bodyBold: { fontSize: 15, fontWeight: '700', lineHeight: 20 },
+  },
+  borderRadius: {
+    sm: 6,
+    md: 8,
+    lg: 12,
+    xl: 16,
   },
 };

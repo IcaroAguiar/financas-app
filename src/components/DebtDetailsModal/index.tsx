@@ -55,7 +55,20 @@ export default function DebtDetailsModal({
 }: DebtDetailsModalProps) {
   if (!debtor) return null;
 
-  const formatCurrency = (value: number) => {
+  // Safety checks
+  const safeDebtor = {
+    ...debtor,
+    totalDebt: debtor.totalDebt || 0,
+    pendingDebts: debtor.pendingDebts || 0,
+    overdueDebts: debtor.overdueDebts || 0,
+  };
+
+  const safeDebts = Array.isArray(debts) ? debts : [];
+
+  const formatCurrency = (value: number | undefined) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return 'R$ 0,00';
+    }
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -73,19 +86,27 @@ export default function DebtDetailsModal({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PAGO': return 'checkmark-circle';
+      case 'PAGO': return 'check-circle';
       case 'ATRASADO': case 'ATRASADA': return 'alert-circle';
       case 'PENDENTE': return 'clock';
       default: return 'help-circle';
     }
   };
 
-  const calculateDaysOverdue = (dueDate: Date) => {
-    const today = new Date();
-    const due = new Date(dueDate);
-    const diffTime = today.getTime() - due.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 0;
+  const calculateDaysOverdue = (dueDate: Date | string) => {
+    try {
+      const today = new Date();
+      const due = new Date(dueDate);
+      if (isNaN(due.getTime())) {
+        return 0;
+      }
+      const diffTime = today.getTime() - due.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 ? diffDays : 0;
+    } catch (error) {
+      console.warn('Error calculating days overdue:', error);
+      return 0;
+    }
   };
 
   const renderInstallment = (debt: Debt, installment: Installment) => {
@@ -115,11 +136,11 @@ export default function DebtDetailsModal({
         
         <View style={styles.installmentDetails}>
           <Text style={styles.dueDate}>
-            Vencimento: {installment.dueDate.toLocaleDateString('pt-BR')}
+            Vencimento: {installment.dueDate ? new Date(installment.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
           </Text>
           {installment.paidDate && (
             <Text style={styles.paidDate}>
-              Pago em: {installment.paidDate.toLocaleDateString('pt-BR')}
+              Pago em: {new Date(installment.paidDate).toLocaleDateString('pt-BR')}
             </Text>
           )}
           {daysOverdue > 0 && (
@@ -169,7 +190,7 @@ export default function DebtDetailsModal({
         
         {!debt.isInstallment && (
           <Text style={styles.dueDate}>
-            Vencimento: {debt.dueDate.toLocaleDateString('pt-BR')}
+            Vencimento: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
           </Text>
         )}
       </View>
@@ -189,9 +210,9 @@ export default function DebtDetailsModal({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.modalTitle}>Dívidas de {debtor.name}</Text>
+          <Text style={styles.modalTitle}>Dívidas de {safeDebtor.name}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Icon name="close" size={24} color="#666" />
+            <Icon name="x" size={24} color="#666" />
           </TouchableOpacity>
         </View>
 
@@ -200,19 +221,19 @@ export default function DebtDetailsModal({
             <Text style={styles.summaryTitle}>Resumo</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total em Dívidas:</Text>
-              <Text style={styles.summaryValue}>{formatCurrency(debtor.totalDebt)}</Text>
+              <Text style={styles.summaryValue}>{formatCurrency(safeDebtor.totalDebt)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Dívidas Pendentes:</Text>
-              <Text style={styles.summaryValue}>{debtor.pendingDebts}</Text>
+              <Text style={styles.summaryValue}>{safeDebtor.pendingDebts}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Dívidas em Atraso:</Text>
-              <Text style={[styles.summaryValue, { color: '#F44336' }]}>{debtor.overdueDebts}</Text>
+              <Text style={[styles.summaryValue, { color: '#F44336' }]}>{safeDebtor.overdueDebts}</Text>
             </View>
           </View>
 
-          {debts.map(renderDebt)}
+          {safeDebts.map(renderDebt)}
         </ScrollView>
       </View>
     </Modal>

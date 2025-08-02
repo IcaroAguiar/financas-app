@@ -35,17 +35,58 @@ export default function CustomButton({
 }: CustomButtonProps) {
   const isDisabled = disabled || loading;
 
+  // Fix dynamic style references to ensure they exist
+  const getVariantContainerStyle = () => {
+    switch (variant) {
+      case 'primary': return styles.primaryContainer;
+      case 'secondary': return styles.secondaryContainer;
+      case 'outline': return styles.outlineContainer;
+      case 'danger': return styles.dangerContainer;
+      case 'ghost': return styles.ghostContainer;
+      default: return styles.primaryContainer;
+    }
+  };
+
+  const getVariantTextStyle = () => {
+    switch (variant) {
+      case 'primary': return styles.primaryText;
+      case 'secondary': return styles.secondaryText;
+      case 'outline': return styles.outlineText;
+      case 'danger': return styles.dangerText;
+      case 'ghost': return styles.ghostText;
+      default: return styles.primaryText;
+    }
+  };
+
+  const getSizeContainerStyle = () => {
+    switch (size) {
+      case 'small': return styles.smallContainer;
+      case 'medium': return styles.mediumContainer;
+      case 'large': return styles.largeContainer;
+      default: return styles.mediumContainer;
+    }
+  };
+
+  const getSizeTextStyle = () => {
+    switch (size) {
+      case 'small': return styles.smallText;
+      case 'medium': return styles.mediumText;
+      case 'large': return styles.largeText;
+      default: return styles.mediumText;
+    }
+  };
+
   const containerStyle: StyleProp<ViewStyle> = [
     styles.buttonContainer,
-    styles[`${variant}Container`],
-    styles[`${size}Container`],
+    getVariantContainerStyle(),
+    getSizeContainerStyle(),
     isDisabled && styles.disabledContainer,
   ];
 
   const finalTextStyle: StyleProp<TextStyle> = [
     styles.buttonText,
-    styles[`${variant}Text`],
-    styles[`${size}Text`],
+    getVariantTextStyle(),
+    getSizeTextStyle(),
     isDisabled && styles.disabledText,
     textStyle,
   ];

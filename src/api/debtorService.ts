@@ -26,7 +26,8 @@ export interface Debt {
 export interface Payment {
   id: string;
   amount: number;
-  date: string;
+  paymentDate: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
   debtId: string;
@@ -47,8 +48,8 @@ export interface CreateDebtData {
 
 export interface CreatePaymentData {
   amount: number;
-  date: string;
-  debtId: string;
+  paymentDate?: string;
+  notes?: string;
 }
 
 // Debtor API calls
@@ -96,14 +97,20 @@ export const deleteDebt = async (id: string): Promise<void> => {
   await api.delete(`/debts/${id}`);
 };
 
-// Payment API calls
-export const getPayments = async (debtId: string): Promise<Payment[]> => {
-  const response = await api.get(`/payments/debt/${debtId}`);
+// Debt Details API call
+export const getDebtById = async (debtId: string): Promise<Debt> => {
+  const response = await api.get(`/debts/${debtId}`);
   return response.data;
 };
 
-export const createPayment = async (data: CreatePaymentData): Promise<Payment> => {
-  const response = await api.post('/payments', data);
+// Payment API calls
+export const getPaymentsByDebt = async (debtId: string): Promise<Payment[]> => {
+  const response = await api.get(`/debts/${debtId}/payments`);
+  return response.data;
+};
+
+export const createPayment = async (debtId: string, data: CreatePaymentData): Promise<Payment> => {
+  const response = await api.post(`/debts/${debtId}/payments`, data);
   return response.data;
 };
 

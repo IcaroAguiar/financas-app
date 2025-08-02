@@ -9,6 +9,12 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)", // Fundo escurecido
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100%",
+  },
   modalView: {
     width: "90%",
     backgroundColor: theme.colors.surface,

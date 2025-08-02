@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
   },
   newReminderButton: {
     position: 'absolute',
-    bottom: theme.spacing.xl,
+    bottom: 80, // Adjusted to account for tab bar
     left: theme.spacing.sides,
     right: theme.spacing.sides,
   },
