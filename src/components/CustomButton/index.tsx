@@ -7,37 +7,86 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  ActivityIndicator,
+  View,
 } from "react-native";
 import { styles } from "./styles";
 
-// O componente aceitará uma prop 'title' e todas as outras de um TouchableOpacity
 interface CustomButtonProps extends TouchableOpacityProps {
   title: string;
-  variant?: "primary" | "ghost"; // Nossa nova prop de variante!
+  variant?: "primary" | "secondary" | "outline" | "danger" | "ghost";
+  size?: "small" | "medium" | "large";
+  loading?: boolean;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export default function CustomButton({
   title,
   variant = "primary",
+  size = "medium",
+  loading = false,
+  disabled = false,
+  icon,
+  iconPosition = "left",
+  textStyle,
   ...props
 }: CustomButtonProps) {
-  // Escolhe o estilo do container baseado na variante
+  const isDisabled = disabled || loading;
+
   const containerStyle: StyleProp<ViewStyle> = [
     styles.buttonContainer,
-    variant === "primary" ? styles.primaryContainer : styles.ghostContainer,
+    styles[`${variant}Container`],
+    styles[`${size}Container`],
+    isDisabled && styles.disabledContainer,
   ];
 
-  // Escolhe o estilo do texto baseado na variante
-  const textStyle: StyleProp<TextStyle> = [
+  const finalTextStyle: StyleProp<TextStyle> = [
     styles.buttonText,
-    variant === "primary" ? styles.primaryText : styles.ghostText,
+    styles[`${variant}Text`],
+    styles[`${size}Text`],
+    isDisabled && styles.disabledText,
+    textStyle,
   ];
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator 
+            size="small" 
+            color={variant === "primary" || variant === "danger" ? "#ffffff" : "#2a9d8f"} 
+          />
+          <Text style={[finalTextStyle, { marginLeft: 8 }]}>Carregando...</Text>
+        </View>
+      );
+    }
+
+    if (icon) {
+      return (
+        <View style={styles.contentContainer}>
+          {iconPosition === "left" && <View style={styles.iconContainer}>{icon}</View>}
+          <Text style={finalTextStyle}>{title}</Text>
+          {iconPosition === "right" && <View style={styles.iconContainer}>{icon}</View>}
+        </View>
+      );
+    }
+
+    return <Text style={finalTextStyle}>{title}</Text>;
+  };
 
   return (
-    // Aplicamos os estilos dinâmicos aqui
-    // A 'style' prop que vem do TouchableOpacityProps pode sobrescrever nossos estilos
-    <TouchableOpacity style={[containerStyle, props.style]} {...props}>
-      <Text style={textStyle}>{title}</Text>
+    <TouchableOpacity 
+      style={[containerStyle, props.style]} 
+      disabled={isDisabled}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled }}
+      {...props}
+    >
+      {renderContent()}
     </TouchableOpacity>
   );
 }

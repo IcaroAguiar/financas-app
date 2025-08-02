@@ -28,3 +28,19 @@ export const signUp = async (credentials: SignUpCredentials): Promise<User> => {
   const response = await api.post<User>("/users", credentials);
   return response.data;
 };
+
+// Tipagem para atualização de perfil
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+}
+
+export const updateProfile = async (data: UpdateProfileData): Promise<User> => {
+  const response = await api.patch<User>("/users/profile", data);
+  return response.data;
+};
+
+export const getCurrentUser = async (): Promise<User> => {
+  const response = await api.get<User>("/users/me");
+  return response.data;
+};

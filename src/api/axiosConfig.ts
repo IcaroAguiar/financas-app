@@ -1,5 +1,6 @@
 // src/api/axiosConfig.ts
 import axios, { AxiosResponse, AxiosError } from "axios";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from "@env";
 
 const api = axios.create({
@@ -9,7 +10,17 @@ const api = axios.create({
 // --- INTERCEPTOR DE REQUISIÇÃO ---
 // Este código é executado ANTES de cada requisição ser enviada
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // Adiciona o token de autenticação se disponível
+    try {
+      const token = await AsyncStorage.getItem('@FinancasApp:token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Erro ao buscar token:', error);
+    }
+
     // Só logamos em ambiente de desenvolvimento para não poluir o console de produção
     if (__DEV__) {
       const url = config.url;
@@ -49,7 +60,7 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
     // Trata todos os erros de resposta (status 4xx, 5xx)
     if (__DEV__) {
       const url = error.config?.url;
@@ -63,6 +74,18 @@ api.interceptors.response.use(
         console.error("[Error Data] 📄:", JSON.stringify(errorData, null, 2));
       }
     }
+
+    // Trata token expirado (401 Unauthorized)
+    if (error.response?.status === 401) {
+      try {
+        await AsyncStorage.removeItem('@FinancasApp:token');
+        // Nota: A navegação para login deve ser tratada no AuthContext
+        // pois não temos acesso direto à navegação aqui
+      } catch (storageError) {
+        console.error('Erro ao remover token:', storageError);
+      }
+    }
+
     // É obrigatório rejeitar a promise para que o bloco .catch() do nosso app possa tratar o erro
     return Promise.reject(error);
   }

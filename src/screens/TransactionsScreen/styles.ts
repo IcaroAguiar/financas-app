@@ -1,78 +1,120 @@
-// @/screens/TransactionsScreen/styles.ts
-import { StyleSheet } from "react-native";
-import { theme } from "@/styles/theme";
+import { StyleSheet } from 'react-native';
+import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: theme.colors.background,
   },
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  title: {
-    fontSize: 24,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.textPrimary,
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  emptyContainer: {
+  content: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20, // Garante que o texto não toque as bordas
+    paddingHorizontal: theme.spacing.md, // More conservative padding (12 instead of 16)
   },
-  emptyText: {
-    fontSize: 16,
-    fontFamily: theme.fonts.regular,
+  summaryContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 10,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    padding: theme.spacing.md, // Reduced padding for smaller screens
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  summaryLabel: {
+    fontSize: 12, // Reduced for smaller screens
     color: theme.colors.textSecondary,
-    textAlign: "center", // Centraliza o texto se ele tiver mais de uma linha
+    marginBottom: 4,
+    textAlign: 'center',
+    flexShrink: 1, // Allow text to shrink if necessary
   },
-
-  typeSelector: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-around",
-    marginBottom: 24, // Aumenta o espaçamento
+  summaryAmount: {
+    fontSize: 16, // Reduced from 18 for smaller screens
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flexShrink: 1, // Allow text to shrink if necessary
   },
-  typeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 24, // Aumenta o padding
+  filtersContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: theme.spacing.md, // Reduced from 16 to 12
     borderRadius: 20,
-    borderWidth: 1.5, // Deixa a borda mais visível
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginRight: 8,
+    gap: 6,
+    flexShrink: 1, // Allow buttons to shrink if necessary
   },
-  typeButtonSelected: {
+  activeFilterButton: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
-  typeButtonUnselected: {
-    borderColor: "#ccc",
+  filterText: {
+    fontSize: 13, // Reduced from 14 for smaller screens
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    flexShrink: 1, // Allow text to shrink if necessary
   },
-  typeText: {
-    fontFamily: theme.fonts.bold, // Usa a fonte bold
-    fontSize: 14,
+  activeFilterText: {
+    color: '#fff',
   },
-  typeTextSelected: {
-    color: "white",
+  sortButton: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  typeTextUnselected: {
+  transactionsList: {
+    backgroundColor: theme.colors.card,
+    borderRadius: 12,
+    marginBottom: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  transactionItemWrapper: {
+    paddingHorizontal: theme.spacing.md, // Reduced from 16 to 12
+  },
+  separator: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginLeft: theme.spacing.md, // Consistent with reduced padding
+    marginRight: theme.spacing.md,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
     color: theme.colors.textSecondary,
-  },
-
-  // Novo container para os botões de ação
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end", // Alinha à direita
-    width: "100%",
-    marginTop: 24,
-  },
-  // Wrapper para dar espaçamento entre os botões
-  buttonWrapper: {
-    marginLeft: 10, // Espaço entre "Cancelar" e "Salvar"
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 24,
   },
 });

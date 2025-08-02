@@ -1,7 +1,7 @@
 // src/screens/LoginScreen/index.tsx
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, TouchableOpacity } from "react-native";
+import ScreenWrapper from "@/components/ScreenWrapper";
 // Importando com nossos novos aliases!
 import { styles } from "./styles";
 import { LoginScreenProps } from "@/navigation/types";
@@ -37,8 +37,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <BrandHeader />
+    <ScreenWrapper style={styles.container}>
+      <BrandHeader useIcon={true} logoColor="#FFFFFF" />
 
       <CustomInput
         placeholder="E-mail"
@@ -64,6 +64,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

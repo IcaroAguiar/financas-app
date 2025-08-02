@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { styles } from "./styles";
 import CustomInput from "@/components/CustomInput";
 import { TransactionType } from "@/types/transactions";
@@ -49,7 +50,15 @@ export default function AddTransactionModal({
       onRequestClose={onClose}
     >
       <View style={styles.centeredView}>
-        <View style={styles.modalView}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          enableAutomaticScroll={true}
+          extraScrollHeight={50}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.modalView}>
           <Text style={styles.title}>Nova Transação</Text>
 
           <View style={styles.typeSelector}>
@@ -77,21 +86,21 @@ export default function AddTransactionModal({
             <TouchableOpacity
               style={[
                 styles.typeButton,
-                type === "RECEITA"
+                type === "RECEBIMENTO"
                   ? styles.typeButtonSelected
                   : styles.typeButtonUnselected,
               ]}
-              onPress={() => setType("RECEITA")}
+              onPress={() => setType("RECEBIMENTO")}
             >
               <Text
                 style={[
                   styles.typeText,
-                  type === "RECEITA"
+                  type === "RECEBIMENTO"
                     ? styles.typeTextSelected
                     : styles.typeTextUnselected,
                 ]}
               >
-                Receita
+                Recebimento
               </Text>
             </TouchableOpacity>
           </View>
@@ -123,7 +132,8 @@ export default function AddTransactionModal({
               <CustomButton title="Salvar" onPress={handleSave} />
             </View>
           </View>
-        </View>
+          </View>
+        </KeyboardAwareScrollView>
       </View>
     </Modal>
   );

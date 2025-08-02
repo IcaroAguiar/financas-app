@@ -2,6 +2,9 @@
 import React from "react";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { TransactionProvider } from "@/contexts/TransactionContext";
+import { CategoryProvider } from "@/contexts/CategoryContext";
+import { DebtorProvider } from "@/contexts/DebtorContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Importa o hook 'useFonts' e as fontes específicas que queremos
@@ -30,7 +33,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <AppNavigator />
+        <TransactionProvider>
+          <CategoryProvider>
+            <DebtorProvider>
+              <AppNavigator />
+            </DebtorProvider>
+          </CategoryProvider>
+        </TransactionProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

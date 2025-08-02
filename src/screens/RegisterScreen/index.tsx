@@ -1,13 +1,12 @@
 // @/screens/RegisterScreen/index.tsx
 import React, { useState } from "react";
 import {
-  View,
   TouchableOpacity,
   Text,
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import ScreenWrapper from "@/components/ScreenWrapper";
 
 import { styles } from "./styles";
 import { RegisterScreenProps } from "@/navigation/types";
@@ -44,8 +43,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <BrandHeader />
+    <ScreenWrapper style={styles.container}>
+      <BrandHeader backgroundColor="#1e3a8a" logoColor="#FFFFFF" useIcon={true} showText={true} />
       <CustomInput
         placeholder="Nome Completo"
         value={name}
@@ -77,6 +76,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           Já tem uma conta? Voltar para o Login
         </Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </ScreenWrapper>
   );
 }

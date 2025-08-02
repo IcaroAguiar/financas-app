@@ -9,8 +9,11 @@ export type AuthStackParamList = {
 };
 
 export type AppTabParamList = {
-  Dashboard: undefined; // Antiga HomeScreen
+  Dashboard: undefined;
   Transactions: undefined;
+  Reminders: undefined;
+  Debtors: undefined;
+  Profile: undefined;
 };
 
 // Define o tipo das props para cada tela, para uso dentro dos componentes

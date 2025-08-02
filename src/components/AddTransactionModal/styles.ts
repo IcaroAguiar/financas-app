@@ -36,7 +36,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
   },
-  // Estilos adicionais para botões de tipo (Receita/Despesa)
+  // Estilos adicionais para botões de tipo (Recebimento/Despesa)
   typeSelector: {
     flexDirection: "row",
     width: "100%",

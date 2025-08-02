@@ -1,25 +1,197 @@
-// src/screens/HomeScreen/index.tsx
-import React from "react";
-import { View, Text } from "react-native";
-import { styles } from "./styles";
-import { HomeScreenProps } from "@/navigation/types";
-import CustomButton from "@/components/CustomButton";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { styles } from './styles';
+import { HomeScreenProps } from '@/navigation/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTransactions } from '@/contexts/TransactionContext';
+import { useDebtors } from '@/contexts/DebtorContext';
+import { Transaction } from '@/types/transactions';
+import Icon from '@/components/Icon';
+import QuickActionCard from '@/components/QuickActionCard';
+import DashboardCard from '@/components/DashboardCard';
+import { theme } from '@/styles/theme';
 
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function HomeScreen({}: HomeScreenProps) {
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
+  const { 
+    summary, 
+    getRecentTransactions, 
+    refreshing, 
+    refreshTransactions 
+  } = useTransactions();
+  
+  const { 
+    debtors, 
+    debts, 
+    refreshing: debtorsRefreshing, 
+    refreshData: refreshDebtors 
+  } = useDebtors();
+  
+  // Calculando dados reais dos devedores e dívidas
+  const debtSummary = {
+    pendingDebts: debts
+      .filter(debt => debt.status === 'PENDENTE')
+      .reduce((total, debt) => total + debt.totalAmount, 0),
+    totalDebtors: debtors.length
+  };
+  
+  const recentTransactions = getRecentTransactions(4);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Bom dia';
+    if (hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  };
+
+
+  const renderTransaction = (transaction: Transaction) => (
+    <View key={transaction.id} style={styles.transactionItem}>
+      <View style={styles.transactionIcon}>
+        <Icon 
+          name={transaction.type === "RECEBIMENTO" ? 'coins' : 'wallet'} 
+          size={20} 
+          color={transaction.type === "RECEBIMENTO" ? theme.colors.success : theme.colors.error} 
+        />
+      </View>
+      <View style={styles.transactionDetails}>
+        <Text style={styles.transactionDescription}>{transaction.description}</Text>
+        <Text style={styles.transactionCategory}>{transaction.category?.name || 'Sem categoria'}</Text>
+      </View>
+      <View style={styles.transactionAmount}>
+        <Text style={[
+          styles.transactionAmountText,
+          { color: transaction.type === "RECEBIMENTO" ? theme.colors.success : theme.colors.error }
+        ]}>
+          {transaction.type === "RECEBIMENTO" ? '+' : '-'}{formatCurrency(transaction.amount)}
+        </Text>
+        <Text style={styles.transactionDate}>
+          {new Date(transaction.date).toLocaleDateString('pt-BR')}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Bem-vindo, {user?.name}!</Text>
-      <Text style={styles.subtitle}>
-        Sua jornada para o controle financeiro começa aqui.
-      </Text>
-      <View style={styles.buttonContainer}>
-        <CustomButton title="Sair" onPress={signOut} />
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || debtorsRefreshing}
+            onRefresh={async () => {
+              await Promise.all([refreshTransactions(), refreshDebtors()]);
+            }}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+      >
+        <View style={styles.welcomeSection}>
+          <Text style={styles.greeting}>{getGreeting()}, {user?.name?.split(' ')[0]}!</Text>
+          <Text style={styles.subtitle}>Aqui está o resumo das suas finanças</Text>
+        </View>
+
+        {/* Balance Card */}
+        <View style={styles.balanceCard}>
+          <Text style={styles.balanceLabel}>Saldo Atual</Text>
+          <Text style={styles.balanceAmount}>{formatCurrency(summary.balance)}</Text>
+          <View style={styles.balanceDetails}>
+            <View style={styles.balanceItem}>
+              <Text style={styles.incomeAmount}>+{formatCurrency(summary.totalIncome)}</Text>
+              <Text style={styles.balanceItemLabel}>Recebimentos</Text>
+            </View>
+            <View style={styles.balanceItem}>
+              <Text style={styles.expenseAmount}>-{formatCurrency(summary.totalExpenses)}</Text>
+              <Text style={styles.balanceItemLabel}>Despesas</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <Text style={styles.sectionTitle}>Ações Rápidas</Text>
+          <View style={styles.quickActions}>
+            <QuickActionCard 
+              title="Novo Recebimento" 
+              icon="plus" 
+              color={theme.colors.success} 
+              onPress={() => {}} 
+            />
+            <QuickActionCard 
+              title="Nova Despesa" 
+              icon="minus" 
+              color={theme.colors.error} 
+              onPress={() => {}} 
+            />
+            <QuickActionCard 
+              title="Ver Devedores" 
+              icon="users" 
+              color={theme.colors.primary} 
+              onPress={() => {}} 
+            />
+            <QuickActionCard 
+              title="Lembretes" 
+              icon="bell" 
+              color={theme.colors.warning} 
+              onPress={() => {}} 
+            />
+          </View>
+        </View>
+
+        {/* Debts Overview */}
+        <DashboardCard 
+          title="Dívidas a Receber" 
+          onSeeAll={() => {}}
+          seeAllText="Ver todas"
+        >
+          <View style={styles.debtsStats}>
+            <View style={styles.debtStat}>
+              <Text style={styles.debtAmount}>{formatCurrency(debtSummary.pendingDebts)}</Text>
+              <Text style={styles.debtLabel}>Total Pendente</Text>
+            </View>
+            <View style={styles.debtStat}>
+              <Text style={styles.debtCount}>{debtSummary.totalDebtors}</Text>
+              <Text style={styles.debtLabel}>Devedores</Text>
+            </View>
+          </View>
+        </DashboardCard>
+
+        {/* Analytics Preview */}
+        <DashboardCard 
+          title="Análise Financeira" 
+          onSeeAll={() => {}}
+          seeAllText="Ver relatório completo"
+        >
+          <Text style={styles.analyticsDescription}>
+            Acompanhe seus gastos, tendências e metas financeiras com gráficos detalhados
+          </Text>
+          <TouchableOpacity style={styles.analyticsButton}>
+            <Icon name="bar-chart" size={20} color={theme.colors.surface} />
+            <Text style={styles.analyticsButtonText}>Abrir Análises</Text>
+          </TouchableOpacity>
+        </DashboardCard>
+
+        {/* Recent Transactions */}
+        <DashboardCard 
+          title="Transações Recentes" 
+          onSeeAll={() => {}}
+          seeAllText="Ver todas"
+        >
+          <View style={styles.transactionsList}>
+            {recentTransactions.map(renderTransaction)}
+          </View>
+        </DashboardCard>
+      </ScrollView>
+    </View>
   );
 }

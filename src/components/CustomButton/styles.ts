@@ -5,41 +5,138 @@ import { theme } from "@/styles/theme";
 export const styles = StyleSheet.create({
   // Container base, comum a todas as variantes
   buttonContainer: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
   },
   // Texto base, comum a todas as variantes
   buttonText: {
     fontFamily: theme.fonts.bold,
-    fontSize: 16,
-    textTransform: "uppercase",
+    textAlign: "center",
+  },
+
+  // --- CONTAINER DE CONTEÚDO ---
+  contentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconContainer: {
+    marginHorizontal: 6,
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   // --- VARIANTES DE ESTILO ---
 
-  // Estilo para o container da variante 'primary'
+  // Primary
   primaryContainer: {
     backgroundColor: theme.colors.primary,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  // Estilo para o texto da variante 'primary'
   primaryText: {
     color: theme.colors.surface,
   },
 
-  // Estilo para o container da variante 'ghost' (sem fundo)
+  // Secondary
+  secondaryContainer: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  secondaryText: {
+    color: theme.colors.primary,
+  },
+
+  // Outline
+  outlineContainer: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  outlineText: {
+    color: theme.colors.primary,
+  },
+
+  // Danger
+  dangerContainer: {
+    backgroundColor: theme.colors.error,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+  },
+  dangerText: {
+    color: theme.colors.surface,
+  },
+
+  // Ghost
   ghostContainer: {
     backgroundColor: "transparent",
   },
-  // Estilo para o texto da variante 'ghost'
   ghostText: {
-    color: theme.colors.textSecondary,
+    color: theme.colors.neutral,
+  },
+
+  // --- TAMANHOS ---
+
+  // Small
+  smallContainer: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    minHeight: 48,
+  },
+  smallText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  // Medium
+  mediumContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    minHeight: 52,
+  },
+  mediumText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Large
+  largeContainer: {
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 28,
+    minHeight: 56,
+  },
+  largeText: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+
+  // --- ESTADOS ---
+
+  // Disabled
+  disabledContainer: {
+    opacity: 0.6,
+    backgroundColor: theme.colors.neutral,
+  },
+  disabledText: {
+    color: theme.colors.textLight,
   },
 });
