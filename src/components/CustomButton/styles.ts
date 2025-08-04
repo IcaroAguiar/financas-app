@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   primaryText: {
-    color: theme.colors.surface,
+    color: theme.colors.white, // Ensure contrast against primary background
   },
 
   // Secondary
@@ -63,7 +63,7 @@ export const styles = StyleSheet.create({
   // Outline
   outlineContainer: {
     backgroundColor: "transparent",
-    borderWidth: 1,
+    borderWidth: 2, // Increased border width for better visibility
     borderColor: theme.colors.primary,
   },
   outlineText: {
@@ -80,15 +80,17 @@ export const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   dangerText: {
-    color: theme.colors.surface,
+    color: theme.colors.white, // Ensure contrast against error background
   },
 
   // Ghost
   ghostContainer: {
     backgroundColor: "transparent",
+    borderWidth: 1, // Add subtle border for visibility
+    borderColor: theme.colors.borderLight,
   },
   ghostText: {
-    color: theme.colors.neutral,
+    color: theme.colors.textPrimary, // Use darker color for better contrast
   },
 
   // --- TAMANHOS ---

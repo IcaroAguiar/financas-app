@@ -83,10 +83,10 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
       };
 
       await onSubmit(debtorData);
-      Alert.alert('Sucesso', 'Devedor criado com sucesso!');
+      Alert.alert('Sucesso', 'Cobrança criada com sucesso!');
       handleClose();
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Não foi possível criar o devedor');
+      Alert.alert('Erro', error.message || 'Não foi possível criar a cobrança');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.header}>
-          <Text style={styles.modalTitle}>Novo Devedor</Text>
+          <Text style={styles.modalTitle}>Nova Cobrança</Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Icon name="x" size={24} color="#666" />
           </TouchableOpacity>
@@ -111,7 +111,7 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               <Text style={styles.label}>Nome *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Digite o nome do devedor"
+                placeholder="Digite o nome da pessoa"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -159,7 +159,7 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               style={styles.cancelButton}
             />
             <CustomButton
-              title="Criar Devedor"
+              title="Criar Cobrança"
               onPress={handleSubmit}
               loading={loading}
               style={styles.submitButton}

@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
   },
   scrollViewContent: {
     padding: theme.spacing.lg,
-    paddingBottom: 40,
+    paddingBottom: 120, // Increased space for tab bar and safe area
   },
 
   // --- Cards de Resumo no Topo ---
@@ -142,5 +142,60 @@ export const styles = StyleSheet.create({
   logoutContainer: {
     marginTop: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
-  }
+  },
+
+  // --- Modal Styles ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: theme.spacing.lg,
+  },
+  modalContent: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.xl,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: theme.fonts.bold,
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  modalDescription: {
+    fontSize: 14,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+    lineHeight: 20,
+  },
+  passwordInput: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: 16,
+    fontFamily: theme.fonts.regular,
+    color: theme.colors.textPrimary,
+    backgroundColor: theme.colors.background,
+    marginBottom: theme.spacing.xl,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  modalButton: {
+    flex: 1,
+    // Removed backgroundColor - let CustomButton handle its own background
+  },
 });

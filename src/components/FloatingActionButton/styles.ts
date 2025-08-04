@@ -5,11 +5,11 @@ import { theme } from "@/styles/theme";
 export const styles = StyleSheet.create({
   container: {
     position: "absolute", // Flutua sobre o conteúdo
-    bottom: 90, // Increased to account for tab bar height (60px + 30px margin)
+    bottom: 110, // Adjusted for proper tab bar clearance
     right: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30, // Deixa o botão redondo
+    width: 56, // Slightly smaller to match CentralActionButton
+    height: 56,
+    borderRadius: 28, // Half of width/height
     backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",

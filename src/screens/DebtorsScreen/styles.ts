@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   listContainer: {
-    paddingBottom: 100,
+    paddingBottom: 120, // Increased space for tab bar
   },
   debtorCard: {
     backgroundColor: theme.colors.card,

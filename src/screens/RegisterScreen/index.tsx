@@ -1,19 +1,19 @@
-// @/screens/RegisterScreen/index.tsx
 import React, { useState } from "react";
 import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
   Alert,
+  View,
+  SafeAreaView,
 } from "react-native";
-import ScreenWrapper from "@/components/ScreenWrapper";
-
 import { styles } from "./styles";
 import { RegisterScreenProps } from "@/navigation/types";
 import { useAuth } from "@/contexts/AuthContext";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
 import BrandHeader from "@/components/BrandHeader";
+import { theme } from "@/styles/theme";
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [name, setName] = useState("");
@@ -28,11 +28,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
     }
     setIsSigningUp(true);
     try {
-      // CORREÇÃO: Passando todos os campos necessários (name, email, password)
       await signUp({ name, email, password });
-      // Se o cadastro e login subsequente funcionarem, o AppNavigator cuidará do resto
     } catch (error: any) {
-      // Usando nosso logger da API para dar um erro detalhado
       const errorMessage =
         error.response?.data?.error ||
         "Não foi possível criar a conta. Tente novamente.";
@@ -43,39 +40,48 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   };
 
   return (
-    <ScreenWrapper style={styles.container}>
-      <BrandHeader backgroundColor="#1e3a8a" logoColor="#FFFFFF" useIcon={true} showText={true} />
-      <CustomInput
-        placeholder="Nome Completo"
-        value={name}
-        onChangeText={setName}
-      />
-      <CustomInput
-        placeholder="E-mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <CustomInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={styles.container}>
+        <BrandHeader  />
+        <View>
+          <CustomInput
+            placeholder="Nome Completo"
+            value={name}
+            onChangeText={setName}
+          />
+          <CustomInput
+            placeholder="E-mail"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <CustomInput
+            placeholder="Senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
 
-      <CustomButton
-        title="Cadastrar"
-        onPress={handleRegister}
-        disabled={isSigningUp}
-      />
-      {isSigningUp && <ActivityIndicator style={{ marginTop: 20 }} />}
+        <View>
+          {isSigningUp ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginVertical: 20 }} />
+          ) : (
+            <CustomButton
+              title="Cadastrar"
+              onPress={handleRegister}
+              disabled={isSigningUp}
+            />
+          )}
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.linkText}>
-          Já tem uma conta? Voltar para o Login
-        </Text>
-      </TouchableOpacity>
-    </ScreenWrapper>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.linkText}>
+              Já tem uma conta? Voltar para o Login
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }

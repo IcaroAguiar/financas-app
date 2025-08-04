@@ -37,11 +37,11 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const response = await getDebtors();
       setDebtors(response);
     } catch (error: any) {
-      console.error('Erro ao carregar devedores:', error.response?.data || error.message);
+      console.error('Erro ao carregar cobranças:', error.response?.data || error.message);
       if (error.response?.status === 401) {
         Alert.alert('Erro de Autenticação', 'Você precisa fazer login novamente.');
       } else {
-        Alert.alert('Erro', 'Não foi possível carregar os devedores.');
+        Alert.alert('Erro', 'Não foi possível carregar as cobranças.');
       }
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const newDebtor = await createDebtor(data);
       setDebtors(prev => [...prev, newDebtor]);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Não foi possível criar o devedor.';
+      const errorMessage = error.response?.data?.error || 'Não foi possível criar a cobrança.';
       throw new Error(errorMessage);
     }
   };

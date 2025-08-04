@@ -6,6 +6,7 @@ import Icon from '@/components/Icon';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import DebtDetailsModal from '@/components/DebtDetailsModal';
 import AddDebtorModal from '@/components/AddDebtorModal';
+import ChargeDebtModal from '@/components/ChargeDebtModal';
 import { useDebtors } from '@/contexts/DebtorContext';
 import { Debtor as ApiDebtor, Debt as ApiDebt } from '@/api/debtorService';
 import { theme } from '@/styles/theme';
@@ -51,6 +52,8 @@ export default function DebtorsScreen() {
   const [selectedDebtor, setSelectedDebtor] = useState<ApiDebtor | null>(null);
   const [showDebtDetails, setShowDebtDetails] = useState(false);
   const [showAddDebtor, setShowAddDebtor] = useState(false);
+  const [showChargeDebt, setShowChargeDebt] = useState(false);
+  const [chargeDebtDebtor, setChargeDebtDebtor] = useState<ApiDebtor | null>(null);
 
 
   // Mock debt details with installments
@@ -173,7 +176,12 @@ export default function DebtorsScreen() {
   };
 
   const sendWhatsAppMessage = (phone: string, debtorName: string, totalDebt: number) => {
-    const message = `Olá ${debtorName}! Este é um lembrete sobre sua dívida pendente no valor de R$ ${totalDebt.toFixed(2)}. Por favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!`;
+    const formattedAmount = new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    }).format(totalDebt);
+    
+    const message = `Olá, ${debtorName}! Este é um lembrete sobre sua dívida pendente no valor de ${formattedAmount}. Por favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
     const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
     
     Linking.canOpenURL(url).then((supported) => {
@@ -186,8 +194,13 @@ export default function DebtorsScreen() {
   };
 
   const sendEmail = (email: string, debtorName: string, totalDebt: number) => {
+    const formattedAmount = new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    }).format(totalDebt);
+    
     const subject = 'Lembrete - Dívida Pendente';
-    const body = `Olá ${debtorName}!\n\nEste é um lembrete sobre sua dívida pendente no valor de R$ ${totalDebt.toFixed(2)}.\n\nPor favor, entre em contato para acertarmos os detalhes do pagamento.\n\nObrigado!`;
+    const body = `Olá, ${debtorName}! Este é um lembrete sobre sua dívida pendente no valor de ${formattedAmount}. Por favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     Linking.canOpenURL(url).then((supported) => {
@@ -200,34 +213,27 @@ export default function DebtorsScreen() {
   };
 
   const showContactOptions = (debtor: ApiDebtor) => {
-    const options = [];
-    
-    if (debtor.phone) {
-      options.push({
-        text: 'WhatsApp',
-        onPress: () => sendWhatsAppMessage(debtor.phone!, debtor.name, getTotalDebtForDebtor(debtor.id))
-      });
-    }
-    
-    if (debtor.email) {
-      options.push({
-        text: 'Email',
-        onPress: () => sendEmail(debtor.email!, debtor.name, getTotalDebtForDebtor(debtor.id))
-      });
-    }
-    
-    if (options.length === 0) {
-      Alert.alert('Sem contatos', 'Este devedor não possui informações de contato cadastradas.');
+    if (!debtor.email && !debtor.phone) {
+      Alert.alert('Sem contatos', 'Esta pessoa não possui informações de contato cadastradas.');
       return;
     }
     
-    options.push({ text: 'Cancelar', style: 'cancel' });
-    
-    Alert.alert(
-      'Cobrar Dívida',
-      `Como deseja entrar em contato com ${debtor.name}?`,
-      options as any
-    );
+    setChargeDebtDebtor(debtor);
+    setShowChargeDebt(true);
+  };
+
+  const handleWhatsApp = () => {
+    if (chargeDebtDebtor?.phone) {
+      sendWhatsAppMessage(chargeDebtDebtor.phone, chargeDebtDebtor.name, getTotalDebtForDebtor(chargeDebtDebtor.id));
+      setShowChargeDebt(false);
+    }
+  };
+
+  const handleEmail = () => {
+    if (chargeDebtDebtor?.email) {
+      sendEmail(chargeDebtDebtor.email, chargeDebtDebtor.name, getTotalDebtForDebtor(chargeDebtDebtor.id));
+      setShowChargeDebt(false);
+    }
   };
 
   const renderDebtor = ({ item }: { item: ApiDebtor }) => (
@@ -348,7 +354,7 @@ export default function DebtorsScreen() {
                 {debtors.length}
               </Text>
               <Text style={styles.statLabel} numberOfLines={1}>
-                Devedores
+                Cobranças
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -373,13 +379,13 @@ export default function DebtorsScreen() {
         {loading ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={{ marginTop: 16, color: theme.colors.textSecondary }}>Carregando devedores...</Text>
+            <Text style={{ marginTop: 16, color: theme.colors.textSecondary }}>Carregando cobranças...</Text>
           </View>
         ) : debtors.length === 0 ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-            <Text style={{ fontSize: 18, color: theme.colors.textPrimary, marginBottom: 8 }}>Nenhum devedor encontrado</Text>
+            <Text style={{ fontSize: 18, color: theme.colors.textPrimary, marginBottom: 8 }}>Nenhuma cobrança encontrada</Text>
             <Text style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
-              Adicione um novo devedor usando o botão + ou verifique sua conexão com a internet
+              Adicione uma nova cobrança usando o botão + ou verifique sua conexão com a internet
             </Text>
           </View>
         ) : (
@@ -427,6 +433,16 @@ export default function DebtorsScreen() {
           visible={showAddDebtor}
           onClose={() => setShowAddDebtor(false)}
           onSubmit={addDebtor}
+        />
+
+        <ChargeDebtModal
+          visible={showChargeDebt}
+          debtorName={chargeDebtDebtor?.name || ''}
+          hasWhatsApp={!!chargeDebtDebtor?.phone}
+          hasEmail={!!chargeDebtDebtor?.email}
+          onWhatsApp={handleWhatsApp}
+          onEmail={handleEmail}
+          onClose={() => setShowChargeDebt(false)}
         />
       </View>
     </SafeAreaView>

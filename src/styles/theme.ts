@@ -16,6 +16,7 @@ interface ThemeColors {
   error: string;
   warning: string;
   neutral: string;
+  white: string;
 }
 
 interface ThemeFonts {
@@ -84,6 +85,7 @@ export const theme: AppTheme = {
     error: "#dc3545", // --color-error (red)
     warning: "#ffc107", // --color-warning (yellow)
     neutral: "#6c757d", // --color-neutral (gray)
+    white: "#ffffff", // --color-white
   },
   // Nomes genéricos para facilitar a troca de fontes no futuro, se necessário
   fonts: {

@@ -1,19 +1,24 @@
 // @/screens/ProfileScreen/index.tsx
-import React from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
+import { Switch } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useDebtors } from '@/contexts/DebtorContext';
 import CustomButton from '@/components/CustomButton';
 import GlobalHeader from '@/components/GlobalHeader';
 import Icon from '@/components/Icon';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isBiometricSupported, isBiometricEnabled, setIsBiometricEnabled } = useAuth();
   const { summary } = useTransactions();
   const { debtors } = useDebtors();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -32,6 +37,55 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleBiometricToggle = async (value: boolean) => {
+    if (!isBiometricSupported) {
+      Alert.alert('Erro', 'Seu dispositivo não suporta autenticação biométrica.');
+      return;
+    }
+
+    if (value) {
+      // Enable biometrics - show password modal
+      setShowPasswordModal(true);
+    } else {
+      // Disable biometrics
+      try {
+        await SecureStore.deleteItemAsync('@Ascend:userEmail');
+        await SecureStore.deleteItemAsync('@Ascend:userPassword');
+        await AsyncStorage.removeItem('@Ascend:biometricEnabled');
+        setIsBiometricEnabled(false);
+        Alert.alert('Sucesso', 'Login com biometria desabilitado.');
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível desabilitar a biometria.');
+      }
+    }
+  };
+
+  const handleEnableBiometrics = async () => {
+    if (!password.trim()) {
+      Alert.alert('Erro', 'Por favor, insira sua senha.');
+      return;
+    }
+
+    try {
+      // Here you should verify the password against your backend
+      // For this example, we'll assume the password is correct
+      await SecureStore.setItemAsync('@Ascend:userEmail', user?.email || '');
+      await SecureStore.setItemAsync('@Ascend:userPassword', password);
+      await AsyncStorage.setItem('@Ascend:biometricEnabled', 'true');
+      setIsBiometricEnabled(true);
+      setShowPasswordModal(false);
+      setPassword('');
+      Alert.alert('Sucesso', 'Login com biometria habilitado.');
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível habilitar a biometria.');
+    }
+  };
+
+  const handleCancelPasswordModal = () => {
+    setShowPasswordModal(false);
+    setPassword('');
   };
 
   return (
@@ -55,7 +109,7 @@ export default function ProfileScreen() {
           <View style={styles.summaryCard}>
             <Icon name="users" size={24} color="#2a9d8f" />
             <Text style={styles.summaryValue}>{debtors.length}</Text>
-            <Text style={styles.summaryLabel}>Devedores</Text>
+            <Text style={styles.summaryLabel}>Cobranças</Text>
           </View>
         </View>
 
@@ -78,17 +132,27 @@ export default function ProfileScreen() {
         
         {/* --- Seção de Opções --- */}
         <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Opções</Text>
+          <Text style={styles.sectionTitle}>Configurações</Text>
           
+          {isBiometricSupported && (
+            <View style={styles.optionItem}>
+              <View style={styles.optionContent}>
+                <Icon name="lock" size={20} color="#6c757d" />
+                <Text style={styles.optionText}>Login com Biometria</Text>
+              </View>
+              <Switch value={isBiometricEnabled} onValueChange={handleBiometricToggle} />
+            </View>
+          )}
+
           <TouchableOpacity 
             style={styles.optionItem} 
-            onPress={() => Alert.alert('Configurações', 'Navegar para a tela de configurações.')}
+            onPress={() => Alert.alert('Ajuda', 'Navegar para a tela de ajuda.')}
           >
             <View style={styles.optionContent}>
               <Icon name="help-circle" size={20} color="#6c757d" />
-              <Text style={styles.optionText}>Configurações</Text>
+              <Text style={styles.optionText}>Ajuda e Suporte</Text>
             </View>
-            <Icon name="trending-up" size={16} color="#6c757d" />
+            <Icon name="chevron-right" size={16} color="#6c757d" />
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -99,7 +163,7 @@ export default function ProfileScreen() {
               <Icon name="bar-chart" size={20} color="#6c757d" />
               <Text style={styles.optionText}>Exportar Relatório</Text>
             </View>
-            <Icon name="trending-up" size={16} color="#6c757d" />
+            <Icon name="chevron-right" size={16} color="#6c757d" />
           </TouchableOpacity>
         </View>
 
@@ -110,12 +174,53 @@ export default function ProfileScreen() {
             variant="danger"
             size="large"
             onPress={handleSignOut}
-            icon={<Icon name="user" size={18} color="#ffffff" />}
+            icon={<Icon name="log-out" size={18} color="#ffffff" />}
             iconPosition="left"
           />
         </View>
         
       </ScrollView>
+
+      {/* Password Modal */}
+      <Modal
+        visible={showPasswordModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelPasswordModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Habilitar Login com Biometria</Text>
+            <Text style={styles.modalDescription}>
+              Por favor, insira sua senha para confirmar.
+            </Text>
+            
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Digite sua senha"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              autoFocus
+            />
+            
+            <View style={styles.modalButtons}>
+              <CustomButton
+                title="Cancelar"
+                variant="secondary"
+                onPress={handleCancelPasswordModal}
+                style={styles.modalButton}
+              />
+              <CustomButton
+                title="Confirmar"
+                variant="primary"
+                onPress={handleEnableBiometrics}
+                style={styles.modalButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

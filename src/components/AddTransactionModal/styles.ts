@@ -66,7 +66,7 @@ export const styles = StyleSheet.create({
     fontFamily: theme.fonts.regular,
   },
   typeTextSelected: {
-    color: "white",
+    color: theme.colors.white,
   },
   typeTextUnselected: {
     color: theme.colors.textSecondary,

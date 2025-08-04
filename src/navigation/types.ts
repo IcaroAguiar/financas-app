@@ -12,9 +12,14 @@ export type AuthStackParamList = {
 export type AppTabParamList = {
   Dashboard: undefined;
   Transactions: undefined;
-  Reminders: undefined;
+  CentralAction: undefined;
   Debtors: undefined;
   Profile: undefined;
+};
+
+export type AppStackParamList = {
+  MainTabs: undefined;
+  Reminders: undefined;
 };
 
 // Define o tipo das props para cada tela, para uso dentro dos componentes

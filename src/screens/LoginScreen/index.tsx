@@ -1,22 +1,33 @@
-// src/screens/LoginScreen/index.tsx
+// @/screens/LoginScreen/index.tsx
 import React, { useState } from "react";
-import { Text, TouchableOpacity } from "react-native";
-import ScreenWrapper from "@/components/ScreenWrapper";
-// Importando com nossos novos aliases!
+import {
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Alert,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather } from "@expo/vector-icons";
+
 import { styles } from "./styles";
 import { LoginScreenProps } from "@/navigation/types";
+import { useAuth } from "@/contexts/AuthContext";
+import BrandHeader from "@/components/BrandHeader";
 import CustomInput from "@/components/CustomInput";
 import CustomButton from "@/components/CustomButton";
-import { useAuth } from "@/contexts/AuthContext";
-import { ActivityIndicator, Alert } from "react-native";
-import BrandHeader from "@/components/BrandHeader";
+import { theme } from "@/styles/theme";
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [isSigningIn, setIsSigningIn] = useState(false); // Estado de loading local
-
-  const { signIn } = useAuth(); // Pega a função do contexto
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const {
+    signIn,
+    isBiometricSupported,
+    isBiometricEnabled,
+    authenticateWithBiometrics,
+  } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -25,7 +36,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     setIsSigningIn(true);
     try {
       await signIn({ email, password });
-      // Se chegar aqui, o AppNavigator vai mudar de tela sozinho!
     } catch (error: any) {
       Alert.alert(
         "Erro de Login",
@@ -36,34 +46,69 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     }
   };
 
+  const handleBiometricLogin = async () => {
+    setIsSigningIn(true);
+    try {
+      await authenticateWithBiometrics();
+    } catch (error) {
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
   return (
-    <ScreenWrapper style={styles.container}>
-      <BrandHeader useIcon={true} logoColor="#FFFFFF" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <BrandHeader />
 
-      <CustomInput
-        placeholder="E-mail"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <CustomInput
+          placeholder="E-mail"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <CustomInput
+          placeholder="Senha"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <CustomInput
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        {isBiometricSupported && isBiometricEnabled && (
+          <TouchableOpacity
+            onPress={handleBiometricLogin}
+            style={styles.biometricButton}
+            disabled={isSigningIn}
+          >
+            <Feather
+              name="lock"
+              size={32}
+              color={theme.colors.primary}
+            />
+          </TouchableOpacity>
+        )}
 
-      <CustomButton
-        title="Entrar"
-        onPress={handleLogin}
-        disabled={isSigningIn}
-      />
+        {isSigningIn && (
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary}
+            style={{ marginVertical: 20 }}
+          />
+        )}
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
-      </TouchableOpacity>
-    </ScreenWrapper>
+        {!isSigningIn && (
+          <CustomButton
+            title="Entrar"
+            onPress={handleLogin}
+            disabled={isSigningIn}
+          />
+        )}
+
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }

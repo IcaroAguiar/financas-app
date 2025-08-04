@@ -99,7 +99,8 @@ export default function TransactionsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView 
-        style={styles.content} 
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

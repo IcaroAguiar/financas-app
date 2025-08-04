@@ -36,7 +36,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<"RECEITA" | "DESPESA">("DESPESA");
 
-  // Calculando dados reais dos devedores e dívidas
+  // Calculando dados reais das cobranças e dívidas
   const debtSummary = {
     pendingDebts: debts
       .filter((debt) => debt.status === "PENDENTE")
@@ -128,7 +128,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   return (
     <View style={styles.container}>
       <ScrollView
-        style={styles.content}
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -199,7 +200,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               onPress={() => handleOpenTransactionModal("DESPESA")}
             />
             <QuickActionCard
-              title="Ver Devedores"
+              title="Ver Cobranças"
               icon="users"
               color={theme.colors.primary}
               onPress={() => navigation.navigate("Debtors")}
@@ -208,7 +209,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               title="Lembretes"
               icon="bell"
               color={theme.colors.warning}
-              onPress={() => navigation.navigate("Reminders")}
+              onPress={() => navigation.getParent()?.navigate("Reminders")}
             />
           </View>
         </View>
@@ -228,7 +229,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             </View>
             <View style={styles.debtStat}>
               <Text style={styles.debtCount}>{debtSummary.totalDebtors}</Text>
-              <Text style={styles.debtLabel}>Devedores</Text>
+              <Text style={styles.debtLabel}>Cobranças</Text>
             </View>
           </View>
         </DashboardCard>

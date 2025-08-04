@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { styles } from "./styles";
+import { theme } from "@/styles/theme";
 
 interface CustomButtonProps extends TouchableOpacityProps {
   title: string;
@@ -31,6 +32,7 @@ export default function CustomButton({
   icon,
   iconPosition = "left",
   textStyle,
+  style,
   ...props
 }: CustomButtonProps) {
   const isDisabled = disabled || loading;
@@ -78,10 +80,13 @@ export default function CustomButton({
 
   const containerStyle: StyleProp<ViewStyle> = [
     styles.buttonContainer,
-    getVariantContainerStyle(),
+    style, // Apply external styles first
+    getVariantContainerStyle(), // Then apply variant styles (these take precedence)
     getSizeContainerStyle(),
     isDisabled && styles.disabledContainer,
   ];
+
+  // Style precedence: external styles first, then variant styles take precedence
 
   const finalTextStyle: StyleProp<TextStyle> = [
     styles.buttonText,
@@ -97,7 +102,7 @@ export default function CustomButton({
         <View style={styles.loadingContainer}>
           <ActivityIndicator 
             size="small" 
-            color={variant === "primary" || variant === "danger" ? "#ffffff" : "#2a9d8f"} 
+            color={variant === "primary" || variant === "danger" ? theme.colors.white : theme.colors.primary} 
           />
           <Text style={[finalTextStyle, { marginLeft: 8 }]}>Carregando...</Text>
         </View>
@@ -119,7 +124,7 @@ export default function CustomButton({
 
   return (
     <TouchableOpacity 
-      style={[containerStyle, props.style]} 
+      style={containerStyle} 
       disabled={isDisabled}
       accessible={true}
       accessibilityRole="button"

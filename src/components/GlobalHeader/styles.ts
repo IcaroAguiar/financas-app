@@ -32,4 +32,10 @@ export const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     fontFamily: theme.fonts.bold,
   },
+  bellButton: {
+    position: 'absolute',
+    right: theme.spacing.sides,
+    padding: theme.spacing.sm,
+    borderRadius: theme.borderRadius.sm,
+  },
 });

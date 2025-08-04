@@ -13,8 +13,9 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   content: {
-    flex: 1,
     paddingHorizontal: theme.spacing.md, // More conservative padding (12 instead of 16)
+    paddingBottom: 120, // Space for tab bar and floating button
+    flexGrow: 1, // Important for contentContainerStyle to work properly
   },
   summaryContainer: {
     flexDirection: 'row',
@@ -88,7 +89,7 @@ export const styles = StyleSheet.create({
   transactionsList: {
     backgroundColor: theme.colors.card,
     borderRadius: 12,
-    marginBottom: 100,
+    marginBottom: 20, // Normal margin, content container handles tab bar spacing
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

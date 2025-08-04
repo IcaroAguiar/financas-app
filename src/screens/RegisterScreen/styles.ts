@@ -1,25 +1,37 @@
-// src/screens/RegisterScreen/styles.ts
-import { StyleSheet } from "react-native";
-import { theme } from "@/styles/theme";
+// @/screens/LoginScreen/styles.ts
+import { StyleSheet } from 'react-native';
+import { theme } from '@/styles/theme';
 
-// Usamos exatamente o mesmo layout base do Login
 export const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    justifyContent: "center",
-    padding: 24,
     backgroundColor: theme.colors.background,
   },
-  title: {
-    fontSize: 28,
-    fontFamily: theme.fonts.bold,
-    color: theme.colors.textPrimary,
-    textAlign: "center",
-    marginBottom: 40,
+  // O container agora usa space-evenly
+  container: {
+    flex: 1,
+    justifyContent: 'space-evenly', // <-- MUDANÇA PRINCIPAL
+    paddingHorizontal: 24,
   },
+  
+  // Criamos containers lógicos para cada bloco
+  formContainer: {
+    width: '100%',
+  },
+  actionsContainer: {
+    width: '100%',
+  },
+
+  // Estilo do botão de biometria
+  biometricButton: {
+    alignSelf: 'center',
+    marginVertical: 16,
+  },
+  
+  // Estilo do link de navegação
   linkText: {
     color: theme.colors.primary,
-    textAlign: "center",
+    textAlign: 'center',
     fontFamily: theme.fonts.regular,
     marginTop: 20,
     padding: 10,

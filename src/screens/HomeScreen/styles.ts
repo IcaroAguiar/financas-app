@@ -8,7 +8,8 @@ export const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: theme.spacing.md, // More conservative padding (12 instead of 16)
-    paddingBottom: 100, // Espaço para a tab bar
+    paddingBottom: 120, // Increased space for tab bar and safe area
+    flexGrow: 1, // Important for contentContainerStyle to work properly
   },
   welcomeSection: {
     marginBottom: theme.spacing.sections,
@@ -42,7 +43,7 @@ export const styles = StyleSheet.create({
   balanceAmount: {
     fontSize: 28, // Reduced from 32 for smaller screens
     fontWeight: '700',
-    color: '#ffffff',
+    color: theme.colors.white,
     marginBottom: theme.spacing.xl,
     letterSpacing: -0.5,
   },
@@ -56,13 +57,13 @@ export const styles = StyleSheet.create({
   incomeAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.surface, // Branco puro
+    color: theme.colors.white, // Use white for contrast on primary background
     marginBottom: theme.spacing.xs,
   },
   expenseAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.surface, // Branco puro
+    color: theme.colors.white, // Use white for contrast on primary background
     marginBottom: theme.spacing.xs,
   },
   balanceItemLabel: {
@@ -170,6 +171,6 @@ export const styles = StyleSheet.create({
   analyticsButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#ffffff',
+    color: theme.colors.white,
   },
 });

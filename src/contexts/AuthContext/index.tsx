@@ -7,17 +7,23 @@ import React, {
   useContext,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as LocalAuthentication from "expo-local-authentication";
 import { User } from "@/types/user";
 import * as authService from "@/api/authService";
+import * as SecureStore from "expo-secure-store";
 import api from "@/api/axiosConfig";
 
 interface AuthContextData {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isBiometricSupported: boolean;
+  isBiometricEnabled: boolean;
   signIn(credentials: authService.SignInCredentials): Promise<void>;
   signUp(credentials: authService.SignUpCredentials): Promise<void>;
   signOut(): void;
+  authenticateWithBiometrics(): Promise<void>;
+  setIsBiometricEnabled(enabled: boolean): void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -28,9 +34,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   useEffect(() => {
-    // Carrega o token e o usuário do armazenamento ao iniciar o app
+    async function checkBiometricSupport() {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      
+      console.log('Biometric Hardware Available:', hasHardware);
+      console.log('Biometric Enrolled:', isEnrolled);
+      
+      setIsBiometricSupported(hasHardware && isEnrolled);
+      if (hasHardware && isEnrolled) {
+        const biometricEnabled = await AsyncStorage.getItem(
+          "@Ascend:biometricEnabled"
+        );
+        console.log('Biometric Setting in Storage:', biometricEnabled);
+        setIsBiometricEnabled(biometricEnabled === "true");
+      }
+    }
+
+    checkBiometricSupport();
+
     async function loadStoragedData() {
       const storagedUser = await AsyncStorage.getItem("@FinancasApp:user");
       const storagedToken = await AsyncStorage.getItem("@FinancasApp:token");
@@ -38,7 +64,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (storagedToken && storagedUser) {
         setUser(JSON.parse(storagedUser));
         setToken(storagedToken);
-        // Coloca o token no cabeçalho de todas as futuras requisições do axios
         api.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${storagedToken}`;
@@ -51,8 +76,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const signIn = async (credentials: authService.SignInCredentials) => {
     const { token } = await authService.signIn(credentials);
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    // A API não retorna o usuário no login, então pegamos do token ou de uma rota /me
-    // Por simplicidade, vamos usar uma rota /me fictícia
     const meResponse = await api.get<User>("/users/me");
 
     setUser(meResponse.data);
@@ -66,8 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const signUp = async (credentials: authService.SignUpCredentials) => {
-    const newUser = await authService.signUp(credentials);
-    // Após o cadastro, o ideal é fazer o login para obter o token
+    await authService.signUp(credentials);
     await signIn({ email: credentials.email, password: credentials.password });
   };
 
@@ -77,16 +99,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setToken(null);
   };
 
+  const authenticateWithBiometrics = async () => {
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Faça login no Ascend",
+    });
+
+    if (result.success) {
+      const email = await SecureStore.getItemAsync("@Ascend:userEmail");
+      const password = await SecureStore.getItemAsync("@Ascend:userPassword");
+
+      if (email && password) {
+        await signIn({ email, password });
+      } else {
+        // Handle case where credentials are not found in secure store
+        console.log("Biometric credentials not found.");
+      }
+    } else {
+      // Handle authentication failure
+      console.log("Biometric authentication failed.");
+    }
+  };
+
+  const setBiometricEnabled = (enabled: boolean) => {
+    setIsBiometricEnabled(enabled);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, signIn, signUp, signOut }}
+      value={{
+        user,
+        token,
+        isLoading,
+        isBiometricSupported,
+        isBiometricEnabled,
+        signIn,
+        signUp,
+        signOut,
+        authenticateWithBiometrics,
+        setIsBiometricEnabled: setBiometricEnabled,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook customizado para facilitar o uso do contexto
 export function useAuth(): AuthContextData {
   const context = useContext(AuthContext);
   return context;
