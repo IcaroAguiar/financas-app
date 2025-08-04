@@ -28,7 +28,6 @@
       },
       "package": "com.ic03aguiar.ascend"
     },
-    "edgeToEdgeEnabled": false,
     "plugins": [
       [
         "expo-system-ui",
