@@ -28,6 +28,15 @@
       },
       "package": "com.ic03aguiar.ascend"
     },
+    "edgeToEdgeEnabled": false,
+    "plugins": [
+      [
+        "expo-system-ui",
+        {
+          "userInterfaceStyle": "light"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./src/assets/images/icon-72x72.png"
     },
