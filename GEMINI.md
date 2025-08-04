@@ -274,3 +274,242 @@ To maximize your Gemini Code Pro plan usage and conserve daily tokens:
 - **Optimize images** and assets for mobile
 
 Remember: React Native development is most efficient when you understand the existing patterns, test frequently on devices, and leverage the established component and navigation systems.
+
+## Recent Development History & Critical Information
+
+### 🚨 IMPORTANT: Latest Session (2025-08-04) - Production Deployment Complete
+
+**PRODUCTION STATUS**: ✅ **FULLY OPERATIONAL**
+
+#### Backend API - LIVE
+- **Production URL**: `https://ascend-api-qezc.onrender.com/api`
+- **Status**: ✅ All endpoints tested and working
+- **Database**: PostgreSQL with Prisma migrations deployed
+- **Authentication**: JWT working correctly
+- **Key Fix**: Transaction type validation corrected (RECEITA/DESPESA)
+
+#### Mobile App - BUILD READY
+- **Status**: ✅ EAS build configuration complete
+- **Environment**: Production API integration confirmed  
+- **Build Issues**: All resolved (see troubleshooting section below)
+
+### 🔧 CRITICAL BUILD CONFIGURATION
+
+#### Required Dependencies (package.json)
+```json
+{
+  "dependencies": {
+    "react-native-dotenv": "^3.4.11",           // MUST be in dependencies
+    "babel-plugin-module-resolver": "^5.0.2",   // MUST be in dependencies  
+    "expo-system-ui": "~5.0.10"                 // Required for build
+  }
+}
+```
+
+#### Required Configuration Files
+
+**metro.config.js** (MUST exist):
+```javascript
+const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
+
+const config = getDefaultConfig(__dirname);
+
+config.resolver.alias = {
+  '@': path.resolve(__dirname, 'src'),
+};
+
+module.exports = config;
+```
+
+**babel.config.js** (Module resolver required):
+```javascript
+[
+  "module-resolver",
+  {
+    root: ["./src"],
+    alias: {
+      "@": "./src",
+    },
+  },
+]
+```
+
+**.env.production** (MUST exist):
+```env
+API_BASE_URL=https://ascend-api-qezc.onrender.com/api
+```
+
+**app.json** (Clean schema):
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-system-ui",
+        {
+          "userInterfaceStyle": "light"
+        }
+      ]
+    ]
+  }
+}
+```
+
+### 🚨 COMMON BUILD ERRORS & SOLUTIONS
+
+#### Error 1: Module Resolution
+```
+Error: Unable to resolve module @/contexts/AuthContext
+```
+**Solution**: Ensure `babel-plugin-module-resolver` is in `dependencies` and `metro.config.js` exists.
+
+#### Error 2: Environment Variables
+```  
+SyntaxError: Cannot find module 'react-native-dotenv'
+```
+**Solution**: Move `react-native-dotenv` from `devDependencies` to `dependencies`.
+
+#### Error 3: Expo Configuration
+```
+Error validating fields: should NOT have additional property 'edgeToEdgeEnabled'
+```
+**Solution**: Remove invalid properties, use `expo-system-ui` plugin instead.
+
+#### Error 4: Package Compatibility
+```
+The following packages should be updated for best compatibility
+```
+**Solution**: Run `npx expo install --check` and fix version mismatches.
+
+### 📋 PRE-BUILD CHECKLIST (MANDATORY)
+
+Before running EAS build, verify:
+
+1. **Dependencies**:
+   - [ ] `react-native-dotenv` in `dependencies` (not devDependencies)
+   - [ ] `babel-plugin-module-resolver` in `dependencies`
+   - [ ] `expo-system-ui` installed
+   - [ ] All packages compatible with Expo SDK 53
+
+2. **Configuration Files**:
+   - [ ] `metro.config.js` exists with path aliases
+   - [ ] `babel.config.js` has module resolver plugin
+   - [ ] `app.json` passes schema validation
+   - [ ] `.env.production` exists with production API URL
+
+3. **Build Environment**:
+   - [ ] EAS CLI installed and authenticated
+   - [ ] Clean npm install completed
+   - [ ] No TypeScript errors blocking build
+
+### 🚀 EAS BUILD COMMAND SEQUENCE
+
+```bash
+# 1. Ensure clean environment
+cd financas-app
+npm install
+
+# 2. Validate configuration
+npx expo-doctor                    # Check for issues
+npx expo install --check           # Fix package versions
+
+# 3. Authentication
+eas logout
+eas login
+# Credentials: ic03aguiar / aguiar2003
+
+# 4. Build
+eas build --platform android --profile preview --local
+```
+
+### 🧪 PRODUCTION API TESTING RESULTS
+
+All endpoints validated on `https://ascend-api-qezc.onrender.com/api`:
+
+| Endpoint | Method | Status | Notes |
+|----------|--------|--------|--------|
+| User Registration | POST /users | ✅ | Creates user successfully |
+| User Login | POST /users/login | ✅ | Returns JWT token |
+| Get Profile | GET /users/me | ✅ | Protected endpoint working |
+| Transactions CRUD | GET/POST/PUT/DELETE | ✅ | RECEITA/DESPESA types working |
+| Categories | GET/POST | ✅ | User-specific categories |
+| Debtors | GET/POST | ✅ | Full relationship support |
+| Debts | GET/POST | ✅ | Payment tracking functional |
+
+### 📊 BUILD TROUBLESHOOTING REFERENCE
+
+#### Quick Diagnostic Commands
+```bash
+# Check dependency locations
+npm list react-native-dotenv babel-plugin-module-resolver
+
+# Validate Expo configuration
+npx expo-doctor
+
+# Check TypeScript errors
+npx tsc --noEmit
+
+# Clear Metro cache
+npx expo start --clear
+```
+
+#### File Locations to Verify
+- `package.json` - Correct dependency placement
+- `metro.config.js` - Path alias configuration
+- `babel.config.js` - Module resolver plugin
+- `.env.production` - Production API URL
+- `app.json` - Valid Expo schema
+
+### 🎯 GIT COMMIT HISTORY (Recent)
+
+- `58df942` - Final build dependencies and configuration fixes
+- `95d4cfb` - Metro and Babel module resolution  
+- `3671424` - react-native-dotenv dependency fix
+- `b2aa8d2` - expo-system-ui and edge-to-edge configuration
+- `213d5a0` - Complete mobile app production readiness
+
+### 💡 DEVELOPMENT BEST PRACTICES
+
+1. **Always test production API before building**:
+   ```bash
+   curl -X POST https://ascend-api-qezc.onrender.com/api/users/login \
+     -H "Content-Type: application/json" \
+     -d '{"email":"test@test.com","password":"password"}'
+   ```
+
+2. **Verify build dependencies before major changes**:
+   - Keep build-time dependencies in `dependencies`
+   - Use `npx expo install` for Expo packages
+   - Test Metro bundler after configuration changes
+
+3. **Environment-specific development**:
+   - Development: `.env` with local API
+   - Production: `.env.production` with deployed API
+   - Babel automatically loads correct environment
+
+4. **Build troubleshooting workflow**:
+   - Check dependency locations first
+   - Validate configuration files
+   - Clear Metro cache if needed
+   - Test module resolution locally
+
+### 🏗️ ARCHITECTURE DECISIONS
+
+#### Module Resolution Strategy
+- **Metro Resolver**: Handles `@/` aliases during bundling
+- **Babel Plugin**: Transforms imports during build
+- **TypeScript**: Maintains intellisense and type checking
+- **Production Ready**: Works in both dev and production builds
+
+#### Environment Management
+- **Development**: Uses local API (`http://192.168.0.24:3000/api`)
+- **Production**: Uses deployed API (`https://ascend-api-qezc.onrender.com/api`)
+- **Automatic Switching**: Based on `NODE_ENV` environment variable
+
+#### Build System
+- **EAS Build**: Cloud-based or local Android builds
+- **Preview Profile**: APK builds for internal testing
+- **Production Profile**: AAB builds for store deployment
+
+This comprehensive information should prevent future build issues and ensure smooth development continuation.
