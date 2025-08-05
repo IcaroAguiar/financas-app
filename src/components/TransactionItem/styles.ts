@@ -33,6 +33,12 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
     flexShrink: 1, // Allow text to shrink if necessary
   },
+  account: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginBottom: 2,
+    flexShrink: 1,
+  },
   date: {
     fontSize: 12,
     color: theme.colors.textSecondary,
@@ -49,5 +55,53 @@ export const styles = StyleSheet.create({
   time: {
     fontSize: 12,
     color: theme.colors.textSecondary,
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: theme.spacing.sm,
+  },
+  actionButton: {
+    padding: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: theme.colors.background,
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  },
+  
+  // Installment progress styles
+  installmentProgress: {
+    marginTop: 8,
+  },
+  installmentText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 2,
+  },
+  progressPercentage: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    minWidth: 35,
+    textAlign: 'right',
   },
 });

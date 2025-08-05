@@ -200,10 +200,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               onPress={() => handleOpenTransactionModal("DESPESA")}
             />
             <QuickActionCard
-              title="Ver Cobranças"
-              icon="users"
+              title="Assinaturas"
+              icon="calendar"
               color={theme.colors.primary}
-              onPress={() => navigation.navigate("Debtors")}
+              onPress={() => navigation.getParent()?.navigate("Subscriptions")}
             />
             <QuickActionCard
               title="Lembretes"
@@ -217,7 +217,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* Debts Overview */}
         <DashboardCard
           title="Dívidas a Receber"
-          onSeeAll={() => navigation.navigate("Debtors")}
+          onSeeAll={() => navigation.getParent()?.navigate("Debtors")}
           seeAllText="Ver todas"
         >
           <View style={styles.debtsStats}>

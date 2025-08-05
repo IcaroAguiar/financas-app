@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
   modalTitle: {
     fontSize: 20,
@@ -26,8 +27,10 @@ export const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  summary: {
-    backgroundColor: theme.colors.card,
+  
+  // Transaction Card Styles
+  transactionCard: {
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -37,52 +40,20 @@ export const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-    marginBottom: 12,
-  },
-  summaryRow: {
+  transactionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: theme.colors.textSecondary,
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  debtCard: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
-  debtHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  debtTitle: {
+  transactionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: theme.colors.textPrimary,
     flex: 1,
     marginRight: 12,
   },
-  statusBadge: {
+  typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
@@ -90,95 +61,39 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 4,
   },
-  statusText: {
+  typeText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#fff',
   },
-  debtInfo: {
+  transactionInfo: {
     marginBottom: 16,
   },
-  amountInfo: {
-    marginBottom: 8,
-  },
-  originalAmount: {
-    fontSize: 16,
-    color: theme.colors.textPrimary,
-    marginBottom: 4,
-  },
-  currentAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.primary,
-    marginBottom: 4,
-  },
-  interestRate: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-  },
-  dueDate: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-  },
-  paidDate: {
-    fontSize: 14,
-    color: '#4CAF50',
-  },
-  overdueText: {
-    fontSize: 14,
-    color: '#F44336',
-    fontWeight: '600',
-  },
-  installmentsSection: {
-    marginTop: 16,
-  },
-  installmentsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-    marginBottom: 12,
-  },
-  installmentCard: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  installmentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  installmentInfo: {
-    flex: 1,
-  },
-  installmentNumber: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  installmentAmount: {
-    fontSize: 16,
+  transactionAmount: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: theme.colors.primary,
+    color: theme.colors.textPrimary,
+    marginBottom: 8,
   },
-  interestAmount: {
-    fontSize: 12,
-    color: '#F44336',
-    fontWeight: 'normal',
+  transactionDate: {
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
   },
-  installmentDetails: {
-    marginBottom: 12,
+  transactionCategory: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
   },
-  payButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 8,
+  transactionAccount: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
   },
-  // New styles for payment functionality
+  
+  // Progress Section Styles
   progressSection: {
     marginBottom: 16,
-    paddingTop: 12,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
   },
@@ -209,6 +124,8 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderRadius: 3,
   },
+  
+  // Payment Actions Styles
   paymentActions: {
     flexDirection: 'row',
     gap: 12,
@@ -220,5 +137,86 @@ export const styles = StyleSheet.create({
   paymentButton: {
     flex: 1,
     minHeight: 44,
+  },
+  
+  // Installments Section Styles
+  installmentsSection: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  installmentsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: 16,
+  },
+  
+  // Installment Card Styles
+  installmentCard: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+  },
+  installmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  installmentInfo: {
+    flex: 1,
+  },
+  installmentNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: 4,
+  },
+  installmentAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  installmentDetails: {
+    marginBottom: 12,
+  },
+  dueDate: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 4,
+  },
+  paidDate: {
+    fontSize: 14,
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  overdueText: {
+    fontSize: 14,
+    color: '#F44336',
+    fontWeight: '600',
+  },
+  payButton: {
+    backgroundColor: '#4CAF50',
+    minHeight: 36,
   },
 });

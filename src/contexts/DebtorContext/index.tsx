@@ -10,7 +10,7 @@ interface DebtorContextData {
   refreshing: boolean;
   loadDebtors: () => Promise<void>;
   loadDebts: () => Promise<void>;
-  addDebtor: (data: CreateDebtorData) => Promise<void>;
+  addDebtor: (data: CreateDebtorData) => Promise<Debtor>;
   addDebt: (data: CreateDebtData) => Promise<void>;
   refreshData: () => Promise<void>;
   getDebtorById: (id: string) => Debtor | undefined;
@@ -73,10 +73,11 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
     }
   };
 
-  const addDebtor = async (data: CreateDebtorData) => {
+  const addDebtor = async (data: CreateDebtorData): Promise<Debtor> => {
     try {
       const newDebtor = await createDebtor(data);
       setDebtors(prev => [...prev, newDebtor]);
+      return newDebtor;
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Não foi possível criar a cobrança.';
       throw new Error(errorMessage);

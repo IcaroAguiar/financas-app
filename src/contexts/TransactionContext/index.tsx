@@ -1,8 +1,17 @@
 // src/contexts/TransactionContext/index.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Transaction, TransactionType } from '@/types/transactions';
-import { CreateTransactionData, getTransactions, createTransaction } from '@/api/transactionService';
-import { Alert } from 'react-native';
+import { 
+  CreateTransactionData, 
+  UpdateTransactionData, 
+  getTransactions, 
+  createTransaction, 
+  updateTransaction, 
+  deleteTransaction,
+  markTransactionInstallmentPaid,
+  markTransactionPaid,
+  registerPartialPayment
+} from '@/api/transactionService';
 
 interface TransactionContextData {
   transactions: Transaction[];
@@ -15,9 +24,16 @@ interface TransactionContextData {
   };
   loadTransactions: () => Promise<void>;
   addTransaction: (data: CreateTransactionData) => Promise<void>;
+  updateTransactionById: (id: string, data: UpdateTransactionData) => Promise<void>;
+  deleteTransactionById: (id: string) => Promise<void>;
   refreshTransactions: () => Promise<void>;
   getTransactionsByType: (type: TransactionType) => Transaction[];
   getRecentTransactions: (limit?: number) => Transaction[];
+  
+  // Payment plan functions
+  markInstallmentPaid: (transactionId: string, installmentId: string) => Promise<void>;
+  markTransactionPaid: (transactionId: string) => Promise<void>;
+  registerPartialPayment: (transactionId: string, amount: number) => Promise<void>;
 }
 
 interface TransactionProviderProps {
@@ -56,7 +72,7 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
       setTransactions(response);
     } catch (error: any) {
       console.error('Erro ao carregar transações:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as transações.');
+      // Context doesn't show UI alerts - let calling components handle errors
     } finally {
       setLoading(false);
     }
@@ -84,6 +100,30 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     }
   };
 
+  const updateTransactionById = async (id: string, data: UpdateTransactionData) => {
+    try {
+      const updatedTransaction = await updateTransaction(id, data);
+      setTransactions(prev => 
+        prev.map(transaction => 
+          transaction.id === id ? updatedTransaction : transaction
+        )
+      );
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Não foi possível atualizar a transação.';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const deleteTransactionById = async (id: string) => {
+    try {
+      await deleteTransaction(id);
+      setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Não foi possível excluir a transação.';
+      throw new Error(errorMessage);
+    }
+  };
+
   const getTransactionsByType = (type: TransactionType): Transaction[] => {
     return transactions.filter(transaction => transaction.type === type);
   };
@@ -92,6 +132,47 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     return transactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, limit);
+  };
+
+  // Payment plan functions
+  const markInstallmentPaid = async (transactionId: string, installmentId: string) => {
+    try {
+      await markTransactionInstallmentPaid(transactionId, installmentId);
+      // Refresh transactions to get updated installment status
+      await refreshTransactions();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Não foi possível marcar a parcela como paga.';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const markTransactionPaidById = async (transactionId: string) => {
+    try {
+      const updatedTransaction = await markTransactionPaid(transactionId);
+      setTransactions(prev => 
+        prev.map(transaction => 
+          transaction.id === transactionId ? updatedTransaction : transaction
+        )
+      );
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Não foi possível marcar a transação como paga.';
+      throw new Error(errorMessage);
+    }
+  };
+
+  const registerPartialPaymentById = async (transactionId: string, amount: number) => {
+    try {
+      const result = await registerPartialPayment(transactionId, amount);
+      // Update the transaction with the updated data
+      setTransactions(prev => 
+        prev.map(transaction => 
+          transaction.id === transactionId ? result.transaction : transaction
+        )
+      );
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Não foi possível registrar o pagamento parcial.';
+      throw new Error(errorMessage);
+    }
   };
 
   useEffect(() => {
@@ -105,9 +186,14 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
     summary,
     loadTransactions,
     addTransaction,
+    updateTransactionById,
+    deleteTransactionById,
     refreshTransactions,
     getTransactionsByType,
     getRecentTransactions,
+    markInstallmentPaid,
+    markTransactionPaid: markTransactionPaidById,
+    registerPartialPayment: registerPartialPaymentById,
   };
 
   return (

@@ -17,6 +17,7 @@ import AddTransactionModal from "@/components/AddTransactionModal";
 import QuickActionsModal from "@/components/QuickActionsModal";
 import AddReminderModal from "@/components/AddReminderModal";
 import AddDebtorModal from "@/components/AddDebtorModal";
+import AddSubscriptionModal from "@/components/AddSubscriptionModal";
 import { CreateTransactionData } from '@/api/transactionService';
 import { CreateDebtorData } from '@/api/debtorService';
 
@@ -27,7 +28,9 @@ import HomeScreen from "@/screens/HomeScreen";
 import TransactionsScreen from "@/screens/TransactionsScreen";
 import RemindersScreen from "@/screens/RemindersScreen";
 import DebtorsScreen from "@/screens/DebtorsScreen";
+import SubscriptionsScreen from "@/screens/SubscriptionsScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
+import AccountsScreen from "@/screens/AccountsScreen";
 import { AuthStackParamList, AppTabParamList, AppStackParamList } from "./types";
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -43,6 +46,7 @@ function MainTabs() {
   const [isTransactionModalVisible, setIsTransactionModalVisible] = React.useState(false);
   const [isReminderModalVisible, setIsReminderModalVisible] = React.useState(false);
   const [isDebtorModalVisible, setIsDebtorModalVisible] = React.useState(false);
+  const [isSubscriptionModalVisible, setIsSubscriptionModalVisible] = React.useState(false);
 
   const handleCentralAction = () => {
     setIsQuickActionsVisible(true);
@@ -69,6 +73,10 @@ function MainTabs() {
     setIsDebtorModalVisible(true);
   };
 
+  const handleAddSubscription = () => {
+    setIsSubscriptionModalVisible(true);
+  };
+
   const handleReminderSubmit = async (reminderData: any) => {
     try {
       // TODO: Implement reminder API integration
@@ -93,7 +101,7 @@ function MainTabs() {
     <AppTab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ color, size, focused }) => {
-          let iconName: 'home' | 'home-filled' | 'dollar-sign' | 'list-search' | 'bell' | 'users' | 'user' = "home" ;
+          let iconName: 'home' | 'home-filled' | 'dollar-sign' | 'list-search' | 'bell' | 'users' | 'user' | 'calendar' = "home" ;
           
           if (route.name === "Dashboard")
             iconName = focused ? "home-filled" : "home";
@@ -171,6 +179,7 @@ function MainTabs() {
       onAddTransaction={handleOpenTransactionModal}
       onAddReminder={handleAddReminder}
       onAddDebtor={handleAddDebtor}
+      onAddSubscription={handleAddSubscription}
     />
     
     <AddTransactionModal
@@ -190,6 +199,11 @@ function MainTabs() {
       onClose={() => setIsDebtorModalVisible(false)}
       onSubmit={handleDebtorSubmit}
     />
+    
+    <AddSubscriptionModal
+      visible={isSubscriptionModalVisible}
+      onClose={() => setIsSubscriptionModalVisible(false)}
+    />
     </>
   );
 }
@@ -206,6 +220,23 @@ function AppRoutes() {
           headerShown: true,
           title: "Lembretes",
           presentation: 'modal',
+        }}
+      />
+      <AppStack.Screen 
+        name="Accounts" 
+        component={AccountsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <AppStack.Screen 
+        name="Subscriptions" 
+        component={SubscriptionsScreen}
+        options={{
+          headerShown: true,
+          title: "Assinaturas",
+          presentation: 'card',
         }}
       />
     </AppStack.Navigator>

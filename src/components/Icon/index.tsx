@@ -5,9 +5,10 @@ import * as FeatherIcons from 'react-native-feather';
 export interface IconProps {
   name: 'home' | 'home-filled' | 'list' | 'list-search' | 'plus' | 'bell' | 'users' | 'user' | 
         'trending-up' | 'trending-down' | 'bar-chart' | 'mail' | 'phone' | 'calendar' | 
-        'dollar-sign' | 'receipt' | 'wallet' | 'coins' | 'close' | 'alert-circle' | 'checkmark-circle' | 'clock' | 
+        'dollar-sign' | 'receipt' | 'wallet' | 'coins' | 'close' | 'alert-circle' | 'alert-triangle' | 'checkmark-circle' | 'clock' | 
         'help-circle' | 'minus' | 'brief-case' | 'brief-case-filled' | 'check-circle' | 'x' | 'credit-card' |
-        'lock' | 'chevron-right' | 'log-out' | 'message-circle';
+        'lock' | 'chevron-right' | 'log-out' | 'message-circle' | 'check' | 'chevron-down' | 'eye' | 'eye-off' |
+        'edit-2' | 'trash-2' | 'pause' | 'play' | 'refresh-cw';
   size?: number;
   color?: string;
 }
@@ -34,6 +35,7 @@ const iconMap = {
   'coins': FeatherIcons.DollarSign, // Using DollarSign as closest alternative
   'close': FeatherIcons.X,
   'alert-circle': FeatherIcons.AlertCircle,
+  'alert-triangle': FeatherIcons.AlertTriangle,
   'checkmark-circle': FeatherIcons.CheckCircle,
   'check-circle': FeatherIcons.CheckCircle,
   'clock': FeatherIcons.Clock,
@@ -47,6 +49,15 @@ const iconMap = {
   'chevron-right': FeatherIcons.ChevronRight,
   'log-out': FeatherIcons.LogOut,
   'message-circle': FeatherIcons.MessageCircle,
+  'check': FeatherIcons.Check,
+  'chevron-down': FeatherIcons.ChevronDown,
+  'eye': FeatherIcons.Eye,
+  'eye-off': FeatherIcons.EyeOff,
+  'edit-2': FeatherIcons.Edit2,
+  'trash-2': FeatherIcons.Trash2,
+  'pause': FeatherIcons.Pause,
+  'play': FeatherIcons.Play,
+  'refresh-cw': FeatherIcons.RefreshCw,
 };
 
 export default function Icon({ name, size = 24, color = '#000', ...props }: IconProps) {

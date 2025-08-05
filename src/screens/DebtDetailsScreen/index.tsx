@@ -7,32 +7,7 @@ import { styles } from './styles';
 import { theme } from '@/styles/theme';
 import Icon from '@/components/Icon';
 import RegisterPaymentModal from '@/components/RegisterPaymentModal';
-import { getDebtById } from '@/api/debtorService';
-
-// Types for the debt details
-interface Payment {
-  id: string;
-  amount: number;
-  paymentDate: string;
-  notes?: string;
-}
-
-interface DebtDetails {
-  id: string;
-  description: string;
-  totalAmount: number;
-  paidAmount: number;
-  remainingAmount: number;
-  status: 'PENDENTE' | 'PAGA';
-  dueDate: string;
-  debtor: {
-    id: string;
-    name: string;
-    email?: string;
-    phone?: string;
-  };
-  payments: Payment[];
-}
+import { getDebtById, Debt, Payment } from '@/api/debtorService';
 
 type DebtDetailsRouteParams = {
   DebtDetails: {
@@ -46,7 +21,7 @@ export default function DebtDetailsScreen() {
   const navigation = useNavigation();
   const { debtId, debtorName } = route.params;
 
-  const [debtDetails, setDebtDetails] = useState<DebtDetails | null>(null);
+  const [debtDetails, setDebtDetails] = useState<Debt | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showRegisterPayment, setShowRegisterPayment] = useState(false);
@@ -152,7 +127,7 @@ export default function DebtDetailsScreen() {
         {/* Debt Summary Card */}
         <View style={styles.summaryCard}>
           <Text style={styles.debtDescription}>{debtDetails.description}</Text>
-          <Text style={styles.debtorName}>Devedor: {debtDetails.debtor.name}</Text>
+          <Text style={styles.debtorName}>Devedor: {debtDetails.debtor?.name}</Text>
           
           <View style={styles.amountContainer}>
             <View style={styles.amountRow}>
@@ -161,15 +136,15 @@ export default function DebtDetailsScreen() {
             </View>
             <View style={styles.amountRow}>
               <Text style={styles.amountLabel}>Pago:</Text>
-              <Text style={styles.paidAmount}>{formatCurrency(debtDetails.paidAmount)}</Text>
+              <Text style={styles.paidAmount}>{formatCurrency(debtDetails.paidAmount || 0)}</Text>
             </View>
             <View style={styles.amountRow}>
               <Text style={styles.amountLabel}>Restante:</Text>
               <Text style={[
                 styles.remainingAmount,
-                debtDetails.remainingAmount <= 0 ? styles.paidText : styles.pendingText
+                (debtDetails.remainingAmount || 0) <= 0 ? styles.paidText : styles.pendingText
               ]}>
-                {formatCurrency(debtDetails.remainingAmount)}
+                {formatCurrency(debtDetails.remainingAmount || 0)}
               </Text>
             </View>
           </View>
@@ -231,8 +206,8 @@ export default function DebtDetailsScreen() {
       <RegisterPaymentModal
         visible={showRegisterPayment}
         debtId={debtDetails.id}
-        debtorName={debtDetails.debtor.name}
-        remainingAmount={debtDetails.remainingAmount}
+        debtorName={debtDetails.debtor?.name || ''}
+        remainingAmount={debtDetails.remainingAmount || 0}
         onClose={() => setShowRegisterPayment(false)}
         onPaymentCreated={refreshData}
       />

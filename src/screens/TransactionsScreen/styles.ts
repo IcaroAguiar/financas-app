@@ -118,4 +118,42 @@ export const styles = StyleSheet.create({
     marginTop: 16,
     lineHeight: 24,
   },
+  
+  // Account Filter Styles
+  accountFiltersContainer: {
+    marginBottom: 20,
+  },
+  accountFiltersTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  accountFilterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginRight: 8,
+    gap: 4,
+    flexShrink: 1,
+  },
+  activeAccountFilterButton: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  accountFilterText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    flexShrink: 1,
+  },
+  activeAccountFilterText: {
+    color: '#fff',
+  },
 });

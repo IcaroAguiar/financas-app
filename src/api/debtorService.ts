@@ -21,6 +21,9 @@ export interface Debt {
   debtorId: string;
   debtor?: Debtor;
   payments?: Payment[];
+  // Calculated fields from backend
+  paidAmount?: number;
+  remainingAmount?: number;
 }
 
 export interface Payment {

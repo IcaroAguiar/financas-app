@@ -19,12 +19,21 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSigningUp, setIsSigningUp] = useState(false);
   const { signUp } = useAuth();
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !confirmPassword) {
       return Alert.alert("Erro", "Por favor, preencha todos os campos.");
+    }
+
+    if (password !== confirmPassword) {
+      return Alert.alert("Erro", "As senhas não coincidem.");
+    }
+
+    if (password.length < 6) {
+      return Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres.");
     }
     setIsSigningUp(true);
     try {
@@ -60,6 +69,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             placeholder="Senha"
             value={password}
             onChangeText={setPassword}
+            secureTextEntry
+          />
+          <CustomInput
+            placeholder="Confirmar Senha"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
             secureTextEntry
           />
         </View>

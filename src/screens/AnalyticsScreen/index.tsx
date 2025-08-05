@@ -74,7 +74,7 @@ export default function AnalyticsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BrandHeader useIcon={true} />
+      <BrandHeader />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.screenTitle}>Análises</Text>

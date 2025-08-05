@@ -69,4 +69,95 @@ export const styles = StyleSheet.create({
   submitButton: {
     flex: 1,
   },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.border,
+    marginVertical: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+    marginBottom: 15,
+  },
+  formContent: {
+    paddingBottom: 20,
+  },
+  paymentPlanToggle: {
+    marginBottom: 20,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+  },
+  installmentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 20,
+  },
+  frequencySelector: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  frequencyButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 2,
+    borderRadius: theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.background,
+  },
+  frequencyButtonSelected: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  frequencyButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    textAlign: 'center',
+  },
+  frequencyButtonTextSelected: {
+    color: theme.colors.surface,
+  },
+  installmentPreview: {
+    backgroundColor: '#F0F9FF',
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.primary,
+    padding: 16,
+    marginBottom: 20,
+    borderRadius: theme.borderRadius.md,
+  },
+  previewLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    marginBottom: 4,
+  },
+  previewText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.textPrimary,
+  },
 });

@@ -97,7 +97,7 @@ export default function NotificationSettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <BrandHeader useIcon={true} />
+      <BrandHeader />
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.screenTitle}>Notificações</Text>
 

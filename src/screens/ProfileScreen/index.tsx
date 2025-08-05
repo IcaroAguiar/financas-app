@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
 import { Switch } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,7 @@ import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const { user, signOut, isBiometricSupported, isBiometricEnabled, setIsBiometricEnabled } = useAuth();
   const { summary } = useTransactions();
   const { debtors } = useDebtors();
@@ -155,6 +157,17 @@ export default function ProfileScreen() {
             <Icon name="chevron-right" size={16} color="#6c757d" />
           </TouchableOpacity>
           
+          <TouchableOpacity 
+            style={styles.optionItem} 
+            onPress={() => navigation.getParent()?.navigate('Accounts')}
+          >
+            <View style={styles.optionContent}>
+              <Icon name="credit-card" size={20} color="#6c757d" />
+              <Text style={styles.optionText}>Minhas Contas</Text>
+            </View>
+            <Icon name="chevron-right" size={16} color="#6c757d" />
+          </TouchableOpacity>
+
           <TouchableOpacity 
             style={styles.optionItem} 
             onPress={() => Alert.alert('Exportar', 'Iniciar o fluxo de exportação.')}

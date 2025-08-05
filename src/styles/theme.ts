@@ -17,12 +17,19 @@ interface ThemeColors {
   warning: string;
   neutral: string;
   white: string;
+  danger: string;
+  text: {
+    primary: string;
+    secondary: string;
+    light: string;
+  };
 }
 
 interface ThemeFonts {
   regular: string;
   bold: string;
   light: string;
+  medium: string;
 }
 
 interface ThemeSpacing {
@@ -31,6 +38,7 @@ interface ThemeSpacing {
   md: number;
   lg: number;
   xl: number;
+  xxl: number;
   sides: number;
   sections: number;
 }
@@ -86,11 +94,18 @@ export const theme: AppTheme = {
     warning: "#ffc107", // --color-warning (yellow)
     neutral: "#6c757d", // --color-neutral (gray)
     white: "#ffffff", // --color-white
+    danger: "#dc3545", // --color-danger (same as error)
+    text: {
+      primary: "#1a1a1a",
+      secondary: "#6c757d",
+      light: "#adb5bd",
+    },
   },
   // Nomes genéricos para facilitar a troca de fontes no futuro, se necessário
   fonts: {
     light: "Roboto_300Light",
     regular: "Roboto_400Regular",
+    medium: "Roboto_500Medium",
     bold: "Roboto_700Bold",
   },
   spacing: {
@@ -99,6 +114,7 @@ export const theme: AppTheme = {
     md: 12,
     lg: 16,
     xl: 20,
+    xxl: 32,
     sides: 16,
     sections: 24,
   },

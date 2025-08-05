@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
+import { useToast } from '@/hooks/useToast';
 
 interface Installment {
   id: string;
@@ -44,6 +46,8 @@ interface DebtDetailsModalProps {
   debts: Debt[];
   onClose: () => void;
   onMarkInstallmentPaid: (debtId: string, installmentId: string) => void;
+  onMarkDebtPaid?: (debtId: string) => void;
+  onMarkPartialPayment?: (debtId: string, amount: number) => void;
 }
 
 export default function DebtDetailsModal({
@@ -52,7 +56,11 @@ export default function DebtDetailsModal({
   debts,
   onClose,
   onMarkInstallmentPaid,
+  onMarkDebtPaid,
+  onMarkPartialPayment,
 }: DebtDetailsModalProps) {
+  const toast = useToast();
+  
   if (!debtor) return null;
 
   // Safety checks
@@ -64,6 +72,50 @@ export default function DebtDetailsModal({
   };
 
   const safeDebts = Array.isArray(debts) ? debts : [];
+
+  // Payment functionality
+  const handleMarkDebtAsPaid = (debt: Debt) => {
+    toast.showConfirmation({
+      title: 'Confirmar Pagamento',
+      message: `Deseja marcar "${debt.description}" como paga?\n\nValor: ${formatCurrency(debt.totalAmount)}`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onConfirm: () => {
+        onMarkDebtPaid?.(debt.id);
+        toast.showSuccess({ message: 'Dívida marcada como paga!' });
+      }
+    });
+  };
+
+  const handlePartialPayment = (debt: Debt) => {
+    // For now, show a simple confirmation. Later can be enhanced with amount input
+    toast.showConfirmation({
+      title: 'Pagamento Parcial',
+      message: `Registrar pagamento parcial para "${debt.description}"?`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onConfirm: () => {
+        // TODO: Open modal with amount input
+        const partialAmount = debt.totalAmount * 0.5; // Placeholder: 50% payment
+        onMarkPartialPayment?.(debt.id, partialAmount);
+        toast.showSuccess({ message: 'Pagamento parcial registrado!' });
+      }
+    });
+  };
+
+  // Calculate installment progress for display
+  const getInstallmentProgress = (debt: Debt) => {
+    if (!debt.isInstallment || !debt.installments) return null;
+    
+    const totalInstallments = debt.installments.length;
+    const paidInstallments = debt.installments.filter(inst => inst.status === 'PAGO').length;
+    
+    return {
+      paid: paidInstallments,
+      total: totalInstallments,
+      percentage: totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0
+    };
+  };
 
   const formatCurrency = (value: number | undefined) => {
     if (value === undefined || value === null || isNaN(value)) {
@@ -161,54 +213,100 @@ export default function DebtDetailsModal({
     );
   };
 
-  const renderDebt = (debt: Debt) => (
-    <View key={debt.id} style={styles.debtCard}>
-      <View style={styles.debtHeader}>
-        <Text style={styles.debtTitle}>{debt.description}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(debt.status) }]}>
-          <Icon name={getStatusIcon(debt.status)} size={16} color="#fff" />
-          <Text style={styles.statusText}>{debt.status}</Text>
+  const renderDebt = (debt: Debt) => {
+    const progress = getInstallmentProgress(debt);
+    
+    return (
+      <View key={debt.id} style={styles.debtCard}>
+        <View style={styles.debtHeader}>
+          <Text style={styles.debtTitle}>{debt.description}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(debt.status) }]}>
+            <Icon name={getStatusIcon(debt.status)} size={16} color="#fff" />
+            <Text style={styles.statusText}>{debt.status}</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.debtInfo}>
-        <View style={styles.amountInfo}>
-          <Text style={styles.originalAmount}>
-            Valor Original: {formatCurrency(debt.originalAmount)}
-          </Text>
-          {debt.totalAmount !== debt.originalAmount && (
-            <Text style={styles.currentAmount}>
-              Valor Atual: {formatCurrency(debt.totalAmount)}
+        <View style={styles.debtInfo}>
+          <View style={styles.amountInfo}>
+            <Text style={styles.originalAmount}>
+              Valor Original: {formatCurrency(debt.originalAmount)}
             </Text>
-          )}
-          {debt.interestRate && (
-            <Text style={styles.interestRate}>
-              Taxa: {debt.interestRate}% ao mês
+            {debt.totalAmount !== debt.originalAmount && (
+              <Text style={styles.currentAmount}>
+                Valor Atual: {formatCurrency(debt.totalAmount)}
+              </Text>
+            )}
+            {debt.interestRate && (
+              <Text style={styles.interestRate}>
+                Taxa: {debt.interestRate}% ao mês
+              </Text>
+            )}
+          </View>
+          
+          {!debt.isInstallment && (
+            <Text style={styles.dueDate}>
+              Vencimento: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
             </Text>
           )}
         </View>
-        
-        {!debt.isInstallment && (
-          <Text style={styles.dueDate}>
-            Vencimento: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
-          </Text>
+
+        {/* Installment Progress */}
+        {debt.isInstallment && progress && (
+          <View style={styles.progressSection}>
+            <View style={styles.progressHeader}>
+              <Text style={styles.progressText}>
+                {progress.paid}/{progress.total} parcelas pagas
+              </Text>
+              <Text style={styles.progressPercentage}>
+                {progress.percentage.toFixed(0)}%
+              </Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${progress.percentage}%` }
+                ]} 
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Payment Actions */}
+        {debt.status !== 'PAGA' && (
+          <View style={styles.paymentActions}>
+            <CustomButton
+              title="Pagamento Total"
+              onPress={() => handleMarkDebtAsPaid(debt)}
+              style={styles.paymentButton}
+              variant="primary"
+            />
+            {!debt.isInstallment && (
+              <CustomButton
+                title="Pagamento Parcial"
+                onPress={() => handlePartialPayment(debt)}
+                style={styles.paymentButton}
+                variant="secondary"
+              />
+            )}
+          </View>
+        )}
+
+        {debt.isInstallment && debt.installments && (
+          <View style={styles.installmentsSection}>
+            <Text style={styles.installmentsTitle}>
+              Parcelamento ({debt.installments.length} parcelas)
+            </Text>
+            {debt.installments.map(installment => renderInstallment(debt, installment))}
+          </View>
         )}
       </View>
-
-      {debt.isInstallment && debt.installments && (
-        <View style={styles.installmentsSection}>
-          <Text style={styles.installmentsTitle}>
-            Parcelamento ({debt.installments.length} parcelas)
-          </Text>
-          {debt.installments.map(installment => renderInstallment(debt, installment))}
-        </View>
-      )}
-    </View>
-  );
+    );
+  };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.modalTitle}>Dívidas de {safeDebtor.name}</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -235,7 +333,7 @@ export default function DebtDetailsModal({
 
           {safeDebts.map(renderDebt)}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

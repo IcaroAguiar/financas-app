@@ -8,8 +8,9 @@ import DebtDetailsModal from '@/components/DebtDetailsModal';
 import AddDebtorModal from '@/components/AddDebtorModal';
 import ChargeDebtModal from '@/components/ChargeDebtModal';
 import { useDebtors } from '@/contexts/DebtorContext';
-import { Debtor as ApiDebtor, Debt as ApiDebt } from '@/api/debtorService';
+import { Debtor as ApiDebtor, Debt as ApiDebt, CreateDebtorData, CreateDebtData } from '@/api/debtorService';
 import { theme } from '@/styles/theme';
+import { useToast } from '@/hooks/useToast';
 
 // Debtor interface imported from debtorService.ts
 
@@ -44,10 +45,13 @@ export default function DebtorsScreen() {
     refreshing, 
     refreshData, 
     addDebtor,
+    addDebt,
     getTotalDebtForDebtor, 
     getPendingDebtsForDebtor,
     getDebtsByDebtorId
   } = useDebtors();
+  
+  const toast = useToast();
 
   const [selectedDebtor, setSelectedDebtor] = useState<ApiDebtor | null>(null);
   const [showDebtDetails, setShowDebtDetails] = useState(false);
@@ -56,123 +60,46 @@ export default function DebtorsScreen() {
   const [chargeDebtDebtor, setChargeDebtDebtor] = useState<ApiDebtor | null>(null);
 
 
-  // Mock debt details with installments
-  const getDebtorDebts = (debtorId: string): Debt[] => {
-    const mockDebts: { [key: string]: Debt[] } = {
-      '1': [
-        {
-          id: 'debt1',
-          description: 'Empréstimo Pessoal',
-          totalAmount: 1200.00,
-          originalAmount: 1000.00,
-          dueDate: new Date(2025, 6, 15),
-          status: 'ATRASADA',
-          debtorId: '1',
-          interestRate: 2.5, // 2.5% ao mês
-          isInstallment: true,
-          installmentCount: 4,
-          installments: [
-            {
-              id: 'inst1',
-              installmentNumber: 1,
-              amount: 300.00,
-              dueDate: new Date(2025, 5, 15),
-              paidDate: new Date(2025, 5, 20),
-              status: 'PAGO',
-              interestApplied: 0
-            },
-            {
-              id: 'inst2',
-              installmentNumber: 2,
-              amount: 300.00,
-              dueDate: new Date(2025, 6, 15),
-              status: 'ATRASADO',
-              interestApplied: 50.00
-            },
-            {
-              id: 'inst3',
-              installmentNumber: 3,
-              amount: 300.00,
-              dueDate: new Date(2025, 7, 15),
-              status: 'PENDENTE'
-            },
-            {
-              id: 'inst4',
-              installmentNumber: 4,
-              amount: 300.00,
-              dueDate: new Date(2025, 8, 15),
-              status: 'PENDENTE'
-            }
-          ]
-        },
-        {
-          id: 'debt2',
-          description: 'Material de Construção',
-          totalAmount: 450.00,
-          originalAmount: 450.00,
-          dueDate: new Date(2025, 8, 10),
-          status: 'PENDENTE',
-          debtorId: '1',
-          isInstallment: false
-        }
-      ],
-      '2': [
-        {
-          id: 'debt3',
-          description: 'Serviços de Consultoria',
-          totalAmount: 825.00,
-          originalAmount: 750.00,
-          dueDate: new Date(2025, 7, 20),
-          status: 'PENDENTE',
-          debtorId: '2',
-          interestRate: 1.8,
-          isInstallment: true,
-          installmentCount: 3,
-          installments: [
-            {
-              id: 'inst5',
-              installmentNumber: 1,
-              amount: 275.00,
-              dueDate: new Date(2025, 6, 20),
-              status: 'PENDENTE'
-            },
-            {
-              id: 'inst6',
-              installmentNumber: 2,
-              amount: 275.00,
-              dueDate: new Date(2025, 7, 20),
-              status: 'PENDENTE'
-            },
-            {
-              id: 'inst7',
-              installmentNumber: 3,
-              amount: 275.00,
-              dueDate: new Date(2025, 8, 20),
-              status: 'PENDENTE'
-            }
-          ]
-        }
-      ]
-    };
-    return mockDebts[debtorId] || [];
+  // Get debts for a specific debtor using real API data
+  const getDebtorDebts = (debtorId: string) => {
+    return getDebtsByDebtorId(debtorId);
   };
 
   const handleMarkInstallmentPaid = (debtId: string, installmentId: string) => {
-    Alert.alert(
-      'Confirmar Pagamento',
-      'Deseja marcar esta parcela como paga?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          onPress: () => {
-            // TODO: Implement API call to mark installment as paid
-            Alert.alert('Sucesso', 'Parcela marcada como paga!');
-            setShowDebtDetails(false);
-          }
-        }
-      ]
-    );
+    toast.showConfirmation({
+      title: 'Confirmar Pagamento',
+      message: 'Deseja marcar esta parcela como paga?',
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onConfirm: () => {
+        // TODO: Implement API call to mark installment as paid
+        toast.showSuccess({ message: 'Parcela marcada como paga!' });
+        // Refresh data to show updated status
+        refreshData();
+      }
+    });
+  };
+
+  const handleMarkDebtPaid = (debtId: string) => {
+    toast.showConfirmation({
+      title: 'Confirmar Pagamento',
+      message: 'Deseja marcar toda a dívida como paga?',
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onConfirm: () => {
+        // TODO: Implement API call to mark entire debt as paid
+        toast.showSuccess({ message: 'Dívida marcada como paga!' });
+        // Refresh data to show updated status
+        refreshData();
+      }
+    });
+  };
+
+  const handleMarkPartialPayment = (debtId: string, amount: number) => {
+    // TODO: Implement API call to register partial payment
+    toast.showSuccess({ message: 'Pagamento parcial registrado!' });
+    // Refresh data to show updated status
+    refreshData();
   };
 
   const sendWhatsAppMessage = (phone: string, debtorName: string, totalDebt: number) => {
@@ -191,6 +118,27 @@ export default function DebtorsScreen() {
         Alert.alert('Erro', 'WhatsApp não está instalado neste dispositivo');
       }
     });
+  };
+
+  const handleCreateDebtorAndDebt = async (debtorData: CreateDebtorData, debtData: CreateDebtData) => {
+    try {
+      // First create the debtor
+      const createdDebtor = await addDebtor(debtorData);
+      
+      // Then create the debt for that debtor
+      const debtDataWithDebtorId = {
+        ...debtData,
+        debtorId: createdDebtor.id
+      };
+      
+      await addDebt(debtDataWithDebtorId);
+      
+      // Refresh data to show the new debtor and debt
+      await refreshData();
+      
+    } catch (error) {
+      throw error; // Re-throw to let the modal handle the error display
+    }
   };
 
   const sendEmail = (email: string, debtorName: string, totalDebt: number) => {
@@ -427,12 +375,14 @@ export default function DebtorsScreen() {
           })) : []}
           onClose={() => setShowDebtDetails(false)}
           onMarkInstallmentPaid={handleMarkInstallmentPaid}
+          onMarkDebtPaid={handleMarkDebtPaid}
+          onMarkPartialPayment={handleMarkPartialPayment}
         />
 
         <AddDebtorModal
           visible={showAddDebtor}
           onClose={() => setShowAddDebtor(false)}
-          onSubmit={addDebtor}
+          onSubmit={handleCreateDebtorAndDebt}
         />
 
         <ChargeDebtModal
