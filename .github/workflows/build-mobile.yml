@@ -1,0 +1,80 @@
+name: Build Mobile App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Mobile App
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: TypeScript check
+      run: npx tsc --noEmit
+    
+    - name: Lint check
+      run: npm run lint --if-present
+    
+    - name: Run tests
+      run: npm test --if-present
+
+  build:
+    name: Build with EAS
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Setup Expo
+      uses: expo/expo-github-action@v8
+      with:
+        expo-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Setup production environment
+      run: |
+        echo "EXPO_PUBLIC_API_URL=https://ascend-api-qezc.onrender.com/api" > .env.production
+    
+    - name: EAS Build
+      run: |
+        eas login --non-interactive
+        eas build --platform android --profile preview --non-interactive
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    - name: Notify Success
+      if: success()
+      run: |
+        echo "✅ Mobile app build successful!"
+        echo "Check EAS dashboard for build details"
+    
+    - name: Notify Failure
+      if: failure()
+      run: |
+        echo "❌ Mobile app build failed!"
+        exit 1
