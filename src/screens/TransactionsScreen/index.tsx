@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFocusEffect } from "@react-navigation/native";
 import AddTransactionModal from "@/components/AddTransactionModal";
-import TransactionDetailsModal from "@/components/TransactionDetailsModal";
+import TransactionBottomSheet from "@/components/TransactionBottomSheet";
 import { CreateTransactionData, UpdateTransactionData } from '@/api/transactionService';
 import { useToast } from '@/hooks/useToast';
 
@@ -42,8 +43,8 @@ export default function TransactionsScreen() {
   const [filterAccountId, setFilterAccountId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   
-  // Transaction details modal state
-  const [showTransactionDetails, setShowTransactionDetails] = useState(false);
+  // Transaction bottom sheet state
+  const [showTransactionBottomSheet, setShowTransactionBottomSheet] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   const handleSaveTransaction = async (
@@ -101,12 +102,17 @@ export default function TransactionsScreen() {
     setEditingTransaction(null);
   };
 
-  const handleViewTransactionDetails = (transactionId: string) => {
+  const handleTransactionPress = (transactionId: string) => {
     const transaction = transactions.find(t => t.id === transactionId);
     if (transaction) {
       setSelectedTransaction(transaction);
-      setShowTransactionDetails(true);
+      setShowTransactionBottomSheet(true);
     }
+  };
+
+  const handleCloseBottomSheet = () => {
+    setShowTransactionBottomSheet(false);
+    setSelectedTransaction(null);
   };
 
   const handleMarkTransactionInstallmentPaid = async (transactionId: string, installmentId: string) => {
@@ -217,7 +223,8 @@ export default function TransactionsScreen() {
   const filteredTransactions = getFilteredAndSortedTransactions();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
@@ -347,13 +354,8 @@ export default function TransactionsScreen() {
                     category={item.category?.name || "Sem Categoria"}
                     amount={item.amount}
                     type={item.type}
-                    date={new Date(item.date)}
-                    account={item.account?.name}
-                    onEdit={handleEditTransaction}
-                    onDelete={handleDeleteTransaction}
-                    onViewDetails={handleViewTransactionDetails}
-                    isInstallmentPlan={Boolean(item.isInstallmentPlan)} // Using real installment plan field
-                    installmentProgress={installmentProgress}
+                    onPress={handleTransactionPress}
+                    isInstallmentPlan={Boolean(item.isInstallmentPlan)}
                   />
                   {index < filteredTransactions.length - 1 && <View style={styles.separator} />}
                 </View>
@@ -373,25 +375,14 @@ export default function TransactionsScreen() {
         transaction={editingTransaction}
       />
 
-      <TransactionDetailsModal
-        visible={showTransactionDetails}
-        transaction={selectedTransaction ? {
-          ...selectedTransaction,
-          date: new Date(selectedTransaction.date), // Convert string to Date - safe conversion
-          originalAmount: selectedTransaction.amount,
-          totalAmount: selectedTransaction.amount,
-          isInstallmentPlan: Boolean(selectedTransaction.isInstallmentPlan), // Using real installment plan field
-          installments: selectedTransaction.installments?.map(installment => ({
-            ...installment,
-            dueDate: new Date(installment.dueDate), // Convert string dates to Date objects
-            paidDate: installment.paidDate ? new Date(installment.paidDate) : undefined,
-          }))
-        } : null}
-        onClose={() => setShowTransactionDetails(false)}
-        onMarkInstallmentPaid={handleMarkTransactionInstallmentPaid}
-        onMarkTransactionPaid={handleMarkTransactionPaid}
-        onMarkPartialPayment={handleMarkTransactionPartialPayment}
+      <TransactionBottomSheet
+        transaction={selectedTransaction}
+        isOpen={showTransactionBottomSheet}
+        onClose={handleCloseBottomSheet}
+        onEdit={handleEditTransaction}
+        onDelete={handleDeleteTransaction}
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
