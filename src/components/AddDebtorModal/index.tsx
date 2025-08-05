@@ -114,47 +114,47 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
 
   const validateForm = () => {
     if (!name.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.showError({ message: 'Nome é obrigatório' });
       return false;
     }
 
     if (!debtAmount || parseCurrencyToNumber(debtAmount) <= 0) {
-      toast.error('Valor da dívida é obrigatório e deve ser maior que zero');
+      toast.showError({ message: 'Valor da dívida é obrigatório e deve ser maior que zero' });
       return false;
     }
 
     if (!debtDescription.trim()) {
-      toast.error('Descrição da dívida é obrigatória');
+      toast.showError({ message: 'Descrição da dívida é obrigatória' });
       return false;
     }
 
     if (!isInstallmentPlan && !dueDate.trim()) {
-      toast.error('Data de vencimento é obrigatória');
+      toast.showError({ message: 'Data de vencimento é obrigatória' });
       return false;
     }
 
     if (isInstallmentPlan) {
       if (!firstInstallmentDate.trim()) {
-        toast.error('Data da primeira parcela é obrigatória');
+        toast.showError({ message: 'Data da primeira parcela é obrigatória' });
         return false;
       }
 
       const count = parseInt(installmentCount);
       if (!count || count < 1 || count > 48) {
-        toast.error('Número de parcelas deve ser entre 1 e 48');
+        toast.showError({ message: 'Número de parcelas deve ser entre 1 e 48' });
         return false;
       }
     }
 
     if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      toast.error('Email inválido');
+      toast.showError({ message: 'Email inválido' });
       return false;
     }
 
     if (phone && !phone.match(/^\(\d{2}\)\s\d{4,5}-\d{4}$/)) {
       // Format validation for Brazilian phone numbers
       if (!phone.match(/^\d{10,11}$/)) {
-        toast.error('Telefone deve ter 10 ou 11 dígitos');
+        toast.showError({ message: 'Telefone deve ter 10 ou 11 dígitos' });
         return false;
       }
     }
@@ -202,10 +202,10 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
       };
 
       await onSubmit(debtorData, debtData);
-      toast.success('Cobrança criada com sucesso!');
+      toast.showSuccess({ message: 'Cobrança criada com sucesso!' });
       handleClose();
     } catch (error: any) {
-      toast.error(error.message || 'Não foi possível criar a cobrança');
+      toast.showError({ message: error.message || 'Não foi possível criar a cobrança' });
     } finally {
       setLoading(false);
     }

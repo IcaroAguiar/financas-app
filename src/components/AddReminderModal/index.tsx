@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
@@ -49,17 +49,17 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
 
   const validateForm = () => {
     if (!title.trim()) {
-      toast.error('Título é obrigatório');
+      toast.showError({ message: 'Título é obrigatório' });
       return false;
     }
 
     if (!description.trim()) {
-      toast.error('Descrição é obrigatória');
+      toast.showError({ message: 'Descrição é obrigatória' });
       return false;
     }
 
     if (date < new Date()) {
-      toast.error('A data deve ser futura');
+      toast.showError({ message: 'A data deve ser futura' });
       return false;
     }
 
@@ -79,10 +79,10 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
       };
 
       onSubmit(reminderData);
-      toast.success('Lembrete criado com sucesso!');
+      toast.showSuccess({ message: 'Lembrete criado com sucesso!' });
       handleClose();
     } catch (error: any) {
-      toast.error(error.message || 'Não foi possível criar o lembrete');
+      toast.showError({ message: error.message || 'Não foi possível criar o lembrete' });
     } finally {
       setLoading(false);
     }
@@ -227,23 +227,23 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
               * Campos obrigatórios{'\n'}
               O lembrete será exibido na tela de lembretes na data selecionada
             </Text>
-          </View>
-        </ScrollView>
 
-        <View style={styles.actions}>
-          <CustomButton
-            title="Cancelar"
-            onPress={handleClose}
-            variant="secondary"
-            style={styles.cancelButton}
-          />
-          <CustomButton
-            title="Criar Lembrete"
-            onPress={handleSubmit}
-            loading={loading}
-            style={styles.submitButton}
-          />
-        </View>
+            <View style={styles.actions}>
+              <CustomButton
+                title="Cancelar"
+                onPress={handleClose}
+                variant="secondary"
+                style={styles.cancelButton}
+              />
+              <CustomButton
+                title="Criar Lembrete"
+                onPress={handleSubmit}
+                loading={loading}
+                style={styles.submitButton}
+              />
+            </View>
+          </View>
+        </KeyboardAwareScrollView>
 
         {showDatePicker && (
           <DateTimePicker
@@ -254,7 +254,6 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
             minimumDate={new Date()}
           />
         )}
-        </KeyboardAwareScrollView>
       </View>
     </Modal>
   );

@@ -5,7 +5,8 @@ import {
   Text, 
   Modal, 
   TextInput, 
-  TouchableOpacity
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -93,7 +94,7 @@ export default function RegisterPaymentModal({
     const amountValue = parseCurrencyInput(amount);
     
     if (amountValue <= 0) {
-      toast.error('Por favor, informe um valor válido para o pagamento.');
+      toast.showError({ message: 'Por favor, informe um valor válido para o pagamento.' });
       return false;
     }
     
@@ -125,12 +126,12 @@ export default function RegisterPaymentModal({
       
       await createPayment(debtId, paymentData);
       
-      toast.success(`Pagamento de ${formatCurrency(amountValue)} registrado com sucesso!`);
+      toast.showSuccess({ message: `Pagamento de ${formatCurrency(amountValue)} registrado com sucesso!` });
       handleClose();
       onPaymentCreated();
     } catch (error) {
       console.error('Erro ao registrar pagamento:', error);
-      toast.error('Não foi possível registrar o pagamento. Tente novamente.');
+      toast.showError({ message: 'Não foi possível registrar o pagamento. Tente novamente.' });
     } finally {
       setLoading(false);
     }
@@ -226,9 +227,8 @@ export default function RegisterPaymentModal({
               returnKeyType="done"
             />
           </View>
-        </ScrollView>
 
-        <View style={styles.footer}>
+          <View style={styles.footer}>
           <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
             <Text style={styles.cancelButtonText}>Cancelar</Text>
           </TouchableOpacity>
@@ -242,7 +242,8 @@ export default function RegisterPaymentModal({
               {loading ? 'Registrando...' : 'Registrar Pagamento'}
             </Text>
           </TouchableOpacity>
-        </View>
+          </View>
+        </KeyboardAwareScrollView>
 
         {/* Date Picker */}
         {showDatePicker && (
@@ -254,7 +255,6 @@ export default function RegisterPaymentModal({
             maximumDate={new Date()}
           />
         )}
-        </KeyboardAwareScrollView>
       </View>
     </Modal>
   );
