@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
 import { theme } from '@/styles/theme';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useToast } from '@/hooks/useToast';
 
 interface Reminder {
   id: string;
@@ -22,6 +25,9 @@ interface AddReminderModalProps {
 }
 
 export default function AddReminderModal({ visible, onClose, onSubmit }: AddReminderModalProps) {
+  const { showConfirmation } = useConfirmation();
+  const toast = useToast();
+  
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
@@ -43,17 +49,17 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
 
   const validateForm = () => {
     if (!title.trim()) {
-      Alert.alert('Erro', 'Título é obrigatório');
+      toast.error('Título é obrigatório');
       return false;
     }
 
     if (!description.trim()) {
-      Alert.alert('Erro', 'Descrição é obrigatória');
+      toast.error('Descrição é obrigatória');
       return false;
     }
 
     if (date < new Date()) {
-      Alert.alert('Erro', 'A data deve ser futura');
+      toast.error('A data deve ser futura');
       return false;
     }
 
@@ -73,10 +79,10 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
       };
 
       onSubmit(reminderData);
-      Alert.alert('Sucesso', 'Lembrete criado com sucesso!');
+      toast.success('Lembrete criado com sucesso!');
       handleClose();
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Não foi possível criar o lembrete');
+      toast.error(error.message || 'Não foi possível criar o lembrete');
     } finally {
       setLoading(false);
     }
@@ -133,10 +139,7 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="formSheet">
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.modalTitle}>Novo Lembrete</Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -144,7 +147,14 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <KeyboardAwareScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          extraHeight={120}
+          extraScrollHeight={120}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Tipo de Lembrete</Text>
@@ -244,7 +254,8 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
             minimumDate={new Date()}
           />
         )}
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </Modal>
   );
 }

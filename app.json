@@ -4,7 +4,7 @@
     "slug": "ascend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/icon-72x72.png",
+    "icon": "./src/assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/images/splash.png",
@@ -22,8 +22,9 @@
       }
     },
     "android": {
+      "icon": "./src/assets/images/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/images/adaptive-icon-foreground.png",
+        "foregroundImage": "./src/assets/images/icon.png",
         "backgroundColor": "#f4f4f9"
       },
       "package": "com.ic03aguiar.ascend"
@@ -37,7 +38,7 @@
       ]
     ],
     "web": {
-      "favicon": "./src/assets/images/icon-72x72.png"
+      "favicon": "./src/assets/images/icon.png"
     },
     "extra": {
       "eas": {

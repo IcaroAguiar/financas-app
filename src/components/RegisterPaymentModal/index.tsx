@@ -5,17 +5,16 @@ import {
   Text, 
   Modal, 
   TextInput, 
-  TouchableOpacity, 
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView
+  TouchableOpacity
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
 import { theme } from '@/styles/theme';
 import Icon from '@/components/Icon';
 import { createPayment } from '@/api/debtorService';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useToast } from '@/hooks/useToast';
 
 interface RegisterPaymentModalProps {
   visible: boolean;
@@ -34,6 +33,9 @@ export default function RegisterPaymentModal({
   onClose,
   onPaymentCreated
 }: RegisterPaymentModalProps) {
+  const { showConfirmation } = useConfirmation();
+  const toast = useToast();
+  
   const [amount, setAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -91,19 +93,19 @@ export default function RegisterPaymentModal({
     const amountValue = parseCurrencyInput(amount);
     
     if (amountValue <= 0) {
-      Alert.alert('Erro', 'Por favor, informe um valor válido para o pagamento.');
+      toast.error('Por favor, informe um valor válido para o pagamento.');
       return false;
     }
     
     if (amountValue > remainingAmount) {
-      Alert.alert(
-        'Valor Excedente', 
-        `O valor informado (${formatCurrency(amountValue)}) é maior que o valor restante da dívida (${formatCurrency(remainingAmount)}). Deseja continuar?`,
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Continuar', onPress: () => submitPayment() }
-        ]
-      );
+      showConfirmation({
+        title: 'Valor Excedente',
+        message: `O valor informado (${formatCurrency(amountValue)}) é maior que o valor restante da dívida (${formatCurrency(remainingAmount)}). Deseja continuar?`,
+        confirmText: 'Continuar',
+        cancelText: 'Cancelar',
+        confirmVariant: 'primary',
+        onConfirm: () => submitPayment()
+      });
       return false;
     }
     
@@ -123,22 +125,12 @@ export default function RegisterPaymentModal({
       
       await createPayment(debtId, paymentData);
       
-      Alert.alert(
-        'Sucesso', 
-        `Pagamento de ${formatCurrency(amountValue)} registrado com sucesso!`,
-        [
-          { 
-            text: 'OK', 
-            onPress: () => {
-              handleClose();
-              onPaymentCreated();
-            }
-          }
-        ]
-      );
+      toast.success(`Pagamento de ${formatCurrency(amountValue)} registrado com sucesso!`);
+      handleClose();
+      onPaymentCreated();
     } catch (error) {
       console.error('Erro ao registrar pagamento:', error);
-      Alert.alert('Erro', 'Não foi possível registrar o pagamento. Tente novamente.');
+      toast.error('Não foi possível registrar o pagamento. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -164,10 +156,7 @@ export default function RegisterPaymentModal({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Icon name="x" size={24} color={theme.colors.textPrimary} />
@@ -176,7 +165,14 @@ export default function RegisterPaymentModal({
           <View style={styles.placeholder} />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <KeyboardAwareScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          extraHeight={120}
+          extraScrollHeight={120}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.debtInfo}>
             <Text style={styles.debtorName}>{debtorName}</Text>
             <Text style={styles.remainingAmountText}>
@@ -258,7 +254,8 @@ export default function RegisterPaymentModal({
             maximumDate={new Date()}
           />
         )}
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </Modal>
   );
 }

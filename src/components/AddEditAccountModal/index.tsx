@@ -1,7 +1,8 @@
 // src/components/AddEditAccountModal/index.tsx
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
@@ -176,10 +177,7 @@ export default function AddEditAccountModal({ visible, onClose, account, onAccou
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
-        style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>
@@ -190,7 +188,14 @@ export default function AddEditAccountModal({ visible, onClose, account, onAccou
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.form}>
+          <KeyboardAwareScrollView 
+            contentContainerStyle={styles.form}
+            enableOnAndroid={true}
+            extraHeight={120}
+            extraScrollHeight={120}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome da Conta *</Text>
               <TextInput
@@ -231,7 +236,7 @@ export default function AddEditAccountModal({ visible, onClose, account, onAccou
                 O saldo inicial pode ser ajustado posteriormente
               </Text>
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollView>
 
           <View style={styles.footer}>
             <CustomButton
@@ -251,7 +256,7 @@ export default function AddEditAccountModal({ visible, onClose, account, onAccou
 
           {showTypePicker && renderTypePicker()}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

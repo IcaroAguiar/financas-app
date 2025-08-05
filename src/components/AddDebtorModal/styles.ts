@@ -26,10 +26,6 @@ export const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    justifyContent: 'space-between',
-  },
-  form: {
-    flex: 1,
   },
   inputGroup: {
     marginBottom: 20,
@@ -81,7 +77,7 @@ export const styles = StyleSheet.create({
     marginBottom: 15,
   },
   formContent: {
-    paddingBottom: 20,
+    paddingBottom: 40,
   },
   paymentPlanToggle: {
     marginBottom: 20,

@@ -1,6 +1,7 @@
 // src/components/AddSubscriptionModal/index.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
@@ -185,10 +186,7 @@ export default function AddSubscriptionModal({ visible, onClose, subscription }:
       animationType="slide"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView 
-        style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
             <Text style={styles.title}>
@@ -199,7 +197,14 @@ export default function AddSubscriptionModal({ visible, onClose, subscription }:
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.form} showsVerticalScrollIndicator={false}>
+          <KeyboardAwareScrollView 
+            contentContainerStyle={styles.form} 
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid={true}
+            extraHeight={120}
+            extraScrollHeight={120}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome da Assinatura *</Text>
@@ -319,7 +324,7 @@ export default function AddSubscriptionModal({ visible, onClose, subscription }:
                 <Icon name="chevron-down" size={20} color="#6c757d" />
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollView>
 
           <View style={styles.footer}>
             <CustomButton
@@ -537,7 +542,7 @@ export default function AddSubscriptionModal({ visible, onClose, subscription }:
             </View>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

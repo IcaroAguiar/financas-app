@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
 import { CreateDebtorData, CreateDebtData } from '@/api/debtorService';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useToast } from '@/hooks/useToast';
 
 interface AddDebtorModalProps {
   visible: boolean;
@@ -13,6 +16,9 @@ interface AddDebtorModalProps {
 }
 
 export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtorModalProps) {
+  const { showConfirmation } = useConfirmation();
+  const toast = useToast();
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -108,47 +114,47 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
 
   const validateForm = () => {
     if (!name.trim()) {
-      Alert.alert('Erro', 'Nome é obrigatório');
+      toast.error('Nome é obrigatório');
       return false;
     }
 
     if (!debtAmount || parseCurrencyToNumber(debtAmount) <= 0) {
-      Alert.alert('Erro', 'Valor da dívida é obrigatório e deve ser maior que zero');
+      toast.error('Valor da dívida é obrigatório e deve ser maior que zero');
       return false;
     }
 
     if (!debtDescription.trim()) {
-      Alert.alert('Erro', 'Descrição da dívida é obrigatória');
+      toast.error('Descrição da dívida é obrigatória');
       return false;
     }
 
     if (!isInstallmentPlan && !dueDate.trim()) {
-      Alert.alert('Erro', 'Data de vencimento é obrigatória');
+      toast.error('Data de vencimento é obrigatória');
       return false;
     }
 
     if (isInstallmentPlan) {
       if (!firstInstallmentDate.trim()) {
-        Alert.alert('Erro', 'Data da primeira parcela é obrigatória');
+        toast.error('Data da primeira parcela é obrigatória');
         return false;
       }
 
       const count = parseInt(installmentCount);
       if (!count || count < 1 || count > 48) {
-        Alert.alert('Erro', 'Número de parcelas deve ser entre 1 e 48');
+        toast.error('Número de parcelas deve ser entre 1 e 48');
         return false;
       }
     }
 
     if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      Alert.alert('Erro', 'Email inválido');
+      toast.error('Email inválido');
       return false;
     }
 
     if (phone && !phone.match(/^\(\d{2}\)\s\d{4,5}-\d{4}$/)) {
       // Format validation for Brazilian phone numbers
       if (!phone.match(/^\d{10,11}$/)) {
-        Alert.alert('Erro', 'Telefone deve ter 10 ou 11 dígitos');
+        toast.error('Telefone deve ter 10 ou 11 dígitos');
         return false;
       }
     }
@@ -196,10 +202,10 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
       };
 
       await onSubmit(debtorData, debtData);
-      Alert.alert('Sucesso', 'Cobrança criada com sucesso!');
+      toast.success('Cobrança criada com sucesso!');
       handleClose();
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Não foi possível criar a cobrança');
+      toast.error(error.message || 'Não foi possível criar a cobrança');
     } finally {
       setLoading(false);
     }
@@ -215,16 +221,15 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
           </TouchableOpacity>
         </View>
 
-        <KeyboardAvoidingView 
-          style={styles.content} 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <KeyboardAwareScrollView
+          style={styles.content}
+          contentContainerStyle={styles.formContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          extraHeight={120}
+          extraScrollHeight={120}
         >
-          <ScrollView 
-            style={styles.form}
-            contentContainerStyle={styles.formContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome *</Text>
               <TextInput
@@ -401,9 +406,8 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               * Campos obrigatórios{'\n'}
               Adicione pelo menos email ou telefone para facilitar o contato
             </Text>
-          </ScrollView>
 
-          <View style={styles.actions}>
+            <View style={styles.actions}>
             <CustomButton
               title="Cancelar"
               onPress={handleClose}
@@ -416,8 +420,8 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               loading={loading}
               style={styles.submitButton}
             />
-          </View>
-        </KeyboardAvoidingView>
+            </View>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </Modal>
   );
