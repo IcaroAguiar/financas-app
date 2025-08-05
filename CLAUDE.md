@@ -1,450 +1,515 @@
-# CLAUDE.md - Financas Mobile App
+# CLAUDE.md
 
-This file provides guidance to Claude Code when working with the React Native mobile application component of the personal finance management system.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Project Structure
 
-**Financas App** is a React Native mobile application built with Expo that provides a modern interface for personal finance management. It connects to the Node.js backend API for data persistence and user authentication.
+This is a personal finance management application with two main components:
 
-## Quick Start
-
-### Prerequisites
-- Node.js (v16+)
-- Expo CLI (`npm install -g @expo/cli`)
-- iOS Simulator / Android Emulator or physical device with Expo Go
-- Backend API running on localhost:3000
-
-### Development Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Start Expo development server
-npm start
-# or
-npx expo start
-
-# Platform-specific commands
-npm run ios      # iOS simulator
-npm run android  # Android emulator
-npm run web      # Web browser
-```
-
-## Directory Structure
-
-```
-financas-app/
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── CustomButton/    # Styled button component
-│   │   ├── GlobalHeader/    # Navigation header with logo
-│   │   ├── Icon/           # Feather icons wrapper
-│   │   └── ...
-│   ├── contexts/           # React Context providers
-│   │   ├── AuthContext.tsx # Authentication state
-│   │   ├── TransactionContext.tsx
-│   │   ├── CategoryContext.tsx
-│   │   └── DebtorContext.tsx
-│   ├── navigation/         # React Navigation setup
-│   │   ├── AppNavigator.tsx # Main navigation
-│   │   └── types.ts
-│   ├── screens/           # Screen components
-│   │   ├── HomeScreen/    # Dashboard with overview
-│   │   ├── TransactionsScreen/
-│   │   ├── DebtorsScreen/
-│   │   ├── ProfileScreen/
-│   │   └── auth screens/
-│   ├── services/          # API integration
-│   │   └── notificationService.ts
-│   ├── api/              # API service layer
-│   │   ├── axiosConfig.ts
-│   │   ├── authService.ts
-│   │   ├── transactionService.ts
-│   │   └── debtorService.ts
-│   ├── styles/            # Styling and themes
-│   │   └── theme.ts       # Design system tokens
-│   └── types/             # TypeScript definitions
-├── App.tsx               # Root component
-├── app.json             # Expo configuration
-└── package.json         # Dependencies and scripts
-```
-
-## Key Technologies
-
-- **React Native**: Mobile app framework
-- **Expo**: Development platform and tools
-- **TypeScript**: Type safety and developer experience
-- **React Navigation v7**: Navigation and routing
-- **React Context**: State management
-- **Axios**: HTTP client for API calls
-- **Expo Google Fonts**: Roboto font family
-- **React Native Feather**: Icon library
-
-## Architecture Patterns
-
-### Context-Based State Management
-
-```typescript
-// AuthContext provides user authentication state
-const { user, login, logout, isLoading } = useAuth();
-
-// TransactionContext manages transaction data
-const { transactions, addTransaction, updateTransaction } = useTransactions();
-
-// CategoryContext handles user categories
-const { categories, addCategory } = useCategories();
-
-// DebtorContext manages debtor and debt data
-const { debtors, debts, addDebtor } = useDebtors();
-```
-
-### Navigation Structure
-
-- **Unauthenticated**: Login/Register screens
-- **Authenticated**: Main app tabs
-  - HomeTab: Dashboard overview
-  - TransactionsTab: Income/expense management
-  - RemindersTab: Debt reminders and payments
-  - DebtorsTab: Debtor management
-  - ProfileTab: User settings and logout
-
-### Component Architecture
-
-- **GlobalHeader**: Consistent navigation header with logo
-- **CustomButton**: Themed button with variants (primary, secondary, danger)
-- **Icon**: Feather icons with consistent sizing
-- **QuickActionCard**: Dashboard action items
-- **DashboardCard**: Summary cards with data
-
-## Styling System
-
-### Theme Structure (src/styles/theme.ts)
-
-```typescript
-export const theme = {
-  colors: {
-    primary: '#007AFF',
-    success: '#34C759',
-    danger: '#FF3B30',
-    warning: '#FF9500',
-    background: '#F2F2F7',
-    surface: '#FFFFFF',
-    text: {
-      primary: '#000000',
-      secondary: '#8E8E93',
-      light: '#C7C7CC'
-    }
-  },
-  spacing: {
-    xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32,
-    sides: 16 // Horizontal screen padding
-  },
-  fonts: {
-    regular: 'Roboto_400Regular',
-    medium: 'Roboto_500Medium',
-    bold: 'Roboto_700Bold'
-  },
-  borderRadius: {
-    sm: 6, md: 8, lg: 12, xl: 16
-  }
-}
-```
-
-## API Integration
-
-### Configuration (src/api/axiosConfig.ts)
-
-```typescript
-const API_BASE_URL = 'http://192.168.0.24:3000/api'; // Local development
-// const API_BASE_URL = 'https://your-api.com/api'; // Production
-
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-});
-```
+- **financas-api**: Node.js/Express backend API with PostgreSQL database using Prisma ORM
+- **financas-app**: React Native mobile application built with Expo
 
 ## Development Commands
 
+### Backend API (financas-api)
+
 ```bash
-npm start                    # Start Expo dev server
-npm run ios                 # iOS simulator
-npm run android             # Android emulator
-npm run web                 # Web development
-npm install                 # Install dependencies
-npx expo install <package>  # Install Expo-compatible packages
-npx tsc --noEmit           # TypeScript type checking
+cd financas-api
+npm run dev          # Start development server with nodemon
+npm install          # Install dependencies
+npx prisma generate  # Generate Prisma client
+npx prisma db push   # Push schema changes to database
+npx prisma migrate dev --name <migration_name>  # Create and apply new migration
+npx prisma studio    # Open Prisma Studio (database GUI)
 ```
 
-## Environment Configuration
+### Mobile App (financas-app)
 
-### Network Setup for Physical Devices
+```bash
+cd financas-app
+npm start            # Start Expo development server
+npm run android      # Start on Android device/emulator
+npm run ios          # Start on iOS device/simulator
+npm run web          # Start web version
+npm install          # Install dependencies
+```
 
-1. **Find your machine's local IP**: `ipconfig` (Windows) or `ifconfig` (Mac/Linux)
-2. **Update API_URL** in axiosConfig.ts
-3. **Ensure CORS** is configured in backend for your IP
-4. **Same WiFi network** required for device and development machine
+### Database Setup
 
-## Performance Optimization
+```bash
+cd financas-api
+docker-compose up -d  # Start PostgreSQL database container
+```
 
-### Bundle Size
-- Optimized icon library (Feather for smaller bundle)
-- Selective imports to reduce module count
-- Image optimization for faster loading
+## Architecture Overview
 
-## Related Project
+### Backend Structure
 
-This mobile app connects to the **financas-api** Node.js backend located in `../financas-api/`. The API provides all data operations and authentication services.
+- **Server**: Express.js server in `server.js` with route mounting
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT-based auth with bcryptjs for password hashing
+- **API Routes**: RESTful endpoints for users, transactions, categories, debtors, and debts
+- **Controllers**: Business logic separated into controller files
+- **Middleware**: Authentication middleware for protected routes
 
----
+### Database Schema
 
-## Claude Code Pro Plan - Token Conservation Tips
+Core entities managed by Prisma:
 
-To maximize your Claude Code Pro plan usage and conserve daily tokens:
+- **User**: Main user entity with email/password authentication
+- **Transaction**: Financial transactions (RECEITA/DESPESA) with amounts and categories
+- **Category**: User-specific transaction categories with optional colors
+- **Debtor**: People who owe money
+- **Debt**: Debt records with due dates and total amounts
+- **Payment**: Individual payments made towards debts
 
-### 🎯 Efficient File Operations
+### Mobile App Structure
 
-- **Use Glob tool first** to locate files: `src/**/*.tsx`, `src/components/**/*.ts`
-- **Read specific components** instead of browsing entire directories
-- **Use Grep tool** to find component usage: `"import.*ComponentName"`
-- **Batch related operations** in single messages
+- **Navigation**: React Navigation v7 with stack and tab navigators
+- **State Management**: React Context for authentication
+- **Styling**: Custom styled-components with TypeScript
+- **API Integration**: Axios for HTTP requests with centralized configuration
+- **Fonts**: Roboto font family loaded via Expo Google Fonts
 
-### 🔍 Smart React Native Navigation
+### Key Features
 
-- **Search for screen patterns**: `"Screen.*tsx"` to find all screens
-- **Find component usage**: `"import.*ButtonComponent"` before modifying
-- **Check navigation structure**: Look in `src/navigation/` first
-- **Understand context flow**: Read context files before state changes
+- User registration and JWT authentication
+- Income and expense transaction tracking
+- Transaction categorization with custom categories
+- Debt management system with payment tracking
+- Mobile-first design with React Native
 
-### 💡 Component-Focused Development
+## Database Connection
 
-- **Check existing components** before creating new ones
-- **Review theme usage**: Read `src/styles/theme.ts` for consistency
-- **Find similar patterns**: Search for existing implementations
-- **Understand prop interfaces**: Check TypeScript definitions first
+The API connects to PostgreSQL using the `DATABASE_URL` environment variable. The Docker Compose setup provides a local PostgreSQL instance on port 5432.
 
-### 🚀 Mobile Development Workflows
+## Environment Variables
 
-- **Test on device early** to catch platform-specific issues
-- **Use TypeScript checks**: `npx tsc --noEmit` before major changes
-- **Check bundle impact**: Monitor Metro bundler output
-- **Verify navigation flow** after route changes
+- **Backend**: Requires `DATABASE_URL`, `PORT`, and `JWT_SECRET` in `.env`
+- **Mobile**: Uses react-native-dotenv for environment configuration
 
-### 🛠️ React Native Specific Efficiency
+## TypeScript Configuration
 
-- **Check Expo compatibility** before adding packages
-- **Use expo install** for Expo SDK packages
-- **Test on multiple platforms** (iOS/Android) when relevant
-- **Monitor performance** with Flipper or Expo dev tools
+The mobile app uses TypeScript with:
 
-### 📱 Mobile UI Best Practices
+- Path aliases: `@/*` maps to `src/*`
+- Strict mode enabled
+- Expo TypeScript base configuration
 
-- **Follow platform conventions**: iOS vs Android design patterns
-- **Test responsive layouts** on different screen sizes
-- **Check accessibility** with screen reader compatibility
-- **Verify touch targets** meet minimum size requirements
+## Code Style Guidelines
 
-### ⚡ Context and State Management
+- **Language**: All comments in code should be written in Portuguese (Brazil)
+- **Comments**: Use Portuguese for inline comments, function descriptions, and documentation
+- **Variable/Function Names**: Keep in English following standard conventions
+- **Error Messages**: User-facing messages should be in Portuguese
 
-- **Understand context hierarchy** before adding new providers
-- **Minimize context re-renders** with proper value memoization
-- **Use local state** when global state isn't needed
-- **Check existing state patterns** before implementing new ones
+## Development Workflow Rules
 
-### 🔧 API Integration Debugging
+### CRITICAL: Session Management and Git Workflow
 
-- **Check network requests** in Expo dev tools
-- **Verify API endpoint** connectivity with curl
-- **Test authentication flow** step by step
-- **Monitor API response** structure changes
+**Claude MUST follow these rules for every session:**
 
-### 🎨 Styling and Theme Efficiency
+1. **📝 Document All Changes**: Always update this CLAUDE.md file with:
+   - Session summary with accomplishments and technical changes
+   - Key files modified with specific changes
+   - Git commit references and deployment status
+   - User experience improvements and performance optimizations
 
-- **Use existing theme tokens** instead of hardcoded values
-- **Check responsive breakpoints** in existing components
-- **Follow established patterns** for component styling
-- **Test dark/light themes** if supported
+2. **💾 End-of-Session Git Workflow**: 
+   - **ALWAYS commit and push changes** at the end of each session
+   - **Monitor token usage** and initiate commit process when approaching limits
+   - Create descriptive commit messages following the established patterns
+   - Update Recent Development History section with current session details
 
-### 📦 Bundle and Performance
+3. **⚠️ Token Limit Management**:
+   - **Stop all work immediately** when token usage approaches 80% of daily limit
+   - **Prioritize documentation update** and git commit process
+   - **Ask user for confirmation** before proceeding with git operations
+   - **Never leave uncommitted changes** at session end
 
-- **Monitor Metro bundler** output for bundle size changes
-- **Use selective imports**: `import { specific } from 'library'`
-- **Check for duplicate dependencies** in package.json
-- **Optimize images** and assets for mobile
+4. **🔄 Commit Process Protocol**:
+   ```bash
+   # 1. Check git status and add changes
+   git status
+   git add .
+   
+   # 2. Create descriptive commit with session summary
+   git commit -m "feat: [Session Summary] - [Key accomplishments]
+   
+   🤖 Generated with [Claude Code](https://claude.ai/code)
+   
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   
+   # 3. Push to remote repository
+   git push origin main
+   ```
 
-Remember: React Native development is most efficient when you understand the existing patterns, test frequently on devices, and leverage the established component and navigation systems.
+5. **📋 Session Documentation Template**:
+   ```markdown
+   ### Session: YYYY-MM-DD - [Session Title]
+   
+   **Major Accomplishments:**
+   - ✅ **Task N**: [Description]
+   
+   **Technical Changes Made:**
+   - [Detailed technical implementation]
+   
+   **Key Files Modified:**
+   - [File paths with specific changes]
+   
+   **Git Commits:**
+   - [Commit hashes and messages]
+   
+   **Performance/UX Improvements:**
+   - [User-facing improvements]
+   ```
+
+### CRITICAL: Always Test Before Editing
+
+**Before making ANY changes to the codebase, Claude MUST:**
+
+1. **Start the API server** and verify it's running without errors:
+
+   ```bash
+   cd financas-api
+   npm run dev
+   ```
+
+   - Check that server starts on port 3000
+   - Verify database connection is working
+   - Ensure no compilation or runtime errors
+
+2. **Start the mobile app** and verify it loads properly:
+
+   ```bash
+   cd financas-app
+   npm start
+   ```
+
+   - Check that Expo dev server starts successfully
+   - Verify no TypeScript compilation errors
+   - Test that app loads without crashes
+
+3. **Test existing functionality** that will be affected by proposed changes:
+
+   - Navigate through relevant screens
+   - Test API calls and data loading
+   - Verify authentication flows work
+   - Check that existing features function correctly
+
+4. **Only after confirming the app works properly**, proceed with planned changes
+
+### Error Prevention Protocol
+
+- **Never submit code changes** without first verifying the application runs successfully
+- **Always test modified functionality** after making changes
+- **Run TypeScript compilation** to catch type errors: `npx tsc --noEmit`
+- **Check for runtime errors** in both browser console and terminal output
+- **Verify API endpoints** are accessible and returning expected data
+
+**Failure to follow this testing protocol will result in broken submissions that frustrate the user.**
+
+## Common Issues and Troubleshooting
+
+### API Connection Issues (Mobile Device)
+
+If the mobile app cannot connect to the API:
+
+1. **Check Docker Database**: Ensure Docker Desktop is running and PostgreSQL container is up
+
+   ```bash
+   docker ps  # Should show financas_db_container running
+   cd financas-api && docker-compose up -d  # Start database if needed
+   ```
+
+2. **Verify Server Binding**: Server must bind to all interfaces, not just localhost
+
+   - Server should listen on `0.0.0.0:3000` not just `localhost:3000`
+   - Check `server.js` for `app.listen(PORT, '0.0.0.0', ...)`
+
+3. **CORS Configuration**: Ensure CORS allows the correct Expo ports
+
+   - Default: port 8081
+   - Alternative: port 8082 (if 8081 is busy)
+   - Update CORS origins in `server.js` to include both ports
+
+4. **Network Connectivity**: Device and development machine must be on same WiFi network
+
+   - API URL in `.env` should use machine's local IP (e.g., `http://192.168.0.24:3000/api`)
+   - Test connectivity: `curl http://<machine-ip>:3000/api/users/login`
+
+## Handling INSTRUCTIONS.MD
+
+When an `INSTRUCTIONS.MD` file is present in the root of the project, it should be treated as a set of tasks to be executed. The following workflow should be followed:
+
+1. Read the `INSTRUCTIONS.MD` file to understand the tasks.
+2. Execute the tasks one by one, asking for validation from the user after each task is completed.
+3. Once all tasks are completed and validated, clear the content of the `INSTRUCTIONS.MD` file, leaving only the structure.
 
 ## Recent Development History
 
-### Session: 2025-08-04 - Production API Integration and EAS Build Setup
+### Session: 2025-08-02 - Complete UI/UX Overhaul & Data Integration
 
 **Major Accomplishments:**
-- ✅ **Production API Testing**: Successfully validated all endpoints on https://ascend-api-qezc.onrender.com/api
-- ✅ **Database Migration**: Fixed Prisma migration deployment for production
-- ✅ **EAS Build Configuration**: Resolved multiple build issues and dependencies
-- ✅ **Module Resolution**: Fixed TypeScript path mapping issues in production builds
-- ✅ **Environment Configuration**: Production API integration working correctly
+- ✅ **Task 1**: Fixed ProfileScreen button rendering bug with CustomButton layout improvements
+- ✅ **Task 2**: Implemented responsive design optimizations for smaller iPhone screens
+- ✅ **Task 3**: Integrated live data from DebtorContext into HomeScreen dashboard
+- ✅ **Task 4**: Standardized UI across all screens with consistent GlobalHeader navigation
+- ✅ **Task 5**: Enhanced contact actions (WhatsApp/Email) in DebtorsScreen
 
 **Technical Changes Made:**
 
-1. **Backend API Production Ready**:
-   - Added `render-build` script with Prisma migrate deploy
-   - Fixed critical transaction type validation bug (RECEBIMENTO → RECEITA)
-   - All API endpoints tested and validated in production
+1. **Module Optimization**: 
+   - Replaced `@tabler/icons-react-native` with `react-native-feather` for better performance
+   - Reduced module count from 7000+ to optimize Expo Go loading times
+   - Moved `expo-dev-client` to devDependencies
 
-2. **Mobile App Build Configuration**:
-   - Fixed `react-native-dotenv` dependency location (moved to production dependencies)
-   - Added `expo-system-ui` package and configuration
-   - Resolved `babel-plugin-module-resolver` installation and configuration
-   - Added Metro configuration for TypeScript path mapping support
+2. **Component Architecture**:
+   - Created `GlobalHeader` component with AscendLogo and centered titles
+   - Built reusable `QuickActionCard` and `DashboardCard` components
+   - Enhanced `CustomButton` with proper variant system and responsive sizing
+   - Implemented comprehensive `Icon` component using Feather icons
 
-3. **Module Resolution System**:
-   - Created `metro.config.js` with path alias configuration
-   - Updated `babel.config.js` with module resolver plugin
-   - Fixed `@/` import aliases for production builds
-   - Maintained TypeScript intellisense and type checking
+3. **Responsive Design**:
+   - Reduced horizontal padding from `theme.spacing.sides` (16px) to `theme.spacing.md` (12px)
+   - Optimized font sizes: balanceAmount (32px→28px), summaryValue (16px→14px)
+   - Added `flexShrink: 1` to text elements for better text wrapping
+   - Enhanced button dimensions for modern, taller appearance
 
-4. **Production Environment Setup**:
-   - Environment-specific `.env.production` file configured
-   - Production API URL: `https://ascend-api-qezc.onrender.com/api`
-   - Babel configuration for environment-specific loading
-   - EAS build profiles optimized for Android preview builds
+4. **Context Integration**:
+   - Added `TransactionProvider`, `CategoryProvider`, and `DebtorProvider` to App.tsx
+   - Replaced mocked debt data with live `useDebtors` context in HomeScreen
+   - Implemented real-time calculation of pending debts and debtor counts
+   - Enhanced pull-to-refresh functionality for both transactions and debtor data
+
+5. **Navigation Standardization**:
+   - Updated `AppNavigator.tsx` to use GlobalHeader for all tab screens
+   - Removed hardcoded screen titles from TransactionsScreen, RemindersScreen, and DebtorsScreen
+   - Ensured consistent header experience across all screens
 
 **Key Files Modified:**
-- `metro.config.js` - New Metro configuration with path aliases
-- `babel.config.js` - Enhanced with module resolver and environment loading
-- `app.json` - Fixed Expo configuration schema validation
-- `package.json` - Corrected dependency locations and versions
-- `.env.production` - Production API configuration
-
-**Production API Validation Results:**
-- ✅ User Registration: Working correctly
-- ✅ User Login: JWT authentication functioning
-- ✅ Protected Endpoints: Authorization working
-- ✅ Transaction CRUD: RECEITA/DESPESA types validated
-- ✅ Debtor Management: Full relationship functionality
-- ✅ Debt Management: Payments and calculations working
-
-**EAS Build Issues Resolved:**
-1. **Module Resolution**: Fixed `Cannot find module @/contexts/AuthContext` errors
-2. **Dependency Issues**: Moved build-time dependencies to production
-3. **Environment Loading**: Fixed `.env.production` loading during build
-4. **Expo Schema**: Removed invalid configuration properties
-5. **Package Compatibility**: Fixed SDK version compatibility issues
+- `src/components/GlobalHeader/` - New centralized header component
+- `src/components/Icon/index.tsx` - Feather icons integration
+- `src/components/CustomButton/` - Enhanced button variants and sizing
+- `src/screens/HomeScreen/index.tsx` - Live data integration
+- `src/screens/ProfileScreen/` - Button rendering fixes and responsive design
+- `src/navigation/AppNavigator.tsx` - Standardized header management
+- `package.json` - Module optimization and dependency updates
 
 **Git Commits:**
-- **Backend**: `2400756` - Production deployment support and transaction validation fix
-- **Mobile**: `213d5a0` - Complete mobile app production readiness and UI overhaul
-- **Mobile**: `b2aa8d2` - expo-system-ui and edge-to-edge configuration
-- **Mobile**: `3671424` - react-native-dotenv dependency fix
-- **Mobile**: `95d4cfb` - Metro and Babel module resolution
-- **Mobile**: `58df942` - Final build dependencies and configuration fixes
+- **Mobile App**: `d7844f7` - "feat: Complete UI/UX overhaul with responsive design and live data integration"
+- **API**: `a84a340` - "feat: Enhanced transaction management and database schema improvements"
 
-**Ready for Production**:
-- **Backend API**: ✅ Deployed and fully operational on Render
-- **Mobile App**: ✅ EAS build configuration tested and validated
-- **Environment**: ✅ Production API integration confirmed
-- **Dependencies**: ✅ All build issues resolved
+**Performance Improvements:**
+- Reduced bundle size through icon library optimization
+- Improved responsive layout for various screen sizes
+- Enhanced loading states and error handling
+- Optimized component re-renders with proper context usage
 
-### Session: 2025-08-02 - Complete UI/UX Overhaul & Data Integration
+**User Experience Enhancements:**
+- Modern, consistent navigation with branded headers
+- Better button interactions with proper visual feedback
+- Responsive design that adapts to different iPhone screen sizes
+- Real-time data updates with live dashboard integration
+- Streamlined contact actions for debt management
 
-[Previous session content remains unchanged...]
+This session successfully transformed the application from a basic functional state to a polished, production-ready mobile finance management app with modern UI patterns and comprehensive responsive design.
+
+### Session: 2025-08-05 - Complete Payment Plan System & CI/CD Pipeline
+
+**Major Accomplishments:**
+- ✅ **Payment Plan Backend**: Comprehensive Brazilian-style payment plan (parcelamento) system
+- ✅ **API Integration**: Connected mobile app to real backend payment functionality
+- ✅ **Data Flow**: Replaced all mock data with real API integration
+- ✅ **CI/CD Pipeline**: Complete GitHub Actions deployment automation
+- ✅ **Production Ready**: Both backend and mobile app ready for production deployment
+
+**Technical Implementation:**
+
+1. **Backend Payment Plan System**:
+   - Extended Transaction model with installment plan fields (isInstallmentPlan, installmentCount, installmentFrequency)
+   - Added TransactionInstallment model for individual installment tracking
+   - Created comprehensive API endpoints for payment management
+   - Applied database migration for transaction installments support
+   - Implemented automatic installment generation with MONTHLY/WEEKLY frequencies
+
+2. **Mobile App API Integration**:
+   - Updated transactionService with payment plan API functions
+   - Enhanced Transaction types with installment fields and interfaces
+   - Connected TransactionContext to real backend payment functions
+   - Updated all screens to use real data instead of mock implementations
+   - Implemented proper error handling with toast notifications
+
+3. **CI/CD Infrastructure**:
+   - Created GitHub Actions workflows for both backend and mobile app
+   - Backend: PostgreSQL testing, health checks, Render deployment
+   - Mobile: TypeScript checking, EAS build automation
+   - Environment configuration for production deployments
+   - Comprehensive testing and notification systems
+
+**Key Features Completed:**
+- **Payment Plan Creation**: Full Brazilian parcelamento with 2-48 installments
+- **Individual Installment Tracking**: Mark individual installments as paid
+- **Partial Payment System**: Apply payments to earliest pending installments
+- **Full Payment Functionality**: Mark entire transactions/debts as paid
+- **Progress Indicators**: Real-time payment completion tracking
+- **Automated Deployment**: CI/CD pipeline with testing and deployment
+
+**API Endpoints Added:**
+- `POST /api/transactions` - Enhanced with payment plan support
+- `PUT /api/transactions/:transactionId/installments/:installmentId/pay` - Mark installment paid
+- `PUT /api/transactions/:transactionId/pay` - Mark transaction fully paid
+- `POST /api/transactions/:transactionId/partial-payment` - Register partial payment
+- `GET /api/health` - Health check for deployment monitoring
+
+**Git Commits:**
+- **Backend**: `51a1a9b` - Payment plan system implementation
+- **Backend**: `9aac1ae` - GitHub Actions CI/CD and health endpoint
+- **Backend**: `6be2455` - Dedicated deployment workflow
+- **Mobile**: `4976a5b` - Backend API integration
+- **Mobile**: `1e75aed` - CI/CD pipeline support
+- **Mobile**: `ce43013` - Mobile build workflow
+
+**Production Deployment Status:**
+- **Backend API**: ✅ Live at https://ascend-api-qezc.onrender.com/api
+- **Database**: ✅ PostgreSQL with all migrations applied
+- **Mobile App**: ✅ EAS build configuration ready
+- **CI/CD**: ✅ Automated deployment pipelines configured
+
+This session completed the transformation of the finance app into a production-ready system with comprehensive payment plan functionality, real backend integration, and automated deployment infrastructure. The application now supports the complete Brazilian payment workflow with professional-grade reliability and user experience.
 
 ### Session: 2025-08-02 - Partial Debt Payments Feature Implementation
 
-[Previous session content remains unchanged...]
+**Major Accomplishments:**
+- ✅ **Task 1**: Updated database schema with new Payment model supporting partial payments
+- ✅ **Task 2**: Created comprehensive API endpoints for payment management
+- ✅ **Task 3**: Implemented calculated fields for debt status and remaining amounts
+- ✅ **Task 4**: Built DebtDetailsScreen with payment history and empty states
+- ✅ **Task 5**: Developed RegisterPaymentModal with full API integration
 
-## EAS Build Troubleshooting Guide
+**Technical Implementation:**
 
-### Common Build Issues and Solutions
+1. **Database Schema Enhancement**:
+   - Added `Payment` model with id, amount, paymentDate, notes, and debt relationship
+   - Established one-to-many relationship between Debt and Payment
+   - Applied Prisma migration: `npx prisma migrate dev --name add-payment-model`
 
-#### 1. Module Resolution Errors
-**Error**: `Cannot find module @/contexts/AuthContext`
-**Solution**: 
-- Ensure `babel-plugin-module-resolver` is in `dependencies` (not devDependencies)
-- Verify `metro.config.js` has correct path aliases
-- Check `babel.config.js` module resolver configuration
+2. **Backend API Development**:
+   - Created `paymentController.js` with validation and business logic
+   - Added payment routes: `POST /api/debts/:debtId/payments`, `GET /api/debts/:debtId/payments`
+   - Enhanced debt controller with calculated fields helper function
+   - Implemented automatic calculation of paidAmount, remainingAmount, and status
 
-#### 2. Environment Variable Loading
-**Error**: `Cannot find module 'react-native-dotenv'`
-**Solution**:
-- Move `react-native-dotenv` from devDependencies to dependencies
-- Verify `babel.config.js` has correct environment file loading
-- Ensure `.env.production` exists with correct API URL
+3. **Frontend Component Architecture**:
+   - Built `DebtDetailsScreen` with comprehensive debt information display
+   - Created `RegisterPaymentModal` with form validation and currency formatting
+   - Integrated DateTimePicker for optional payment date selection
+   - Added proper TypeScript interfaces for Payment data structures
 
-#### 3. Expo Configuration Schema
-**Error**: `should NOT have additional property 'edgeToEdgeEnabled'`
-**Solution**:
-- Remove unsupported properties from `app.json`
-- Use `expo-system-ui` plugin for UI style configuration
-- Run `npx expo-doctor` to validate configuration
+4. **API Integration**:
+   - Updated `debtorService.ts` with payment-related API functions
+   - Connected RegisterPaymentModal to live backend endpoints
+   - Implemented proper error handling and loading states
+   - Added real-time data refresh after payment creation
 
-#### 4. Package Version Compatibility
-**Error**: Package version mismatches with Expo SDK
-**Solution**:
-- Run `npx expo install --check` to fix version compatibility
-- Use exact versions specified by Expo SDK
-- Check React Native Directory for package maintenance status
+**Key Features Implemented:**
+- **Partial Payment Tracking**: Users can register multiple payments per debt
+- **Payment History**: Complete timeline of all payments with amounts and dates
+- **Automatic Calculations**: Real-time updates of paid amounts and debt status
+- **Form Validation**: Currency input with Brazilian Real formatting
+- **Empty States**: User-friendly messages when no payments exist
+- **Notes Support**: Optional notes field for payment context
 
-### Pre-Build Checklist
+**Key Files Modified:**
+- `financas-api/prisma/schema.prisma` - Payment model addition
+- `financas-api/src/controllers/paymentController.js` - Payment business logic
+- `financas-api/src/routes/debtRoutes.js` - Payment endpoint integration
+- `financas-api/src/controllers/debtController.js` - Calculated fields implementation
+- `financas-app/src/screens/DebtDetailsScreen/` - Debt details with payment history
+- `financas-app/src/components/RegisterPaymentModal/` - Payment registration modal
+- `financas-app/src/api/debtorService.ts` - Payment API service functions
 
-Before running `eas build --platform android --profile preview --local`:
+**User Experience Enhancements:**
+- Intuitive payment registration with required amount and optional date/notes
+- Real-time debt status updates showing PENDENTE/PAGA automatically
+- Currency formatting with proper Brazilian Real (R$) display
+- Comprehensive payment history with timestamps and notes
+- Overpayment warnings with user confirmation dialogs
+- Pull-to-refresh functionality for live data updates
 
-1. **Dependencies Check**:
-   - [ ] `react-native-dotenv` in dependencies (not devDependencies)
-   - [ ] `babel-plugin-module-resolver` in dependencies
-   - [ ] `expo-system-ui` installed and configured
-   - [ ] All packages compatible with Expo SDK 53
-
-2. **Configuration Files**:
-   - [ ] `metro.config.js` exists with path aliases
-   - [ ] `babel.config.js` has module resolver and dotenv plugins
-   - [ ] `app.json` passes Expo schema validation
-   - [ ] `.env.production` exists with production API URL
-
-3. **Build Profile**:
-   - [ ] `eas.json` preview profile configured
-   - [ ] NODE_ENV=production set in build environment
-   - [ ] Android APK build type specified
-
-4. **Authentication**:
-   - [ ] EAS CLI installed and updated
-   - [ ] Logged in with correct credentials
-   - [ ] Project ID configured in app.json
-
-### Build Command Sequence
-
-```bash
-# 1. Ensure clean state
-cd financas-app
-npm install
-
-# 2. Validate configuration
-npx expo-doctor
-npx expo install --check
-
-# 3. Login to EAS
-eas logout
-eas login
-# Enter: ic03aguiar / aguiar2003
-
-# 4. Run build
-eas build --platform android --profile preview --local
+**Database Migration Applied:**
+```sql
+-- CreateTable Payment
+CREATE TABLE "Payment" (
+    "id" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "paymentDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "debtId" TEXT NOT NULL,
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
+);
 ```
 
-## Production Deployment Status
+This session completed a comprehensive debt payment tracking system, enabling users to manage partial payments with full history tracking and automatic debt status calculations.
 
-### Backend API (financas-api)
-- **Status**: ✅ **LIVE AND OPERATIONAL**
-- **URL**: https://ascend-api-qezc.onrender.com/api
-- **Database**: PostgreSQL with Prisma ORM, migrations deployed
-- **Features**: All CRUD operations, authentication, relationships working
+### Session: 2025-08-05 - Complete Keyboard & UI System Overhaul + Android Icon Fix
 
-### Mobile App (financas-app)
-- **Status**: ✅ **BUILD READY**
-- **Configuration**: Production API integration complete
-- **Build System**: EAS local builds configured and tested
-- **Dependencies**: All build issues resolved
+**Major Accomplishments:**
+- ✅ **Keyboard Bug Fix**: Resolved keyboard interaction issues in AddDebtorModal
+- ✅ **Universal KeyboardAwareScrollView**: Applied consistent keyboard handling across all modals
+- ✅ **Alert System Modernization**: Replaced all Alert.alert with ConfirmationModal and toast notifications
+- ✅ **Android Icon Quality Fix**: Resolved low-quality app icon issues for Android devices
+- ✅ **Production API Integration**: Successfully configured app to use production API for testing
 
-This session successfully established a complete production deployment pipeline with comprehensive testing and validation of all systems.  
+**Technical Changes Made:**
+
+1. **Keyboard System Overhaul**:
+   - Replaced `KeyboardAvoidingView` + `ScrollView` with `KeyboardAwareScrollView` across all modals
+   - Applied consistent configuration: `enableOnAndroid={true}`, `extraHeight={120}`, `extraScrollHeight={120}`
+   - Updated modals: AddDebtorModal, RegisterPaymentModal, AddReminderModal, AddSubscriptionModal, AddEditAccountModal
+   - Enhanced `keyboardShouldPersistTaps="handled"` for better interaction
+
+2. **Alert System Modernization**:
+   - **AddDebtorModal**: Replaced all validation and feedback alerts with `toast.error()` and `toast.success()`
+   - **RegisterPaymentModal**: Converted overpayment confirmations to `showConfirmation()` with proper dialog
+   - **AddReminderModal**: Updated all form validation to use toast notifications
+   - Added proper imports: `useConfirmation` and `useToast` hooks
+
+3. **Android Icon Resolution**:
+   - Fixed main icon path: `icon-72x72.png` (72x72px) → `icon.png` (1024x1024px)
+   - Updated Android adaptive icon configuration with high-resolution foreground
+   - Generated native Android assets with proper DPI variants (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
+   - Configured WebP optimization for smaller app size
+
+4. **Production Environment Setup**:
+   - Updated mobile app `.env` to use production API: `https://ascend-api-qezc.onrender.com/api`
+   - Verified production API connectivity and functionality
+   - Enabled seamless testing with live backend data
+
+**Key Files Modified:**
+- `financas-app/src/components/AddDebtorModal/index.tsx` - KeyboardAwareScrollView + Alert removal
+- `financas-app/src/components/RegisterPaymentModal/index.tsx` - Keyboard handling + ConfirmationModal integration
+- `financas-app/src/components/AddReminderModal/index.tsx` - Complete keyboard and alert modernization
+- `financas-app/src/components/AddSubscriptionModal/index.tsx` - KeyboardAwareScrollView implementation
+- `financas-app/src/components/AddEditAccountModal/index.tsx` - Keyboard handling upgrade
+- `financas-app/app.json` - Android icon configuration fixes
+- `financas-app/.env` - Production API configuration
+- `CLAUDE.md` - Added session management and git workflow rules
+
+**Performance/UX Improvements:**
+- **Smooth Keyboard Interactions**: Eliminated modal layout bugs when keyboard opens/closes
+- **Modern User Feedback**: Non-intrusive toast notifications instead of blocking Alert dialogs
+- **Professional Confirmation Dialogs**: Contextual confirmation modals for critical actions
+- **Crystal Clear App Icons**: Sharp, high-resolution icons on all Android devices and screen densities
+- **Consistent Experience**: Unified keyboard behavior across all form modals
+- **Production-Ready Testing**: Seamless testing with live backend integration
+
+**Technical Debt Resolved:**
+- Eliminated inconsistent keyboard handling patterns across modals
+- Removed all legacy Alert.alert usage for modern UX patterns
+- Fixed Android icon quality issues that affected app store presentation
+- Standardized modal interaction patterns throughout the application
+
+This session transformed the mobile app's user interaction layer, delivering professional-grade keyboard handling, modern feedback systems, and production-quality visual assets. The application now provides a consistent, polished user experience across all interaction patterns.
