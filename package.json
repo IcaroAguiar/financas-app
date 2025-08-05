@@ -7,6 +7,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No lint configured\" && exit 0",
     "build:android": "NODE_ENV=production expo build:android",
     "build:ios": "NODE_ENV=production expo build:ios",
     "build:web": "NODE_ENV=production expo build:web"
