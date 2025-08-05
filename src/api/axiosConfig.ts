@@ -3,6 +3,14 @@ import axios, { AxiosResponse, AxiosError } from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from "@env";
 
+// Global reference to signOut function for token expiration handling
+let globalSignOut: (() => void) | null = null;
+
+// Function to set the global signOut reference
+export const setGlobalSignOut = (signOutFunction: () => void) => {
+  globalSignOut = signOutFunction;
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
@@ -77,12 +85,26 @@ api.interceptors.response.use(
 
     // Trata token expirado (401 Unauthorized)
     if (error.response?.status === 401) {
+      if (__DEV__) {
+        console.warn('[Token Expiration] 🔒: Token expirado, fazendo logout automático...');
+      }
+      
       try {
+        // Remove token do AsyncStorage
         await AsyncStorage.removeItem('@FinancasApp:token');
-        // Nota: A navegação para login deve ser tratada no AuthContext
-        // pois não temos acesso direto à navegação aqui
+        await AsyncStorage.removeItem('@FinancasApp:user');
+        
+        // Chama a função de signOut global se disponível
+        if (globalSignOut) {
+          globalSignOut();
+          if (__DEV__) {
+            console.info('[Token Expiration] ✅: Usuário deslogado automaticamente');
+          }
+        } else {
+          console.warn('[Token Expiration] ⚠️: globalSignOut não está disponível');
+        }
       } catch (storageError) {
-        console.error('Erro ao remover token:', storageError);
+        console.error('Erro ao processar logout automático:', storageError);
       }
     }
 

@@ -11,7 +11,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import { User } from "@/types/user";
 import * as authService from "@/api/authService";
 import * as SecureStore from "expo-secure-store";
-import api from "@/api/axiosConfig";
+import api, { setGlobalSignOut } from "@/api/axiosConfig";
 
 interface AuthContextData {
   user: User | null;
@@ -38,6 +38,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   useEffect(() => {
+    // Registra a função signOut globalmente para uso no interceptor axios
+    setGlobalSignOut(signOut);
+    
     async function checkBiometricSupport() {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
@@ -71,7 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(false);
     }
     loadStoragedData();
-  }, []);
+  }, [signOut]); // Adiciona signOut como dependência
 
   const signIn = async (credentials: authService.SignInCredentials) => {
     const { token } = await authService.signIn(credentials);
@@ -94,9 +97,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const signOut = async () => {
-    await AsyncStorage.clear();
-    setUser(null);
-    setToken(null);
+    try {
+      // Limpa todos os dados do AsyncStorage
+      await AsyncStorage.clear();
+      
+      // Remove o header de autorização do axios
+      delete api.defaults.headers.common['Authorization'];
+      
+      // Reseta o estado local
+      setUser(null);
+      setToken(null);
+      
+      console.info('[Auth] ✅: Usuário deslogado com sucesso');
+    } catch (error) {
+      console.error('[Auth] ❌: Erro durante o logout:', error);
+      // Mesmo com erro, limpa o estado local para evitar inconsistência
+      setUser(null);
+      setToken(null);
+    }
   };
 
   const authenticateWithBiometrics = async () => {
