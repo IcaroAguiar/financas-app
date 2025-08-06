@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Modal, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { Transaction } from '@/types/transactions';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
@@ -12,6 +13,8 @@ interface TransactionBottomSheetProps {
   onClose: () => void;
   onEdit: (transactionId: string) => void;
   onDelete: (transactionId: string) => void;
+  onMarkPaid: (transactionId: string) => void;
+  onPartialPayment: (transactionId: string, amount: number) => void;
 }
 
 export default function TransactionBottomSheet({
@@ -20,7 +23,11 @@ export default function TransactionBottomSheet({
   onClose,
   onEdit,
   onDelete,
+  onMarkPaid,
+  onPartialPayment,
 }: TransactionBottomSheetProps) {
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const { showConfirmation } = useConfirmation();
   if (!transaction) return null;
 
   const isRevenue = transaction.type === 'RECEITA';
@@ -78,13 +85,49 @@ export default function TransactionBottomSheet({
               </Text>
             </View>
           </View>
-          <Text style={[
-            styles.transactionAmount,
-            { color: isRevenue ? theme.colors.success : theme.colors.error }
-          ]}>
-            {isRevenue ? '+' : ''}{formattedAmount}
-          </Text>
+          <View style={styles.headerRight}>
+            <Text style={[
+              styles.transactionAmount,
+              { color: isRevenue ? theme.colors.success : theme.colors.error }
+            ]}>
+              {isRevenue ? '+' : ''}{formattedAmount}
+            </Text>
+            <TouchableOpacity 
+              style={styles.optionsButton}
+              onPress={() => setShowOptionsMenu(!showOptionsMenu)}
+            >
+              <Icon name="more-horizontal" size={20} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Options Menu */}
+        {showOptionsMenu && (
+          <View style={styles.optionsMenu}>
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                onEdit(transaction.id);
+                setShowOptionsMenu(false);
+                onClose();
+              }}
+            >
+              <Icon name="edit-2" size={16} color={theme.colors.text.primary} />
+              <Text style={styles.optionText}>Editar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.optionItem, { borderBottomWidth: 0 }]}
+              onPress={() => {
+                onDelete(transaction.id);
+                setShowOptionsMenu(false);
+                onClose();
+              }}
+            >
+              <Icon name="trash-2" size={16} color={theme.colors.error} />
+              <Text style={[styles.optionText, { color: theme.colors.error }]}>Excluir</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Details */}
         <View style={styles.detailsContainer}>
@@ -119,26 +162,60 @@ export default function TransactionBottomSheet({
           )}
         </View>
 
-        {/* Actions */}
+        {/* Payment Actions */}
         <View style={styles.actionsContainer}>
           <CustomButton
-            title="Editar"
+            title="Pagar Parcela"
             variant="secondary"
             onPress={() => {
-              onEdit(transaction.id);
-              onClose();
+              Alert.prompt(
+                'Pagar Parcela',
+                'Digite o valor do pagamento:',
+                [
+                  { text: 'Cancelar', style: 'cancel' },
+                  {
+                    text: 'Confirmar',
+                    onPress: (value) => {
+                      if (value) {
+                        const amount = parseFloat(value.replace(',', '.'));
+                        if (!isNaN(amount) && amount > 0) {
+                          onPartialPayment(transaction.id, amount);
+                          onClose();
+                        }
+                      }
+                    }
+                  }
+                ],
+                'plain-text',
+                '',
+                'numeric'
+              );
             }}
             style={styles.actionButton}
           />
           <CustomButton
-            title="Excluir"
-            variant="danger"
+            title="Marcar como Pago"
+            variant="primary"
             onPress={() => {
-              onDelete(transaction.id);
-              onClose();
+              if (transaction.type === 'DESPESA') {
+                showConfirmation({
+                  title: 'Confirmar Pagamento',
+                  message: 'Esta despesa será marcada como paga e movida para a categoria "Pagos". Deseja continuar?',
+                  confirmText: 'Confirmar',
+                  cancelText: 'Cancelar',
+                  onConfirm: () => {
+                    onMarkPaid(transaction.id);
+                    onClose();
+                  }
+                });
+              } else {
+                onMarkPaid(transaction.id);
+                onClose();
+              }
             }}
             style={styles.actionButton}
           />
+        </View>
             </ScrollView>
           </TouchableOpacity>
         </View>

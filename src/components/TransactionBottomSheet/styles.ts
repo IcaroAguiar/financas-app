@@ -45,6 +45,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     marginRight: theme.spacing.md,
   },
+  headerRight: {
+    alignItems: 'flex-end',
+  },
   typeIcon: {
     width: 48,
     height: 48,
@@ -98,5 +101,37 @@ export const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  optionsButton: {
+    padding: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
+  },
+  optionsMenu: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 8,
+    marginBottom: theme.spacing.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  optionText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    marginLeft: theme.spacing.sm,
   },
 });

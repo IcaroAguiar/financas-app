@@ -1,11 +1,11 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
+import Icon from "@/components/Icon";
 
 
-type TransactionType = "RECEITA" | "DESPESA";
+type TransactionType = "RECEITA" | "DESPESA" | "PAGO";
 
 interface TransactionItemProps {
   id: string;
@@ -14,8 +14,8 @@ interface TransactionItemProps {
   amount: number;
   type: TransactionType;
   onPress: (transactionId: string) => void;
-  // Optional installment indicator
   isInstallmentPlan?: boolean;
+  date?: string; // Optional date for display
 }
 
 export default function TransactionItem({
@@ -26,27 +26,43 @@ export default function TransactionItem({
   type,
   onPress,
   isInstallmentPlan,
+  date,
 }: TransactionItemProps) {
   const isRevenue = type === "RECEITA";
-  const amountColor = isRevenue ? theme.colors.success : theme.colors.error;
-  const iconName = isRevenue ? "arrow-up-circle" : "arrow-down-circle";
-  const iconColor = isRevenue ? theme.colors.success : theme.colors.error;
+  const isPaid = type === "PAGO";
+  const amountColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
+  const iconName = isRevenue ? "arrow-up-circle" : isPaid ? "check-circle" : "arrow-down-circle";
+  const iconColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
 
   const formattedAmount = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(amount);
 
+  const formattedDate = date ? new Date(date).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+  }) : null;
+
   return (
     <TouchableOpacity 
       style={styles.container}
       onPress={() => onPress(id)}
-      activeOpacity={0.7}
+      activeOpacity={1}
     >
-      <View style={[styles.iconContainer, { backgroundColor: `${iconColor}20` }]}>
-        <Ionicons name={iconName} size={24} color={iconColor} />
+      {/* Icon with gradient-like background */}
+      <View style={[
+        styles.iconContainer, 
+        { backgroundColor: isRevenue ? '#10B98120' : isPaid ? '#10B98120' : '#EF444420' }
+      ]}>
+        <Icon 
+          name={iconName} 
+          size={26} 
+          color={iconColor} 
+        />
       </View>
       
+      {/* Content */}
       <View style={styles.contentContainer}>
         <Text style={styles.description} numberOfLines={1}>
           {description}
@@ -57,15 +73,23 @@ export default function TransactionItem({
           </Text>
           {isInstallmentPlan && (
             <View style={styles.installmentBadge}>
-              <Text style={styles.installmentBadgeText}>Parcelado</Text>
+              <Text style={styles.installmentBadgeText}>PARCELADO</Text>
             </View>
           )}
         </View>
       </View>
       
-      <Text style={[styles.amount, { color: amountColor }]}>
-        {isRevenue ? '+' : ''}{formattedAmount}
-      </Text>
+      {/* Amount and Date */}
+      <View style={styles.amountContainer}>
+        <Text style={[styles.amount, { color: amountColor }]}>
+          {isRevenue ? '+' : isPaid ? '✓' : ''}{formattedAmount}
+        </Text>
+        {formattedDate && (
+          <Text style={styles.dateText}>
+            {formattedDate}
+          </Text>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

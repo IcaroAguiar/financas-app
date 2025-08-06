@@ -2,7 +2,7 @@
 import { Category } from "@/types/category";
 import { Account } from "@/api/accountService";
 
-export type TransactionType = "RECEITA" | "DESPESA";
+export type TransactionType = "RECEITA" | "DESPESA" | "PAGO";
 
 export interface TransactionInstallment {
   id: string;

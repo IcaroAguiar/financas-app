@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     elevation: 5,
   },
   summaryLabel: {
-    fontSize: 12, // Reduced for smaller screens
+    ...theme.typography.caption,
     color: theme.colors.textSecondary,
     marginBottom: 4,
     textAlign: 'center',
@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   },
   summaryAmount: {
     fontSize: 16, // Reduced from 18 for smaller screens
-    fontWeight: 'bold',
+    fontWeight: '600', // Use specific weight instead of 'bold'
     textAlign: 'center',
     flexShrink: 1, // Allow text to shrink if necessary
   },
@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   filterText: {
-    fontSize: 13, // Reduced from 14 for smaller screens
+    fontSize: 14, // Use consistent sizing with theme
     fontWeight: '500',
     color: theme.colors.textPrimary,
     flexShrink: 1, // Allow text to shrink if necessary
@@ -87,23 +87,9 @@ export const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   transactionsList: {
-    backgroundColor: theme.colors.card,
-    borderRadius: 12,
-    marginBottom: 20, // Normal margin, content container handles tab bar spacing
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  transactionItemWrapper: {
-    paddingHorizontal: theme.spacing.md, // Reduced from 16 to 12
-  },
-  separator: {
-    height: 1,
-    backgroundColor: theme.colors.border,
-    marginLeft: theme.spacing.md, // Consistent with reduced padding
-    marginRight: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
+    paddingBottom: theme.spacing.lg,
+    marginBottom: 20,
   },
   emptyContainer: {
     flex: 1,
@@ -112,11 +98,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
+    ...theme.typography.body,
     color: theme.colors.textSecondary,
     textAlign: 'center',
     marginTop: 16,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   
   // Account Filter Styles
@@ -124,7 +110,7 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   accountFiltersTitle: {
-    fontSize: 14,
+    fontSize: 15, // Match theme body size for consistency
     fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 10,

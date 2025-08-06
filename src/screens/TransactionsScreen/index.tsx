@@ -38,7 +38,7 @@ export default function TransactionsScreen() {
   
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [filterType, setFilterType] = useState<"ALL" | "RECEITA" | "DESPESA">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "RECEITA" | "DESPESA" | "PAGO">("ALL");
   const [filterAccountId, setFilterAccountId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   
@@ -288,6 +288,15 @@ export default function TransactionsScreen() {
                 Despesas
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterButton, filterType === "PAGO" && styles.activeFilterButton]}
+              onPress={() => setFilterType("PAGO")}
+            >
+              <Icon name="check-circle" size={16} color={filterType === "PAGO" ? theme.colors.surface : theme.colors.success} />
+              <Text style={[styles.filterText, filterType === "PAGO" && styles.activeFilterText]}>
+                Pagos
+              </Text>
+            </TouchableOpacity>
           </ScrollView>
           
           <TouchableOpacity
@@ -336,27 +345,29 @@ export default function TransactionsScreen() {
             <Text style={styles.emptyText}>
               {filterType === 'ALL' 
                 ? 'Nenhuma transação encontrada.\nToque no + para adicionar sua primeira!'
-                : `Nenhuma ${filterType === 'RECEITA' ? 'receita' : 'despesa'} encontrada.`
+                : filterType === 'RECEITA' 
+                  ? 'Nenhuma receita encontrada.'
+                  : filterType === 'DESPESA'
+                    ? 'Nenhuma despesa encontrada.'
+                    : 'Nenhuma transação paga encontrada.'
               }
             </Text>
           </View>
         ) : (
           <View style={styles.transactionsList}>
-            {filteredTransactions.map((item, index) => {
-              const installmentProgress = getTransactionInstallmentProgress(item);
+            {filteredTransactions.map((item) => {
               return (
-                <View key={item.id} style={styles.transactionItemWrapper}>
-                  <TransactionItem
-                    id={item.id}
-                    description={item.description}
-                    category={item.category?.name || "Sem Categoria"}
-                    amount={item.amount}
-                    type={item.type}
-                    onPress={handleTransactionPress}
-                    isInstallmentPlan={Boolean(item.isInstallmentPlan)}
-                  />
-                  {index < filteredTransactions.length - 1 && <View style={styles.separator} />}
-                </View>
+                <TransactionItem
+                  key={item.id}
+                  id={item.id}
+                  description={item.description}
+                  category={item.category?.name || "Sem Categoria"}
+                  amount={item.amount}
+                  type={item.type}
+                  onPress={handleTransactionPress}
+                  isInstallmentPlan={Boolean(item.isInstallmentPlan)}
+                  date={item.date}
+                />
               );
             })}
           </View>
@@ -379,6 +390,8 @@ export default function TransactionsScreen() {
         onClose={handleCloseBottomSheet}
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
+        onMarkPaid={handleMarkTransactionPaid}
+        onPartialPayment={handleMarkTransactionPartialPayment}
       />
     </SafeAreaView>
   );

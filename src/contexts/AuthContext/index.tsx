@@ -38,9 +38,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   useEffect(() => {
-    // Registra a função signOut globalmente para uso no interceptor axios
-    setGlobalSignOut(signOut);
-    
     async function checkBiometricSupport() {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
@@ -74,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(false);
     }
     loadStoragedData();
-  }, [signOut]); // Adiciona signOut como dependência
+  }, []); // Remove signOut dependency to avoid circular reference
 
   const signIn = async (credentials: authService.SignInCredentials) => {
     const { token } = await authService.signIn(credentials);
@@ -116,6 +113,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setToken(null);
     }
   };
+
+  // Registra a função signOut globalmente após sua definição
+  useEffect(() => {
+    setGlobalSignOut(signOut);
+  }, [signOut]);
 
   const authenticateWithBiometrics = async () => {
     const result = await LocalAuthentication.authenticateAsync({
