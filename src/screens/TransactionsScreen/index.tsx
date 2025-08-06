@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFocusEffect } from "@react-navigation/native";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import TransactionBottomSheet from "@/components/TransactionBottomSheet";
@@ -223,8 +222,7 @@ export default function TransactionsScreen() {
   const filteredTransactions = getFilteredAndSortedTransactions();
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
@@ -382,7 +380,6 @@ export default function TransactionsScreen() {
         onEdit={handleEditTransaction}
         onDelete={handleDeleteTransaction}
       />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    </SafeAreaView>
   );
 }

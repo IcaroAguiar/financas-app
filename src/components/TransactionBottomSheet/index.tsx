@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import React from 'react';
+import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { Transaction } from '@/types/transactions';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
@@ -22,18 +21,6 @@ export default function TransactionBottomSheet({
   onEdit,
   onDelete,
 }: TransactionBottomSheetProps) {
-  const snapPoints = useMemo(() => ['40%'], []);
-  
-  const bottomSheetRef = React.useRef<BottomSheet>(null);
-
-  React.useEffect(() => {
-    if (isOpen && transaction) {
-      bottomSheetRef.current?.expand();
-    } else {
-      bottomSheetRef.current?.close();
-    }
-  }, [isOpen, transaction]);
-
   if (!transaction) return null;
 
   const isRevenue = transaction.type === 'RECEITA';
@@ -54,15 +41,21 @@ export default function TransactionBottomSheet({
   });
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      snapPoints={snapPoints}
-      onClose={onClose}
-      enablePanDownToClose
-      backgroundStyle={styles.bottomSheetBackground}
-      handleIndicatorStyle={styles.handleIndicator}
+    <Modal
+      visible={isOpen}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={onClose}
     >
-      <BottomSheetView style={styles.container}>
+      <TouchableOpacity 
+        style={styles.backdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <View style={styles.bottomSheetContainer}>
+          <TouchableOpacity activeOpacity={1} style={styles.contentWrapper}>
+            <View style={styles.handle} />
+            <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -146,8 +139,10 @@ export default function TransactionBottomSheet({
             }}
             style={styles.actionButton}
           />
+            </ScrollView>
+          </TouchableOpacity>
         </View>
-      </BottomSheetView>
-    </BottomSheet>
+      </TouchableOpacity>
+    </Modal>
   );
 }

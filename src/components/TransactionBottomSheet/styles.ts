@@ -2,19 +2,36 @@ import { StyleSheet } from 'react-native';
 import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
-  bottomSheetBackground: {
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  bottomSheetContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  contentWrapper: {
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    maxHeight: '50%',
+    minHeight: '40%',
   },
-  handleIndicator: {
+  handle: {
+    width: 40,
+    height: 4,
     backgroundColor: theme.colors.text.secondary,
     opacity: 0.3,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
   },
   container: {
-    flex: 1,
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
   header: {
     flexDirection: 'row',
