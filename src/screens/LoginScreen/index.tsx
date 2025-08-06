@@ -75,6 +75,12 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           secureTextEntry
         />
 
+        <View style={styles.forgotPasswordContainer}>
+          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+            <Text style={styles.forgotPasswordText}>Recuperar senha</Text>
+          </TouchableOpacity>
+        </View>
+
         {isBiometricSupported && isBiometricEnabled && (
           <TouchableOpacity
             onPress={handleBiometricLogin}

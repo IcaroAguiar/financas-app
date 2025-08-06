@@ -34,4 +34,15 @@ export const styles = StyleSheet.create({
     marginTop: 20,
     padding: 10,
   },
+  forgotPasswordContainer: {
+    alignItems: 'flex-end',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  forgotPasswordText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontFamily: theme.fonts.regular,
+    textAlign: 'right',
+  },
 });
