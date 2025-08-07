@@ -5,10 +5,16 @@ import { API_BASE_URL } from "@env";
 
 // Global reference to signOut function for token expiration handling
 let globalSignOut: (() => void) | null = null;
+let globalBiometricReauth: (() => Promise<boolean>) | null = null;
 
 // Function to set the global signOut reference
 export const setGlobalSignOut = (signOutFunction: () => void) => {
   globalSignOut = signOutFunction;
+};
+
+// Function to set the global biometric re-auth reference
+export const setGlobalBiometricReauth = (biometricReauthFunction: () => Promise<boolean>) => {
+  globalBiometricReauth = biometricReauthFunction;
 };
 
 const api = axios.create({
@@ -26,29 +32,14 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Erro ao buscar token:', error);
     }
 
-    // Só logamos em ambiente de desenvolvimento para não poluir o console de produção
-    if (__DEV__) {
-      const url = config.url;
-      const method = config.method?.toUpperCase();
-
-      console.log(`[API Request] 🚀: ${method} ${url}`);
-
-      // Loga o corpo da requisição (payload), se houver um
-      if (config.data) {
-        console.log("[Payload] 📦:", JSON.stringify(config.data, null, 2));
-      }
-    }
+    // Logs removidos para ambiente de produção
     // É obrigatório retornar a config para que a requisição continue
     return config;
   },
   (error) => {
     // Trata erros que acontecem ANTES da requisição ser enviada
-    if (__DEV__) {
-      console.error("[API Request Error] 🔥:", error);
-    }
     return Promise.reject(error);
   }
 );
@@ -58,53 +49,42 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     // Se a resposta for bem-sucedida (status 2xx), apenas a retornamos
-    if (__DEV__) {
-      console.log(
-        `[API Response] ✅: ${response.config.method?.toUpperCase()} ${
-          response.config.url
-        }`,
-        response.data
-      );
-    }
     return response;
   },
   async (error: AxiosError) => {
     // Trata todos os erros de resposta (status 4xx, 5xx)
-    if (__DEV__) {
-      const url = error.config?.url;
-      const method = error.config?.method?.toUpperCase();
-      const status = error.response?.status;
-      const errorData = error.response?.data;
-
-      console.error(`[API Response Error] ❌: ${method} ${url}`);
-      console.error(`[Error Status] 📉: ${status}`);
-      if (errorData) {
-        console.error("[Error Data] 📄:", JSON.stringify(errorData, null, 2));
-      }
-    }
 
     // Trata token expirado (401 Unauthorized)
     if (error.response?.status === 401) {
-      if (__DEV__) {
-        console.warn('[Token Expiration] 🔒: Token expirado, fazendo logout automático...');
-      }
       
       try {
-        // Remove token do AsyncStorage
+        // First, try biometric re-authentication if available
+        if (globalBiometricReauth) {
+          const reauthSuccess = await globalBiometricReauth();
+          if (reauthSuccess) {
+            // Retry the original request with new token
+            const originalRequest = error.config;
+            const token = await AsyncStorage.getItem('@FinancasApp:token');
+            if (token && originalRequest) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              return api.request(originalRequest);
+            }
+          }
+        }
+
+        // If biometric re-auth failed or not available, force logout
         await AsyncStorage.removeItem('@FinancasApp:token');
         await AsyncStorage.removeItem('@FinancasApp:user');
         
         // Chama a função de signOut global se disponível
         if (globalSignOut) {
           globalSignOut();
-          if (__DEV__) {
-            console.info('[Token Expiration] ✅: Usuário deslogado automaticamente');
-          }
-        } else {
-          console.warn('[Token Expiration] ⚠️: globalSignOut não está disponível');
         }
       } catch (storageError) {
-        console.error('Erro ao processar logout automático:', storageError);
+        // If everything fails, still try to logout
+        if (globalSignOut) {
+          globalSignOut();
+        }
       }
     }
 

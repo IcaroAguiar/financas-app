@@ -71,7 +71,6 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
       const response = await getTransactions();
       setTransactions(response);
     } catch (error: any) {
-      console.error('Erro ao carregar transações:', error);
       // Context doesn't show UI alerts - let calling components handle errors
     } finally {
       setLoading(false);
@@ -84,7 +83,6 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
       const response = await getTransactions();
       setTransactions(response);
     } catch (error: any) {
-      console.error('Erro ao atualizar transações:', error);
     } finally {
       setRefreshing(false);
     }

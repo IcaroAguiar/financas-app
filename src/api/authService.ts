@@ -92,3 +92,21 @@ export const verifyResetToken = async (
   const response = await api.get<VerifyResetTokenResponse>(`/users/verify-reset-token/${token}`);
   return response.data;
 };
+
+// Password verification interfaces
+export interface VerifyPasswordRequest {
+  password: string;
+}
+
+export interface VerifyPasswordResponse {
+  message: string;
+  verified: boolean;
+}
+
+// Password verification function
+export const verifyPassword = async (
+  request: VerifyPasswordRequest
+): Promise<VerifyPasswordResponse> => {
+  const response = await api.post<VerifyPasswordResponse>("/users/verify-password", request);
+  return response.data;
+};

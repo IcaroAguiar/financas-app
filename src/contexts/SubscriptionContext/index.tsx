@@ -117,7 +117,6 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       const response = await getSubscriptions();
       setSubscriptions(response);
     } catch (error: any) {
-      console.error('Erro ao carregar assinaturas:', error);
       // Context doesn't show UI alerts - let calling components handle errors
     } finally {
       setLoading(false);
@@ -130,7 +129,6 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       const response = await getSubscriptions();
       setSubscriptions(response);
     } catch (error: any) {
-      console.error('Erro ao atualizar assinaturas:', error);
     } finally {
       setRefreshing(false);
     }
@@ -212,7 +210,6 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     try {
       return await getUpcomingSubscriptions(days);
     } catch (error: any) {
-      console.error('Erro ao buscar próximos pagamentos:', error);
       return [];
     }
   };

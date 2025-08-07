@@ -11,7 +11,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import { User } from "@/types/user";
 import * as authService from "@/api/authService";
 import * as SecureStore from "expo-secure-store";
-import api, { setGlobalSignOut } from "@/api/axiosConfig";
+import api, { setGlobalSignOut, setGlobalBiometricReauth } from "@/api/axiosConfig";
 
 interface AuthContextData {
   user: User | null;
@@ -22,8 +22,9 @@ interface AuthContextData {
   signIn(credentials: authService.SignInCredentials): Promise<void>;
   signUp(credentials: authService.SignUpCredentials): Promise<void>;
   signOut(): void;
-  authenticateWithBiometrics(): Promise<void>;
-  setIsBiometricEnabled(enabled: boolean): void;
+  authenticateWithBiometrics(): Promise<boolean>;
+  silentBiometricReauth(): Promise<boolean>;
+  setIsBiometricEnabled(enabled: boolean): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -42,15 +43,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       
-      console.log('Biometric Hardware Available:', hasHardware);
-      console.log('Biometric Enrolled:', isEnrolled);
+      const isSupported = hasHardware && isEnrolled;
+      setIsBiometricSupported(isSupported);
       
-      setIsBiometricSupported(hasHardware && isEnrolled);
-      if (hasHardware && isEnrolled) {
+      if (isSupported) {
         const biometricEnabled = await AsyncStorage.getItem(
-          "@Ascend:biometricEnabled"
+          "@FinancasApp:biometricEnabled"
         );
-        console.log('Biometric Setting in Storage:', biometricEnabled);
         setIsBiometricEnabled(biometricEnabled === "true");
       }
     }
@@ -67,6 +66,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         api.defaults.headers.common[
           "Authorization"
         ] = `Bearer ${storagedToken}`;
+        
+        // Refresh biometric state for returning user
+        await refreshBiometricState();
+      } else {
+        // If no stored session, check if biometric is enabled for auto-login
+        const biometricEnabled = await AsyncStorage.getItem("@FinancasApp:biometricEnabled");
+        if (biometricEnabled === "true" && isBiometricSupported) {
+          try {
+            // Small delay to ensure UI is ready
+            setTimeout(async () => {
+              try {
+                await authenticateWithBiometrics();
+              } catch (error) {
+                // Silent fail - user can manually login
+              }
+            }, 1000);
+          } catch (error) {
+            // Silent fail - user can manually login
+          }
+        }
       }
       setIsLoading(false);
     }
@@ -86,6 +105,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       JSON.stringify(meResponse.data)
     );
     await AsyncStorage.setItem("@FinancasApp:token", token);
+
+    // Refresh biometric state after successful login
+    await refreshBiometricState();
   };
 
   const signUp = async (credentials: authService.SignUpCredentials) => {
@@ -105,43 +127,101 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setUser(null);
       setToken(null);
       
-      console.info('[Auth] ✅: Usuário deslogado com sucesso');
     } catch (error) {
-      console.error('[Auth] ❌: Erro durante o logout:', error);
       // Mesmo com erro, limpa o estado local para evitar inconsistência
       setUser(null);
       setToken(null);
     }
   };
 
-  // Registra a função signOut globalmente após sua definição
-  useEffect(() => {
-    setGlobalSignOut(signOut);
-  }, [signOut]);
+  const authenticateWithBiometrics = async (): Promise<boolean> => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Faça login no Ascend",
+        fallbackLabel: "Usar senha",
+        cancelLabel: "Cancelar",
+      });
 
-  const authenticateWithBiometrics = async () => {
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Faça login no Ascend",
-    });
+      if (result.success) {
+        const email = await SecureStore.getItemAsync("FinancasApp_userEmail");
+        const password = await SecureStore.getItemAsync("FinancasApp_userPassword");
 
-    if (result.success) {
-      const email = await SecureStore.getItemAsync("@Ascend:userEmail");
-      const password = await SecureStore.getItemAsync("@Ascend:userPassword");
-
-      if (email && password) {
-        await signIn({ email, password });
+        if (email && password) {
+          await signIn({ email, password });
+          return true;
+        } else {
+          throw new Error('Credenciais biométricas não encontradas. Configure novamente nas configurações.');
+        }
       } else {
-        // Handle case where credentials are not found in secure store
-        console.log("Biometric credentials not found.");
+        throw new Error('Autenticação biométrica cancelada ou falhou.');
       }
-    } else {
-      // Handle authentication failure
-      console.log("Biometric authentication failed.");
+    } catch (error) {
+      throw error;
     }
   };
 
-  const setBiometricEnabled = (enabled: boolean) => {
+  const silentBiometricReauth = async (): Promise<boolean> => {
+    try {
+      // Check if biometric is enabled and supported
+      const biometricEnabled = await AsyncStorage.getItem("@FinancasApp:biometricEnabled");
+      if (biometricEnabled !== "true" || !isBiometricSupported) {
+        return false;
+      }
+
+      // Try to get stored credentials
+      const email = await SecureStore.getItemAsync("FinancasApp_userEmail");
+      const password = await SecureStore.getItemAsync("FinancasApp_userPassword");
+      
+      if (!email || !password) {
+        return false;
+      }
+
+      // Authenticate with biometrics
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Sessão expirada. Autentique-se novamente",
+        fallbackLabel: "Fazer login manual",
+        cancelLabel: "Cancelar",
+      });
+
+      if (result.success) {
+        await signIn({ email, password });
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Registra as funções globalmente após suas definições
+  useEffect(() => {
+    setGlobalSignOut(signOut);
+    setGlobalBiometricReauth(silentBiometricReauth);
+  }, [signOut, silentBiometricReauth]);
+
+  const refreshBiometricState = async () => {
+    if (!isBiometricSupported) {
+      return;
+    }
+    
+    try {
+      const biometricEnabled = await AsyncStorage.getItem("@FinancasApp:biometricEnabled");
+      setIsBiometricEnabled(biometricEnabled === "true");
+    } catch (error) {
+      // Silent error handling
+    }
+  };
+
+  const setBiometricEnabled = async (enabled: boolean) => {
     setIsBiometricEnabled(enabled);
+    
+    // Also persist to AsyncStorage to ensure it's saved
+    try {
+      await AsyncStorage.setItem("@FinancasApp:biometricEnabled", enabled ? "true" : "false");
+    } catch (error) {
+      // Silent error handling
+    }
   };
 
   return (
@@ -156,6 +236,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         signUp,
         signOut,
         authenticateWithBiometrics,
+        silentBiometricReauth,
         setIsBiometricEnabled: setBiometricEnabled,
       }}
     >

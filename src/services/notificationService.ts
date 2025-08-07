@@ -44,7 +44,6 @@ class NotificationService {
 
       return finalStatus === 'granted';
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
       return false;
     }
   }
@@ -72,7 +71,6 @@ class NotificationService {
       const identifier = await Notifications.scheduleNotificationAsync(notificationRequest);
       return identifier;
     } catch (error) {
-      console.error('Error scheduling notification:', error);
       return null;
     }
   }
@@ -81,7 +79,6 @@ class NotificationService {
     try {
       await Notifications.cancelScheduledNotificationAsync(identifier);
     } catch (error) {
-      console.error('Error canceling notification:', error);
     }
   }
 
@@ -89,7 +86,6 @@ class NotificationService {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Error canceling all notifications:', error);
     }
   }
 
@@ -97,7 +93,6 @@ class NotificationService {
     try {
       return await Notifications.getAllScheduledNotificationsAsync();
     } catch (error) {
-      console.error('Error getting scheduled notifications:', error);
       return [];
     }
   }

@@ -59,7 +59,6 @@ function MainTabs() {
       await addTransaction({ ...data, date: new Date().toISOString() });
       setIsTransactionModalVisible(false);
     } catch (error) {
-      console.error('Erro ao adicionar transação:', error);
     }
   };
 
@@ -82,10 +81,8 @@ function MainTabs() {
   const handleReminderSubmit = async (reminderData: any) => {
     try {
       // TODO: Implement reminder API integration
-      console.log('Reminder data:', reminderData);
       setIsReminderModalVisible(false);
     } catch (error) {
-      console.error('Erro ao criar lembrete:', error);
     }
   };
 
@@ -94,7 +91,6 @@ function MainTabs() {
       await addDebtor(debtorData);
       setIsDebtorModalVisible(false);
     } catch (error) {
-      console.error('Erro ao criar cobrança:', error);
     }
   };
   

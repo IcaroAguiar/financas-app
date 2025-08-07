@@ -50,7 +50,6 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       
       // If in development and we have a reset token, navigate to reset screen
       if (response.dev_reset_token) {
-        console.log('🔑 Reset token for development:', response.dev_reset_token);
         // In a real app, the user would get this token via email
         navigation.navigate('ResetPassword', { 
           token: response.dev_reset_token,
@@ -62,7 +61,6 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       }
       
     } catch (error: any) {
-      console.error('Erro ao solicitar reset de senha:', error);
       
       if (error.response?.status === 400) {
         showError({ message: error.response.data.error || 'Dados inválidos.' });

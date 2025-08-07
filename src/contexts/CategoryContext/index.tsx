@@ -33,8 +33,7 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
       const response = await api.get('/categories');
       setCategories(response.data);
     } catch (error: any) {
-      console.error('Erro ao carregar categorias:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as categorias.');
+      // API error handled silently
     } finally {
       setLoading(false);
     }
@@ -46,7 +45,6 @@ export const CategoryProvider: React.FC<CategoryProviderProps> = ({ children }) 
       const response = await api.get('/categories');
       setCategories(response.data);
     } catch (error: any) {
-      console.error('Erro ao atualizar categorias:', error);
     } finally {
       setRefreshing(false);
     }

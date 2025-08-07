@@ -37,12 +37,7 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const response = await getDebtors();
       setDebtors(response);
     } catch (error: any) {
-      console.error('Erro ao carregar cobranças:', error.response?.data || error.message);
-      if (error.response?.status === 401) {
-        Alert.alert('Erro de Autenticação', 'Você precisa fazer login novamente.');
-      } else {
-        Alert.alert('Erro', 'Não foi possível carregar as cobranças.');
-      }
+      // API error handled silently
     } finally {
       setLoading(false);
     }
@@ -53,12 +48,7 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
       const response = await getDebts();
       setDebts(response);
     } catch (error: any) {
-      console.error('Erro ao carregar dívidas:', error.response?.data || error.message);
-      if (error.response?.status === 401) {
-        Alert.alert('Erro de Autenticação', 'Você precisa fazer login novamente.');
-      } else {
-        Alert.alert('Erro', 'Não foi possível carregar as dívidas.');
-      }
+      // API error handled silently
     }
   };
 
@@ -67,7 +57,6 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
     try {
       await Promise.all([loadDebtors(), loadDebts()]);
     } catch (error: any) {
-      console.error('Erro ao atualizar dados:', error);
     } finally {
       setRefreshing(false);
     }

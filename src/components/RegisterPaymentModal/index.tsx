@@ -130,7 +130,6 @@ export default function RegisterPaymentModal({
       handleClose();
       onPaymentCreated();
     } catch (error) {
-      console.error('Erro ao registrar pagamento:', error);
       toast.showError({ message: 'Não foi possível registrar o pagamento. Tente novamente.' });
     } finally {
       setLoading(false);

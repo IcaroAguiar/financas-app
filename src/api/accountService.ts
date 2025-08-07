@@ -30,7 +30,6 @@ export const createAccount = async (accountData: CreateAccountRequest): Promise<
     const response = await api.post('/accounts', accountData);
     return response.data;
   } catch (error: any) {
-    console.error('Erro ao criar conta:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || 'Erro ao criar conta');
   }
 };
@@ -41,7 +40,6 @@ export const getAllAccounts = async (): Promise<Account[]> => {
     const response = await api.get('/accounts');
     return response.data;
   } catch (error: any) {
-    console.error('Erro ao buscar contas:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || 'Erro ao buscar contas');
   }
 };
@@ -52,7 +50,6 @@ export const getAccountById = async (id: string): Promise<Account> => {
     const response = await api.get(`/accounts/${id}`);
     return response.data;
   } catch (error: any) {
-    console.error('Erro ao buscar conta:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || 'Erro ao buscar conta');
   }
 };
@@ -63,7 +60,6 @@ export const updateAccount = async (id: string, accountData: UpdateAccountReques
     const response = await api.put(`/accounts/${id}`, accountData);
     return response.data;
   } catch (error: any) {
-    console.error('Erro ao atualizar conta:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || 'Erro ao atualizar conta');
   }
 };
@@ -73,7 +69,6 @@ export const deleteAccount = async (id: string): Promise<void> => {
   try {
     await api.delete(`/accounts/${id}`);
   } catch (error: any) {
-    console.error('Erro ao deletar conta:', error.response?.data || error.message);
     throw new Error(error.response?.data?.error || 'Erro ao deletar conta');
   }
 };

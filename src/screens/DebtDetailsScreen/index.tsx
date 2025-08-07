@@ -31,7 +31,6 @@ export default function DebtDetailsScreen() {
       const response = await getDebtById(debtId);
       setDebtDetails(response);
     } catch (error) {
-      console.error('Erro ao carregar detalhes da dívida:', error);
       Alert.alert('Erro', 'Não foi possível carregar os detalhes da dívida.');
     } finally {
       setLoading(false);

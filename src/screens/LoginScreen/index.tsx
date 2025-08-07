@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 
 import { styles } from "./styles";
 import { LoginScreenProps } from "@/navigation/types";
@@ -49,8 +49,12 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const handleBiometricLogin = async () => {
     setIsSigningIn(true);
     try {
-      await authenticateWithBiometrics();
-    } catch (error) {
+      const success = await authenticateWithBiometrics();
+      if (!success) {
+        Alert.alert("Erro Biométrico", "Não foi possível autenticar com biometria.");
+      }
+    } catch (error: any) {
+      Alert.alert("Erro Biométrico", error.message || "Não foi possível autenticar com biometria.");
     } finally {
       setIsSigningIn(false);
     }
@@ -87,8 +91,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             style={styles.biometricButton}
             disabled={isSigningIn}
           >
-            <Feather
-              name="lock"
+            <MaterialIcons
+              name="fingerprint"
               size={32}
               color={theme.colors.primary}
             />

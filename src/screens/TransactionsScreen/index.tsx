@@ -207,9 +207,6 @@ export default function TransactionsScreen() {
 
   // Não precisamos mais do useFocusEffect pois o contexto já carrega os dados automaticamente
 
-  // const handleAddTransaction = () => {
-  //   console.log("Abrir modal de nova transação");
-  // };
 
   if (loading) {
     return (

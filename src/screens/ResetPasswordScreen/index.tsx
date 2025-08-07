@@ -88,7 +88,6 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
       }, 1500);
       
     } catch (error: any) {
-      console.error('Erro ao redefinir senha:', error);
       
       if (error.response?.status === 400) {
         const errorMessage = error.response.data.error;

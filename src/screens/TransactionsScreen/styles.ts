@@ -20,6 +20,7 @@ export const styles = StyleSheet.create({
   summaryContainer: {
     flexDirection: 'row',
     marginBottom: 20,
+    marginTop: theme.spacing.lg,
     gap: 10,
   },
   summaryCard: {

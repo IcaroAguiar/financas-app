@@ -53,10 +53,9 @@ export default function ProfileScreen() {
     } else {
       // Disable biometrics
       try {
-        await SecureStore.deleteItemAsync('@Ascend:userEmail');
-        await SecureStore.deleteItemAsync('@Ascend:userPassword');
-        await AsyncStorage.removeItem('@Ascend:biometricEnabled');
-        setIsBiometricEnabled(false);
+        await SecureStore.deleteItemAsync('FinancasApp_userEmail');
+        await SecureStore.deleteItemAsync('FinancasApp_userPassword');
+        await setIsBiometricEnabled(false);
         Alert.alert('Sucesso', 'Login com biometria desabilitado.');
       } catch (error) {
         Alert.alert('Erro', 'Não foi possível desabilitar a biometria.');
@@ -71,17 +70,22 @@ export default function ProfileScreen() {
     }
 
     try {
-      // Here you should verify the password against your backend
-      // For this example, we'll assume the password is correct
-      await SecureStore.setItemAsync('@Ascend:userEmail', user?.email || '');
-      await SecureStore.setItemAsync('@Ascend:userPassword', password);
-      await AsyncStorage.setItem('@Ascend:biometricEnabled', 'true');
-      setIsBiometricEnabled(true);
+      // Verify password using the dedicated verification endpoint
+      const { verifyPassword } = await import('@/api/authService');
+      await verifyPassword({ password });
+      
+      // If password verification succeeds, store credentials for biometric use
+      await SecureStore.setItemAsync('FinancasApp_userEmail', user?.email || '');
+      await SecureStore.setItemAsync('FinancasApp_userPassword', password);
+      
+      // Update biometric state (includes AsyncStorage save)
+      await setIsBiometricEnabled(true);
       setShowPasswordModal(false);
       setPassword('');
+      
       Alert.alert('Sucesso', 'Login com biometria habilitado.');
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível habilitar a biometria.');
+    } catch (error: any) {
+      Alert.alert('Erro', error.response?.data?.error || 'Senha incorreta ou erro de conexão.');
     }
   };
 

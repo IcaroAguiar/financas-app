@@ -30,7 +30,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       const data = await getAllAccounts();
       setAccounts(data);
     } catch (error) {
-      console.error('Erro ao carregar contas:', error);
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       const data = await getAllAccounts();
       setAccounts(data);
     } catch (error) {
-      console.error('Erro ao atualizar contas:', error);
     } finally {
       setRefreshing(false);
     }
@@ -54,7 +52,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       setAccounts(prev => [newAccount, ...prev]);
       return newAccount;
     } catch (error) {
-      console.error('Erro ao adicionar conta:', error);
       throw error;
     }
   };
@@ -67,7 +64,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       ));
       return updatedAccount;
     } catch (error) {
-      console.error('Erro ao editar conta:', error);
       throw error;
     }
   };
@@ -77,7 +73,6 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       await deleteAccount(id);
       setAccounts(prev => prev.filter(account => account.id !== id));
     } catch (error) {
-      console.error('Erro ao remover conta:', error);
       throw error;
     }
   };
