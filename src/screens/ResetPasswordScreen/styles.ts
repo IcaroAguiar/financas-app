@@ -1,83 +1,76 @@
-import styled from 'styled-components/native';
+import { StyleSheet } from 'react-native';
 import { theme } from '@/styles/theme';
 
-export const Container = styled.View`
-  flex: 1;
-  background-color: ${theme.colors.background};
-  padding: ${theme.spacing.lg}px;
-  justify-content: center;
-`;
-
-export const BackButton = styled.TouchableOpacity`
-  position: absolute;
-  top: 60px;
-  left: ${theme.spacing.lg}px;
-  z-index: 1;
-`;
-
-export const BackButtonText = styled.Text`
-  font-size: 16px;
-  color: ${theme.colors.primary};
-  font-weight: 500;
-`;
-
-export const Title = styled.Text`
-  font-size: 28px;
-  font-weight: 700;
-  color: ${theme.colors.text};
-  text-align: center;
-  margin-bottom: ${theme.spacing.sm}px;
-  margin-top: 60px;
-`;
-
-export const Subtitle = styled.Text`
-  font-size: 16px;
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  margin-bottom: ${theme.spacing.xl}px;
-  line-height: 24px;
-  padding: 0 ${theme.spacing.lg}px;
-`;
-
-export const TokenInfo = styled.View`
-  background-color: ${theme.colors.surface};
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.md}px;
-  padding: ${theme.spacing.sm}px;
-  margin-bottom: ${theme.spacing.md}px;
-`;
-
-export const TokenText = styled.Text`
-  font-size: 12px;
-  color: ${theme.colors.textSecondary};
-  text-align: center;
-  font-family: 'monospace';
-`;
-
-export const FormContainer = styled.View`
-  gap: ${theme.spacing.lg}px;
-`;
-
-export const InputContainer = styled.View`
-  gap: ${theme.spacing.xs}px;
-`;
-
-export const Label = styled.Text`
-  font-size: 16px;
-  font-weight: 600;
-  color: ${theme.colors.text};
-`;
-
-export const Input = styled.TextInput`
-  background-color: ${theme.colors.surface};
-  border: 1px solid ${theme.colors.border};
-  border-radius: ${theme.borderRadius.md}px;
-  padding: ${theme.spacing.md}px;
-  font-size: 16px;
-  color: ${theme.colors.text};
-  min-height: 48px;
-`;
-
-export const ButtonContainer = styled.View`
-  margin-top: ${theme.spacing.md}px;
-`;
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    padding: theme.spacing.lg,
+    justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 60,
+    left: theme.spacing.lg,
+    zIndex: 1,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: theme.colors.primary,
+    fontWeight: '500',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+    marginTop: 60,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+    lineHeight: 24,
+    paddingHorizontal: theme.spacing.lg,
+  },
+  tokenInfo: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  tokenText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    fontFamily: 'monospace',
+  },
+  formContainer: {
+    gap: theme.spacing.lg,
+  },
+  inputContainer: {
+    gap: theme.spacing.xs,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
+  input: {
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    minHeight: 48,
+  },
+  buttonContainer: {
+    marginTop: theme.spacing.md,
+  },
+});

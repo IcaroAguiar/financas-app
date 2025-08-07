@@ -1,27 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { AuthStackParamList } from '@/types/navigation';
-import { 
-  Container, 
-  Title, 
-  Subtitle, 
-  FormContainer, 
-  InputContainer, 
-  Label, 
-  Input, 
-  ButtonContainer,
-  BackButton,
-  BackButtonText,
-  TokenInfo,
-  TokenText
-} from './styles';
-import { CustomButton } from '@/components/CustomButton';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { AuthStackParamList } from '@/navigation/types';
+import { styles } from './styles';
+import CustomButton from '@/components/CustomButton';
 import { useToast } from '@/hooks/useToast';
 import { resetPassword, verifyResetToken } from '@/api/authService';
 
-type ResetPasswordScreenNavigationProp = StackNavigationProp<
+type ResetPasswordScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
   'ResetPassword'
 >;
@@ -43,7 +31,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
   const [isVerifying, setIsVerifying] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const { toast } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const { token, email } = route.params;
 
@@ -60,11 +48,11 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
         setTokenValid(true);
         setUserEmail(response.email || email || '');
       } else {
-        toast.error('Token inválido ou expirado.');
+        showError({ message: 'Token inválido ou expirado.' });
         navigation.navigate('Login');
       }
     } catch (error) {
-      toast.error('Erro ao verificar token.');
+      showError({ message: 'Erro ao verificar token.' });
       navigation.navigate('Login');
     } finally {
       setIsVerifying(false);
@@ -73,17 +61,17 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
 
   const handleResetPassword = async () => {
     if (!newPassword) {
-      toast.error('Por favor, digite a nova senha.');
+      showError({ message: 'Por favor, digite a nova senha.' });
       return;
     }
 
     if (newPassword.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres.');
+      showError({ message: 'A senha deve ter pelo menos 6 caracteres.' });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('As senhas não coincidem.');
+      showError({ message: 'As senhas não coincidem.' });
       return;
     }
 
@@ -92,7 +80,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
       
       await resetPassword({ token, newPassword });
       
-      toast.success('Senha redefinida com sucesso!');
+      showSuccess({ message: 'Senha redefinida com sucesso!' });
       
       // Navigate back to login with a small delay to show success message
       setTimeout(() => {
@@ -105,15 +93,15 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
       if (error.response?.status === 400) {
         const errorMessage = error.response.data.error;
         if (errorMessage.includes('Token inválido ou expirado')) {
-          toast.error('Token expirado. Solicite um novo reset de senha.');
+          showError({ message: 'Token expirado. Solicite um novo reset de senha.' });
           navigation.navigate('ForgotPassword');
         } else {
-          toast.error(errorMessage || 'Dados inválidos.');
+          showError({ message: errorMessage || 'Dados inválidos.' });
         }
       } else if (error.response?.status >= 500) {
-        toast.error('Erro no servidor. Tente novamente mais tarde.');
+        showError({ message: 'Erro no servidor. Tente novamente mais tarde.' });
       } else {
-        toast.error('Erro inesperado. Tente novamente.');
+        showError({ message: 'Erro inesperado. Tente novamente.' });
       }
     } finally {
       setIsLoading(false);
@@ -122,24 +110,24 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
 
   if (isVerifying) {
     return (
-      <Container>
-        <Title>Verificando token...</Title>
-        <Subtitle>Aguarde um momento.</Subtitle>
-      </Container>
+      <View style={styles.container}>
+        <Text style={styles.title}>Verificando token...</Text>
+        <Text style={styles.subtitle}>Aguarde um momento.</Text>
+      </View>
     );
   }
 
   if (!tokenValid) {
     return (
-      <Container>
-        <Title>Token inválido</Title>
-        <Subtitle>O token de reset expirou ou é inválido.</Subtitle>
+      <View style={styles.container}>
+        <Text style={styles.title}>Token inválido</Text>
+        <Text style={styles.subtitle}>O token de reset expirou ou é inválido.</Text>
         <CustomButton
           title="Voltar ao login"
           onPress={() => navigation.navigate('Login')}
           variant="primary"
         />
-      </Container>
+      </View>
     );
   }
 
@@ -151,26 +139,27 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
       extraScrollHeight={120}
       keyboardShouldPersistTaps="handled"
     >
-      <Container>
-        <BackButton onPress={() => navigation.navigate('Login')}>
-          <BackButtonText>← Voltar ao login</BackButtonText>
-        </BackButton>
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.backButtonText}>← Voltar ao login</Text>
+        </TouchableOpacity>
 
-        <Title>Redefinir senha</Title>
-        <Subtitle>
+        <Text style={styles.title}>Redefinir senha</Text>
+        <Text style={styles.subtitle}>
           Digite sua nova senha para a conta {userEmail}
-        </Subtitle>
+        </Text>
 
         {__DEV__ && (
-          <TokenInfo>
-            <TokenText>🔑 Token: {token.substring(0, 20)}...</TokenText>
-          </TokenInfo>
+          <View style={styles.tokenInfo}>
+            <Text style={styles.tokenText}>🔑 Token: {token.substring(0, 20)}...</Text>
+          </View>
         )}
 
-        <FormContainer>
-          <InputContainer>
-            <Label>Nova senha</Label>
-            <Input
+        <View style={styles.formContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Nova senha</Text>
+            <TextInput
+              style={styles.input}
               value={newPassword}
               onChangeText={setNewPassword}
               placeholder="Digite sua nova senha"
@@ -179,11 +168,12 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
               autoCorrect={false}
               editable={!isLoading}
             />
-          </InputContainer>
+          </View>
 
-          <InputContainer>
-            <Label>Confirmar nova senha</Label>
-            <Input
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Confirmar nova senha</Text>
+            <TextInput
+              style={styles.input}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Digite novamente sua nova senha"
@@ -192,18 +182,18 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
               autoCorrect={false}
               editable={!isLoading}
             />
-          </InputContainer>
+          </View>
 
-          <ButtonContainer>
+          <View style={styles.buttonContainer}>
             <CustomButton
               title="Redefinir senha"
               onPress={handleResetPassword}
               loading={isLoading}
               variant="primary"
             />
-          </ButtonContainer>
-        </FormContainer>
-      </Container>
+          </View>
+        </View>
+      </View>
     </KeyboardAwareScrollView>
   );
 }

@@ -1,25 +1,15 @@
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { AuthStackParamList } from '@/types/navigation';
-import { 
-  Container, 
-  Title, 
-  Subtitle, 
-  FormContainer, 
-  InputContainer, 
-  Label, 
-  Input, 
-  ButtonContainer,
-  BackButton,
-  BackButtonText
-} from './styles';
-import { CustomButton } from '@/components/CustomButton';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { AuthStackParamList } from '@/navigation/types';
+import { styles } from './styles';
+import CustomButton from '@/components/CustomButton';
 import { useToast } from '@/hooks/useToast';
 import { forgotPassword } from '@/api/authService';
 
-type ForgotPasswordScreenNavigationProp = StackNavigationProp<
+type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
   'ForgotPassword'
 >;
@@ -37,16 +27,16 @@ interface Props {
 export function ForgotPasswordScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.error('Por favor, digite seu e-mail.');
+      showError({ message: 'Por favor, digite seu e-mail.' });
       return;
     }
 
     if (!email.includes('@')) {
-      toast.error('Por favor, digite um e-mail válido.');
+      showError({ message: 'Por favor, digite um e-mail válido.' });
       return;
     }
 
@@ -56,7 +46,7 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       const response = await forgotPassword({ email });
       
       // Show success message
-      toast.success('Instruções enviadas! Verifique seu e-mail.');
+      showSuccess({ message: 'Instruções enviadas! Verifique seu e-mail.' });
       
       // If in development and we have a reset token, navigate to reset screen
       if (response.dev_reset_token) {
@@ -75,11 +65,11 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       console.error('Erro ao solicitar reset de senha:', error);
       
       if (error.response?.status === 400) {
-        toast.error(error.response.data.error || 'Dados inválidos.');
+        showError({ message: error.response.data.error || 'Dados inválidos.' });
       } else if (error.response?.status >= 500) {
-        toast.error('Erro no servidor. Tente novamente mais tarde.');
+        showError({ message: 'Erro no servidor. Tente novamente mais tarde.' });
       } else {
-        toast.error('Erro inesperado. Tente novamente.');
+        showError({ message: 'Erro inesperado. Tente novamente.' });
       }
     } finally {
       setIsLoading(false);
@@ -94,20 +84,21 @@ export function ForgotPasswordScreen({ navigation }: Props) {
       extraScrollHeight={120}
       keyboardShouldPersistTaps="handled"
     >
-      <Container>
-        <BackButton onPress={() => navigation.goBack()}>
-          <BackButtonText>← Voltar</BackButtonText>
-        </BackButton>
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>← Voltar</Text>
+        </TouchableOpacity>
 
-        <Title>Esqueceu sua senha?</Title>
-        <Subtitle>
+        <Text style={styles.title}>Esqueceu sua senha?</Text>
+        <Text style={styles.subtitle}>
           Digite seu e-mail e enviaremos instruções para redefinir sua senha.
-        </Subtitle>
+        </Text>
 
-        <FormContainer>
-          <InputContainer>
-            <Label>E-mail</Label>
-            <Input
+        <View style={styles.formContainer}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>E-mail</Text>
+            <TextInput
+              style={styles.input}
               value={email}
               onChangeText={setEmail}
               placeholder="Digite seu e-mail"
@@ -116,18 +107,18 @@ export function ForgotPasswordScreen({ navigation }: Props) {
               autoCorrect={false}
               editable={!isLoading}
             />
-          </InputContainer>
+          </View>
 
-          <ButtonContainer>
+          <View style={styles.buttonContainer}>
             <CustomButton
               title="Enviar instruções"
               onPress={handleForgotPassword}
               loading={isLoading}
               variant="primary"
             />
-          </ButtonContainer>
-        </FormContainer>
-      </Container>
+          </View>
+        </View>
+      </View>
     </KeyboardAwareScrollView>
   );
 }
