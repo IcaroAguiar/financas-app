@@ -49,6 +49,7 @@ interface DebtDetailsModalProps {
   onMarkInstallmentPaid: (debtId: string, installmentId: string) => void;
   onMarkDebtPaid?: (debtId: string) => void;
   onMarkPartialPayment?: (debtId: string) => void;
+  onAddNewDebt?: (debtor: { id: string; name: string; email?: string; phone?: string }) => void;
 }
 
 export default function DebtDetailsModal({
@@ -59,6 +60,7 @@ export default function DebtDetailsModal({
   onMarkInstallmentPaid,
   onMarkDebtPaid,
   onMarkPartialPayment,
+  onAddNewDebt,
 }: DebtDetailsModalProps) {
   const toast = useToast();
   const { showConfirmation } = useConfirmation();
@@ -75,7 +77,7 @@ export default function DebtDetailsModal({
 
   const safeDebts = Array.isArray(debts) ? debts : [];
 
-  // Simplified payment functionality
+  // Simplified payment functionality - no local mutation
   const handleToggleDebtStatus = (debt: Debt) => {
     const isCurrentlyPaid = debt.status === 'PAGA';
     const actionText = isCurrentlyPaid ? 'marcar como pendente' : 'marcar como paga';
@@ -86,20 +88,12 @@ export default function DebtDetailsModal({
       confirmText: 'Confirmar',
       cancelText: 'Cancelar',
       onConfirm: () => {
-        // Toggle status - frontend only mutation
-        const newStatus = isCurrentlyPaid ? 'PENDENTE' : 'PAGA';
-        debt.status = newStatus;
+        console.log(`DebtDetailsModal: Requesting status change for debt ${debt.id}`);
         
-        console.log(`DebtDetailsModal: Toggled debt ${debt.id} status to ${newStatus}`);
-        
-        // Notify parent component to handle the status change
+        // Let parent component handle all mutations and state management
         if (onMarkDebtPaid) {
           onMarkDebtPaid(debt.id);
         }
-        
-        toast.showSuccess({ 
-          message: `✅ Dívida ${isCurrentlyPaid ? 'marcada como pendente' : 'marcada como paga'}!` 
-        });
         
         // Close modal immediately to show refreshed data
         onClose();
@@ -324,6 +318,18 @@ export default function DebtDetailsModal({
               <Text style={[styles.summaryValue, { color: '#F44336' }]}>{safeDebtor.overdueDebts}</Text>
             </View>
           </View>
+
+          {/* Add New Debt Button */}
+          {onAddNewDebt && (
+            <View style={styles.addDebtSection}>
+              <CustomButton
+                title="+ Adicionar Outra Cobrança"
+                onPress={() => onAddNewDebt(safeDebtor)}
+                style={styles.addDebtButton}
+                variant="outline"
+              />
+            </View>
+          )}
 
           {safeDebts.map(renderDebt)}
         </ScrollView>

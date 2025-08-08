@@ -50,6 +50,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
   const [wantsReminder, setWantsReminder] = useState(true);
 
   const isEditMode = !!editingDebtor;
+  const isAddingDebtToExistingDebtor = isEditMode && !editingDebt;
 
   // Effect to populate form when editing
   useEffect(() => {
@@ -67,15 +68,9 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         setIsInstallmentPlan(editingDebt.isInstallment || false);
         setInstallmentCount((editingDebt.installmentCount || 1).toString());
         setInstallmentFrequency(editingDebt.installmentFrequency || 'MONTHLY');
-      } else {
-        // Reset debt fields if not editing a debt
-        setDebtAmount('');
-        setDebtDescription('');
-        setDueDate('');
-        setIsInstallmentPlan(false);
-        setInstallmentCount('1');
-        setInstallmentFrequency('MONTHLY');
       }
+      // Note: Don't reset debt fields here - let user input be preserved
+      // Fields are only reset when modal closes via resetForm()
     } else if (!visible) {
       // Reset form when modal closes
       resetForm();
@@ -168,8 +163,8 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
       return false;
     }
 
-    // Skip debt validation in edit mode unless editing a debt
-    if (!isEditMode || editingDebt) {
+    // Skip debt validation only when editing debtor info without adding a debt
+    if (!isEditMode || editingDebt || isAddingDebtToExistingDebtor) {
       if (!debtAmount || parseCurrencyToNumber(debtAmount) <= 0) {
         toast.showError({ message: 'Valor da dívida é obrigatório e deve ser maior que zero' });
         return false;
@@ -247,13 +242,8 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         phone: phone.trim() || undefined,
       };
 
-      // Create debt data - either for new debt or updating existing debt
-      const debtData: CreateDebtData = (isEditMode && !editingDebt) ? {
-        description: '',
-        totalAmount: 0,
-        dueDate: '',
-        debtorId: '',
-      } : {
+      // Create debt data - use actual form data for all debt creation/update cases
+      const debtData: CreateDebtData = {
         description: debtDescription.trim(),
         totalAmount: parseCurrencyToNumber(debtAmount),
         dueDate: isInstallmentPlan ? firstInstallmentDate.trim() : dueDate.trim(),
@@ -285,7 +275,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         <View style={styles.header}>
           <Text style={styles.modalTitle}>
             {isEditMode 
-              ? (editingDebt ? 'Editar Devedor e Dívida' : 'Editar Devedor') 
+              ? (editingDebt ? 'Editar Devedor e Dívida' : `Nova Cobrança para ${editingDebtor?.name}`) 
               : 'Nova Cobrança'}
           </Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -305,42 +295,45 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Nome *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isAddingDebtToExistingDebtor && styles.readOnlyInput]}
                 placeholder="Digite o nome da pessoa"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
                 returnKeyType="next"
+                editable={!isAddingDebtToExistingDebtor}
               />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isAddingDebtToExistingDebtor && styles.readOnlyInput]}
                 placeholder="Digite o email (opcional)"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 returnKeyType="next"
+                editable={!isAddingDebtToExistingDebtor}
               />
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Telefone</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isAddingDebtToExistingDebtor && styles.readOnlyInput]}
                 placeholder="Digite o telefone (opcional)"
                 value={phone}
                 onChangeText={handlePhoneChange}
                 keyboardType="phone-pad"
                 returnKeyType="next"
                 maxLength={15}
+                editable={!isAddingDebtToExistingDebtor}
               />
             </View>
 
-            {(!isEditMode || editingDebt) && (
+            {(!isEditMode || editingDebt || isAddingDebtToExistingDebtor) && (
               <>
                 <View style={styles.divider} />
                 <Text style={styles.sectionTitle}>Informações da Dívida</Text>

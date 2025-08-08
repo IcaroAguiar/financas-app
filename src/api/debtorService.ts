@@ -60,6 +60,16 @@ export interface CreatePaymentData {
   notes?: string;
 }
 
+export interface UpdateDebtData {
+  description?: string;
+  totalAmount?: number;
+  dueDate?: string;
+  status?: 'PENDENTE' | 'PAGA' | 'DELETED';
+  isInstallment?: boolean;
+  installmentCount?: number;
+  installmentFrequency?: 'MONTHLY' | 'WEEKLY';
+}
+
 // Debtor API calls
 export const getDebtors = async (): Promise<Debtor[]> => {
   const response = await api.get('/debtors');
@@ -96,7 +106,7 @@ export const createDebt = async (data: CreateDebtData): Promise<Debt> => {
   return response.data;
 };
 
-export const updateDebt = async (id: string, data: Partial<CreateDebtData>): Promise<Debt> => {
+export const updateDebt = async (id: string, data: Partial<UpdateDebtData>): Promise<Debt> => {
   const response = await api.patch(`/debts/${id}`, data);
   return response.data;
 };

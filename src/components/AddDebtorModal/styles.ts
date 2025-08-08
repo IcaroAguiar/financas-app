@@ -46,6 +46,11 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     color: theme.colors.textPrimary,
   },
+  readOnlyInput: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+    borderColor: '#ddd',
+  },
   note: {
     fontSize: 14,
     color: theme.colors.textSecondary,

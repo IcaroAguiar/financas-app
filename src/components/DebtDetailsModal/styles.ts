@@ -221,4 +221,15 @@ export const styles = StyleSheet.create({
     flex: 1,
     minHeight: 44,
   },
+  // Add New Debt Button Styles
+  addDebtSection: {
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  addDebtButton: {
+    borderColor: theme.colors.primary,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+    minHeight: 48,
+  },
 });

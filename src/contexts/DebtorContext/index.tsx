@@ -16,7 +16,9 @@ interface DebtorContextData {
   getDebtorById: (id: string) => Debtor | undefined;
   getDebtsByDebtorId: (debtorId: string) => Debt[];
   getTotalDebtForDebtor: (debtorId: string) => number;
+  getTotalPendingDebtForDebtor: (debtorId: string) => number;
   getPendingDebtsForDebtor: (debtorId: string) => number;
+  getPaidDebtsForDebtor: (debtorId: string) => number;
 }
 
 interface DebtorProviderProps {
@@ -91,11 +93,23 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
     return debts.filter(debt => debt.debtorId === debtorId && debt.status !== ('DELETED' as any));
   };
 
-  const getTotalDebtForDebtor = (debtorId: string): number => {
+  // Get only PENDING debt amounts (for UI display of what's owed)
+  const getTotalPendingDebtForDebtor = (debtorId: string): number => {
     const filteredDebts = debts.filter(debt => 
       debt.debtorId === debtorId && 
       debt.status !== ('DELETED' as any) && 
+      debt.status !== ('PAGA' as any) &&
       (debt.status === 'PENDENTE' || debt.status === undefined || debt.status === null)
+    );
+    
+    return filteredDebts.reduce((total, debt) => total + debt.totalAmount, 0);
+  };
+
+  // Get ALL debt amounts (for WhatsApp/email charges - includes paid debts)
+  const getTotalDebtForDebtor = (debtorId: string): number => {
+    const filteredDebts = debts.filter(debt => 
+      debt.debtorId === debtorId && 
+      debt.status !== ('DELETED' as any)
     );
     
     return filteredDebts.reduce((total, debt) => total + debt.totalAmount, 0);
@@ -105,7 +119,17 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
     const filteredDebts = debts.filter(debt => 
       debt.debtorId === debtorId && 
       debt.status !== ('DELETED' as any) && 
+      debt.status !== ('PAGA' as any) &&
       (debt.status === 'PENDENTE' || debt.status === undefined || debt.status === null)
+    );
+    
+    return filteredDebts.length;
+  };
+
+  const getPaidDebtsForDebtor = (debtorId: string): number => {
+    const filteredDebts = debts.filter(debt => 
+      debt.debtorId === debtorId && 
+      debt.status === ('PAGA' as any)
     );
     
     return filteredDebts.length;
@@ -129,7 +153,9 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
     getDebtorById,
     getDebtsByDebtorId,
     getTotalDebtForDebtor,
+    getTotalPendingDebtForDebtor,
     getPendingDebtsForDebtor,
+    getPaidDebtsForDebtor,
   };
 
   return (
