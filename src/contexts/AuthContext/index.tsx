@@ -145,10 +145,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (result.success) {
         const email = await SecureStore.getItemAsync("FinancasApp_userEmail");
         const password = await SecureStore.getItemAsync("FinancasApp_userPassword");
+        const storedToken = await SecureStore.getItemAsync("FinancasApp_userToken");
 
         if (email && password) {
-          await signIn({ email, password });
-          return true;
+          // Check if this is a token-based biometric setup
+          if (password === 'BIOMETRIC_TOKEN_AUTH' && storedToken) {
+            // Use stored token to validate and restore session
+            try {
+              api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+              const meResponse = await api.get<User>("/users/me");
+              
+              // Token is valid, restore user session
+              setUser(meResponse.data);
+              setToken(storedToken);
+              
+              await AsyncStorage.setItem("@FinancasApp:user", JSON.stringify(meResponse.data));
+              await AsyncStorage.setItem("@FinancasApp:token", storedToken);
+              
+              await refreshBiometricState();
+              return true;
+            } catch (tokenError) {
+              // Token is expired or invalid, remove biometric data
+              await SecureStore.deleteItemAsync('FinancasApp_userEmail');
+              await SecureStore.deleteItemAsync('FinancasApp_userPassword');
+              await SecureStore.deleteItemAsync('FinancasApp_userToken');
+              await setBiometricEnabled(false);
+              throw new Error('Sessão expirada. Configure a biometria novamente.');
+            }
+          } else {
+            // Legacy password-based biometric authentication
+            await signIn({ email, password });
+            return true;
+          }
         } else {
           throw new Error('Credenciais biométricas não encontradas. Configure novamente nas configurações.');
         }
@@ -171,6 +199,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // Try to get stored credentials
       const email = await SecureStore.getItemAsync("FinancasApp_userEmail");
       const password = await SecureStore.getItemAsync("FinancasApp_userPassword");
+      const storedToken = await SecureStore.getItemAsync("FinancasApp_userToken");
       
       if (!email || !password) {
         return false;
@@ -184,8 +213,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
 
       if (result.success) {
-        await signIn({ email, password });
-        return true;
+        // Check if this is a token-based biometric setup
+        if (password === 'BIOMETRIC_TOKEN_AUTH' && storedToken) {
+          try {
+            api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+            const meResponse = await api.get<User>("/users/me");
+            
+            // Token is valid, restore user session
+            setUser(meResponse.data);
+            setToken(storedToken);
+            
+            await AsyncStorage.setItem("@FinancasApp:user", JSON.stringify(meResponse.data));
+            await AsyncStorage.setItem("@FinancasApp:token", storedToken);
+            
+            return true;
+          } catch (tokenError) {
+            // Token is expired or invalid, cleanup and return false
+            await SecureStore.deleteItemAsync('FinancasApp_userEmail');
+            await SecureStore.deleteItemAsync('FinancasApp_userPassword');
+            await SecureStore.deleteItemAsync('FinancasApp_userToken');
+            await setBiometricEnabled(false);
+            return false;
+          }
+        } else {
+          // Legacy password-based biometric authentication
+          await signIn({ email, password });
+          return true;
+        }
       }
       
       return false;

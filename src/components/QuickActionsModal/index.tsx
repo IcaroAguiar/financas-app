@@ -11,7 +11,6 @@ interface QuickActionsModalProps {
   onAddTransaction: () => void;
   onAddReminder: () => void;
   onAddDebtor: () => void;
-  onAddSubscription: () => void;
 }
 
 interface QuickActionItem {
@@ -29,14 +28,13 @@ export default function QuickActionsModal({
   onAddTransaction,
   onAddReminder,
   onAddDebtor,
-  onAddSubscription,
 }: QuickActionsModalProps) {
   
   const quickActions: QuickActionItem[] = [
     {
       id: 'transaction',
       title: 'Nova Transação',
-      description: 'Registrar receita ou despesa',
+      description: 'Registrar receita ou despesa (use "Tornar recorrente" para assinaturas)',
       icon: 'dollar-sign',
       color: '#007AFF',
       onPress: onAddTransaction,
@@ -48,14 +46,6 @@ export default function QuickActionsModal({
       icon: 'bell',
       color: '#FF9500',
       onPress: onAddReminder,
-    },
-    {
-      id: 'subscription',
-      title: 'Nova Assinatura',
-      description: 'Criar assinatura recorrente',
-      icon: 'calendar',
-      color: '#AF52DE',
-      onPress: onAddSubscription,
     },
     {
       id: 'debtor',

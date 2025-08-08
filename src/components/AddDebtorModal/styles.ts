@@ -156,4 +156,17 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: theme.colors.textPrimary,
   },
+  reminderSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+  },
+  reminderLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: theme.colors.textPrimary,
+    marginRight: 15,
+  },
 });

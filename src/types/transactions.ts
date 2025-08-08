@@ -27,6 +27,10 @@ export interface Transaction {
   userId: string;
   isRecurring?: boolean; // Added missing field for recurring transactions
   
+  // Recurring/subscription fields
+  subscriptionFrequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  subscriptionId?: string; // Reference to the subscription if created from recurring transaction
+  
   // Payment plan fields
   isInstallmentPlan?: boolean;
   installmentCount?: number;

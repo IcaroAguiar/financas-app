@@ -32,9 +32,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     refreshData: refreshDebtors,
   } = useDebtors();
 
+
   // Modal states
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<"RECEITA" | "DESPESA">("DESPESA");
+
 
   // Calculando dados reais das cobranças e dívidas
   const debtSummary = {
@@ -94,10 +96,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         />
       </View>
       <View style={styles.transactionDetails}>
-        <Text style={styles.transactionDescription}>
+        <Text style={styles.transactionDescription} numberOfLines={1} ellipsizeMode="tail">
           {transaction.description}
         </Text>
-        <Text style={styles.transactionCategory}>
+        <Text style={styles.transactionCategory} numberOfLines={1} ellipsizeMode="tail">
           {transaction.category?.name || "Sem categoria"}
         </Text>
       </View>
@@ -112,11 +114,13 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
                   : theme.colors.error,
             },
           ]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
         >
           {transaction.type === "RECEITA" ? "+" : "-"}
           {formatCurrency(transaction.amount)}
         </Text>
-        <Text style={styles.transactionDate}>
+        <Text style={styles.transactionDate} numberOfLines={1} ellipsizeMode="tail">
           {new Date(transaction.date).toLocaleDateString("pt-BR")}
         </Text>
       </View>
@@ -143,10 +147,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         }
       >
         <View style={styles.welcomeSection}>
-          <Text style={styles.greeting}>
+          <Text style={styles.greeting} numberOfLines={1} ellipsizeMode="tail">
             {getGreeting()}, {user?.name?.split(" ")[0]}!
           </Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
             Aqui está o resumo das suas finanças
           </Text>
         </View>
@@ -162,30 +166,29 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             },
           ]}
         >
-          {" "}
-          <Text style={styles.balanceLabel}>Saldo Atual</Text>
-          <Text style={styles.balanceAmount}>
+          <Text style={styles.balanceLabel} numberOfLines={1} ellipsizeMode="tail">Saldo Atual</Text>
+          <Text style={styles.balanceAmount} numberOfLines={1} ellipsizeMode="tail">
             {formatCurrency(summary.balance)}
           </Text>
           <View style={styles.balanceDetails}>
             <View style={styles.balanceItem}>
-              <Text style={styles.incomeAmount}>
+              <Text style={styles.incomeAmount} numberOfLines={1} ellipsizeMode="tail">
                 +{formatCurrency(summary.totalIncome)}
               </Text>
-              <Text style={styles.balanceItemLabel}>Recebimentos</Text>
+              <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Recebimentos</Text>
             </View>
             <View style={styles.balanceItem}>
-              <Text style={styles.expenseAmount}>
+              <Text style={styles.expenseAmount} numberOfLines={1} ellipsizeMode="tail">
                 -{formatCurrency(summary.totalExpenses)}
               </Text>
-              <Text style={styles.balanceItemLabel}>Despesas</Text>
+              <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Despesas</Text>
             </View>
           </View>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
-          <Text style={styles.sectionTitle}>Ações Rápidas</Text>
+          <Text style={styles.sectionTitle} numberOfLines={1} ellipsizeMode="tail">Ações Rápidas</Text>
           <View style={styles.quickActions}>
             <QuickActionCard
               title="Novo Recebimento"
@@ -200,10 +203,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
               onPress={() => handleOpenTransactionModal("DESPESA")}
             />
             <QuickActionCard
-              title="Assinaturas"
-              icon="calendar"
+              title="Contas"
+              icon="wallet"
               color={theme.colors.primary}
-              onPress={() => navigation.getParent()?.navigate("Subscriptions")}
+              onPress={() => navigation.getParent()?.navigate("Accounts")}
             />
             <QuickActionCard
               title="Lembretes"
@@ -222,17 +225,18 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         >
           <View style={styles.debtsStats}>
             <View style={styles.debtStat}>
-              <Text style={styles.debtAmount}>
+              <Text style={styles.debtAmount} numberOfLines={1} ellipsizeMode="tail">
                 {formatCurrency(debtSummary.pendingDebts)}
               </Text>
-              <Text style={styles.debtLabel}>Total Pendente</Text>
+              <Text style={styles.debtLabel} numberOfLines={1} ellipsizeMode="tail">Total Pendente</Text>
             </View>
             <View style={styles.debtStat}>
-              <Text style={styles.debtCount}>{debtSummary.totalDebtors}</Text>
-              <Text style={styles.debtLabel}>Cobranças</Text>
+              <Text style={styles.debtCount} numberOfLines={1} ellipsizeMode="tail">{debtSummary.totalDebtors}</Text>
+              <Text style={styles.debtLabel} numberOfLines={1} ellipsizeMode="tail">Cobranças</Text>
             </View>
           </View>
         </DashboardCard>
+
 
         {/* Analytics Preview */}
         <DashboardCard
@@ -240,7 +244,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           onSeeAll={() => Alert.alert("Em Breve", "Funcionalidade de relatórios será implementada em breve!")}
           seeAllText="Ver relatório"
         >
-          <Text style={styles.analyticsDescription}>
+          <Text style={styles.analyticsDescription} numberOfLines={2} ellipsizeMode="tail">
             Acompanhe seus gastos, tendências e metas financeiras com gráficos
             detalhados
           </Text>
@@ -249,7 +253,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             onPress={() => Alert.alert("Em Breve", "Funcionalidade de análises será implementada em breve!")}
           >
             <Icon name="bar-chart" size={20} color={theme.colors.surface} />
-            <Text style={styles.analyticsButtonText}>Abrir Análises</Text>
+            <Text style={styles.analyticsButtonText} numberOfLines={1} ellipsizeMode="tail">Abrir Análises</Text>
           </TouchableOpacity>
         </DashboardCard>
 

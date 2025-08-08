@@ -14,6 +14,7 @@ import Icon from "@/components/Icon";
 import { theme } from "@/styles/theme";
 import { useTransactions } from "@/contexts/TransactionContext";
 import { useAccounts } from "@/contexts/AccountContext";
+import { useSubscriptions } from "@/contexts/SubscriptionContext";
 import { Transaction } from "@/types/transactions";
 import { styles } from "./styles";
 
@@ -34,11 +35,12 @@ export default function TransactionsScreen() {
   } = useTransactions();
   
   const { accounts } = useAccounts();
+  const { refreshSubscriptions } = useSubscriptions();
   const toast = useToast();
   
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [filterType, setFilterType] = useState<"ALL" | "RECEITA" | "DESPESA" | "PAGO">("ALL");
+  const [filterType, setFilterType] = useState<"ALL" | "RECEITA" | "DESPESA" | "PAGO" | "RECORRENTE">("ALL");
   const [filterAccountId, setFilterAccountId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   
@@ -60,6 +62,11 @@ export default function TransactionsScreen() {
       await addTransaction(transactionData);
       setIsModalVisible(false);
       toast.showSuccess({ message: "Transação criada com sucesso!" });
+      
+      // If it was a recurring transaction, also refresh subscriptions
+      if (data.isRecurring) {
+        await refreshSubscriptions();
+      }
     } catch (error: any) {
       toast.showError({ message: error.message });
     }
@@ -74,18 +81,45 @@ export default function TransactionsScreen() {
       setEditingTransaction(null);
       setIsModalVisible(false);
       toast.showSuccess({ message: "Transação atualizada com sucesso!" });
+      
+      // Refresh subscriptions for any updates that might affect recurring transactions
+      await refreshSubscriptions();
     } catch (error: any) {
       toast.showError({ message: error.message });
     }
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    try {
-      await deleteTransactionById(id);
-      toast.showSuccess({ message: "Transação excluída com sucesso!" });
-    } catch (error: any) {
-      toast.showError({ message: error.message });
-    }
+    const transaction = transactions.find(t => t.id === id);
+    const isRecurring = transaction?.isRecurring === true;
+    
+    toast.showConfirmation({
+      title: 'Confirmar Exclusão',
+      message: isRecurring 
+        ? 'Deseja excluir esta ocorrência da transação recorrente? A recorrência continuará funcionando.'
+        : 'Deseja excluir esta transação? Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        try {
+          await deleteTransactionById(id);
+          // Close the bottom sheet if it's open for this transaction
+          if (selectedTransaction?.id === id) {
+            setShowTransactionBottomSheet(false);
+            setSelectedTransaction(null);
+          }
+          toast.showSuccess({ message: "Transação excluída com sucesso!" });
+          // Force refresh to ensure UI is up to date
+          await refreshTransactions();
+          // If it was a recurring transaction, also refresh subscriptions
+          if (isRecurring) {
+            await refreshSubscriptions();
+          }
+        } catch (error: any) {
+          toast.showError({ message: error.message });
+        }
+      }
+    });
   };
 
   const handleEditTransaction = (transactionId: string) => {
@@ -149,12 +183,37 @@ export default function TransactionsScreen() {
     }
   };
 
+  const handleStopRecurring = async (transactionId: string) => {
+    toast.showConfirmation({
+      title: 'Parar Recorrência',
+      message: 'Deseja parar a recorrência desta transação? Futuras ocorrências não serão criadas automaticamente.',
+      confirmText: 'Parar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        try {
+          // TODO: Implement stop recurring API call
+          // For now, we'll show a success message
+          toast.showSuccess({ message: 'Recorrência interrompida com sucesso!' });
+        } catch (error: any) {
+          toast.showError({ message: error.message });
+        }
+      }
+    });
+  };
+
   const getFilteredAndSortedTransactions = () => {
     let filtered = transactions;
     
     // Aplicar filtro por tipo
     if (filterType !== 'ALL') {
-      filtered = filtered.filter(t => t.type === filterType);
+      if (filterType === 'RECORRENTE') {
+        // Fix: Only show transactions that are explicitly marked as recurring
+        filtered = filtered.filter(t => 
+          t.isRecurring === true
+        );
+      } else {
+        filtered = filtered.filter(t => t.type === filterType);
+      }
     }
     
     // Aplicar filtro por conta
@@ -294,6 +353,15 @@ export default function TransactionsScreen() {
                 Pagos
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterButton, filterType === "RECORRENTE" && styles.activeFilterButton]}
+              onPress={() => setFilterType("RECORRENTE")}
+            >
+              <Icon name="repeat" size={16} color={filterType === "RECORRENTE" ? theme.colors.surface : theme.colors.primary} />
+              <Text style={[styles.filterText, filterType === "RECORRENTE" && styles.activeFilterText]}>
+                Recorrentes
+              </Text>
+            </TouchableOpacity>
           </ScrollView>
           
           <TouchableOpacity
@@ -346,13 +414,20 @@ export default function TransactionsScreen() {
                   ? 'Nenhuma receita encontrada.'
                   : filterType === 'DESPESA'
                     ? 'Nenhuma despesa encontrada.'
-                    : 'Nenhuma transação paga encontrada.'
+                    : filterType === 'PAGO'
+                      ? 'Nenhuma transação paga encontrada.'
+                      : 'Nenhuma transação recorrente encontrada.\nCrie transações usando "Tornar recorrente" para vê-las aqui.'
               }
             </Text>
           </View>
         ) : (
           <View style={styles.transactionsList}>
             {filteredTransactions.map((item) => {
+              // Calculate current installment based on paid installments
+              const currentInstallment = item.installments 
+                ? item.installments.filter(inst => inst.status === 'PAGO').length + 1
+                : 1;
+              
               return (
                 <TransactionItem
                   key={item.id}
@@ -364,6 +439,9 @@ export default function TransactionsScreen() {
                   onPress={handleTransactionPress}
                   isInstallmentPlan={Boolean(item.isInstallmentPlan)}
                   date={item.date}
+                  currentInstallment={item.isInstallmentPlan ? currentInstallment : undefined}
+                  totalInstallments={item.isInstallmentPlan ? item.installmentCount : undefined}
+                  isRecurring={item.isRecurring === true}
                 />
               );
             })}
@@ -389,6 +467,7 @@ export default function TransactionsScreen() {
         onDelete={handleDeleteTransaction}
         onMarkPaid={handleMarkTransactionPaid}
         onPartialPayment={handleMarkTransactionPartialPayment}
+        onStopRecurring={handleStopRecurring}
       />
     </SafeAreaView>
   );

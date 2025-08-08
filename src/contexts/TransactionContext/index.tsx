@@ -114,9 +114,17 @@ export const TransactionProvider: React.FC<TransactionProviderProps> = ({ childr
 
   const deleteTransactionById = async (id: string) => {
     try {
+      console.log(`Attempting to delete transaction with ID: ${id}`);
       await deleteTransaction(id);
-      setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+      console.log(`Backend deletion successful for transaction: ${id}`);
+      
+      setTransactions(prev => {
+        const filtered = prev.filter(transaction => transaction.id !== id);
+        console.log(`UI state updated. Removed transaction ${id}. Previous count: ${prev.length}, New count: ${filtered.length}`);
+        return filtered;
+      });
     } catch (error: any) {
+      console.error(`Failed to delete transaction ${id}:`, error);
       const errorMessage = error.response?.data?.error || 'Não foi possível excluir a transação.';
       throw new Error(errorMessage);
     }

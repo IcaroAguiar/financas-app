@@ -14,10 +14,10 @@ export default function DashboardCard({ title, children, onSeeAll, seeAllText = 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
         {onSeeAll && (
           <TouchableOpacity onPress={onSeeAll}>
-            <Text style={styles.seeAllText}>{seeAllText}</Text>
+            <Text style={styles.seeAllText} numberOfLines={1} ellipsizeMode="tail">{seeAllText}</Text>
           </TouchableOpacity>
         )}
       </View>

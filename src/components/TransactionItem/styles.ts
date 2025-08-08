@@ -78,6 +78,13 @@ export const styles = StyleSheet.create({
     color: theme.colors.primary,
     letterSpacing: 0.2,
   },
+  recurringBadge: {
+    backgroundColor: theme.colors.warning + '15',
+    borderColor: theme.colors.warning + '30',
+  },
+  recurringBadgeText: {
+    color: theme.colors.warning,
+  },
   amount: {
     fontSize: 17,
     fontWeight: '700', // More consistent with app patterns

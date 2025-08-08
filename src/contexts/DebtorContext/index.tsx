@@ -88,17 +88,27 @@ export const DebtorProvider: React.FC<DebtorProviderProps> = ({ children }) => {
   };
 
   const getDebtsByDebtorId = (debtorId: string): Debt[] => {
-    return debts.filter(debt => debt.debtorId === debtorId);
+    return debts.filter(debt => debt.debtorId === debtorId && debt.status !== ('DELETED' as any));
   };
 
   const getTotalDebtForDebtor = (debtorId: string): number => {
-    return debts
-      .filter(debt => debt.debtorId === debtorId && (debt.status === 'PENDENTE' || !debt.status))
-      .reduce((total, debt) => total + debt.totalAmount, 0);
+    const filteredDebts = debts.filter(debt => 
+      debt.debtorId === debtorId && 
+      debt.status !== ('DELETED' as any) && 
+      (debt.status === 'PENDENTE' || debt.status === undefined || debt.status === null)
+    );
+    
+    return filteredDebts.reduce((total, debt) => total + debt.totalAmount, 0);
   };
 
   const getPendingDebtsForDebtor = (debtorId: string): number => {
-    return debts.filter(debt => debt.debtorId === debtorId && (debt.status === 'PENDENTE' || !debt.status)).length;
+    const filteredDebts = debts.filter(debt => 
+      debt.debtorId === debtorId && 
+      debt.status !== ('DELETED' as any) && 
+      (debt.status === 'PENDENTE' || debt.status === undefined || debt.status === null)
+    );
+    
+    return filteredDebts.length;
   };
 
   useEffect(() => {

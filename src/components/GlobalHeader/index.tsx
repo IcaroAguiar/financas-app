@@ -26,7 +26,7 @@ export default function GlobalHeader({ title }: GlobalHeaderProps) {
         <View style={styles.logo}>
           <AscendLogo width={30} height={30} color="#1c1c1c" />
         </View>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
         <TouchableOpacity 
           style={styles.bellButton} 
           onPress={handleBellPress}

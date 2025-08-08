@@ -20,7 +20,7 @@ export default function QuickActionCard({ title, icon, color, onPress }: QuickAc
       <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
         <Icon name={icon} size={20} color={color} />
       </View>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
     </TouchableOpacity>
   );
 }

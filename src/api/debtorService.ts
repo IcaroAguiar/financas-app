@@ -15,12 +15,14 @@ export interface Debt {
   description: string;
   totalAmount: number;
   dueDate: string;
-  status: 'PENDENTE' | 'PAGA';
+  status: 'PENDENTE' | 'PAGA' | 'DELETED';
   createdAt: string;
   updatedAt: string;
   debtorId: string;
   debtor?: Debtor;
   payments?: Payment[];
+  // Notification management
+  notificationId?: string;
   // Calculated fields from backend
   paidAmount?: number;
   remainingAmount?: number;
@@ -47,6 +49,9 @@ export interface CreateDebtData {
   totalAmount: number;
   dueDate: string;
   debtorId: string;
+  isInstallment?: boolean;
+  installmentCount?: number;
+  installmentFrequency?: 'MONTHLY' | 'WEEKLY';
 }
 
 export interface CreatePaymentData {
@@ -119,4 +124,10 @@ export const createPayment = async (debtId: string, data: CreatePaymentData): Pr
 
 export const deletePayment = async (id: string): Promise<void> => {
   await api.delete(`/payments/${id}`);
+};
+
+// Notification management
+export const updateDebtNotification = async (debtId: string, notificationId: string | null): Promise<Debt> => {
+  const response = await api.patch(`/debts/${debtId}`, { notificationId });
+  return response.data;
 };

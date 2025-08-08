@@ -203,12 +203,39 @@ export const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xl,
   },
   
-  // Button
+  // Buttons
   buttonContainer: {
+    flexDirection: 'row',
     paddingVertical: theme.spacing.lg,
     paddingHorizontal: theme.spacing.md,
+    gap: theme.spacing.md,
   },
-  registerButton: {
+  partialPaymentButton: {
+    flex: 1,
+    backgroundColor: theme.colors.surface,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  partialPaymentButtonText: {
+    color: theme.colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: theme.fonts.bold,
+    textAlign: 'center',
+  },
+  fullPaymentButton: {
+    flex: 1,
     backgroundColor: theme.colors.primary,
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -222,7 +249,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
   },
-  registerButtonText: {
+  fullPaymentButtonText: {
     color: theme.colors.surface,
     fontSize: 16,
     fontWeight: '600',

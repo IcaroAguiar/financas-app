@@ -47,12 +47,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 color={confirmVariant === 'danger' ? theme.colors.danger : theme.colors.primary} 
               />
             </View>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
           </View>
 
           {/* Message */}
           <View style={styles.messageContainer}>
-            <Text style={styles.message}>{message}</Text>
+            <Text style={styles.message} numberOfLines={3} ellipsizeMode="tail">{message}</Text>
           </View>
 
           {/* Actions */}

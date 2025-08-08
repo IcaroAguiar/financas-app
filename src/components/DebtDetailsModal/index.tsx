@@ -5,6 +5,7 @@ import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
 import { useToast } from '@/hooks/useToast';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
 
 interface Installment {
   id: string;
@@ -22,7 +23,7 @@ interface Debt {
   totalAmount: number;
   originalAmount: number;
   dueDate: Date;
-  status: 'PENDENTE' | 'PAGA' | 'ATRASADA';
+  status: 'PENDENTE' | 'PAGA' | 'ATRASADA' | 'DELETED';
   debtorId: string;
   interestRate?: number;
   installments?: Installment[];
@@ -47,7 +48,7 @@ interface DebtDetailsModalProps {
   onClose: () => void;
   onMarkInstallmentPaid: (debtId: string, installmentId: string) => void;
   onMarkDebtPaid?: (debtId: string) => void;
-  onMarkPartialPayment?: (debtId: string, amount: number) => void;
+  onMarkPartialPayment?: (debtId: string) => void;
 }
 
 export default function DebtDetailsModal({
@@ -60,6 +61,7 @@ export default function DebtDetailsModal({
   onMarkPartialPayment,
 }: DebtDetailsModalProps) {
   const toast = useToast();
+  const { showConfirmation } = useConfirmation();
   
   if (!debtor) return null;
 
@@ -73,32 +75,34 @@ export default function DebtDetailsModal({
 
   const safeDebts = Array.isArray(debts) ? debts : [];
 
-  // Payment functionality
-  const handleMarkDebtAsPaid = (debt: Debt) => {
-    toast.showConfirmation({
-      title: 'Confirmar Pagamento',
-      message: `Deseja marcar "${debt.description}" como paga?\n\nValor: ${formatCurrency(debt.totalAmount)}`,
+  // Simplified payment functionality
+  const handleToggleDebtStatus = (debt: Debt) => {
+    const isCurrentlyPaid = debt.status === 'PAGA';
+    const actionText = isCurrentlyPaid ? 'marcar como pendente' : 'marcar como paga';
+    
+    showConfirmation({
+      title: 'Alterar Status',
+      message: `Deseja ${actionText} "${debt.description}"?`,
       confirmText: 'Confirmar',
       cancelText: 'Cancelar',
       onConfirm: () => {
-        onMarkDebtPaid?.(debt.id);
-        toast.showSuccess({ message: 'Dívida marcada como paga!' });
-      }
-    });
-  };
-
-  const handlePartialPayment = (debt: Debt) => {
-    // For now, show a simple confirmation. Later can be enhanced with amount input
-    toast.showConfirmation({
-      title: 'Pagamento Parcial',
-      message: `Registrar pagamento parcial para "${debt.description}"?`,
-      confirmText: 'Confirmar',
-      cancelText: 'Cancelar',
-      onConfirm: () => {
-        // TODO: Open modal with amount input
-        const partialAmount = debt.totalAmount * 0.5; // Placeholder: 50% payment
-        onMarkPartialPayment?.(debt.id, partialAmount);
-        toast.showSuccess({ message: 'Pagamento parcial registrado!' });
+        // Toggle status - frontend only mutation
+        const newStatus = isCurrentlyPaid ? 'PENDENTE' : 'PAGA';
+        debt.status = newStatus;
+        
+        console.log(`DebtDetailsModal: Toggled debt ${debt.id} status to ${newStatus}`);
+        
+        // Notify parent component to handle the status change
+        if (onMarkDebtPaid) {
+          onMarkDebtPaid(debt.id);
+        }
+        
+        toast.showSuccess({ 
+          message: `✅ Dívida ${isCurrentlyPaid ? 'marcada como pendente' : 'marcada como paga'}!` 
+        });
+        
+        // Close modal immediately to show refreshed data
+        onClose();
       }
     });
   };
@@ -272,25 +276,15 @@ export default function DebtDetailsModal({
           </View>
         )}
 
-        {/* Payment Actions */}
-        {debt.status !== 'PAGA' && (
-          <View style={styles.paymentActions}>
-            <CustomButton
-              title="Pagamento Total"
-              onPress={() => handleMarkDebtAsPaid(debt)}
-              style={styles.paymentButton}
-              variant="primary"
-            />
-            {!debt.isInstallment && (
-              <CustomButton
-                title="Pagamento Parcial"
-                onPress={() => handlePartialPayment(debt)}
-                style={styles.paymentButton}
-                variant="secondary"
-              />
-            )}
-          </View>
-        )}
+        {/* Simplified Payment Actions */}
+        <View style={styles.paymentActions}>
+          <CustomButton
+            title={debt.status === 'PAGA' ? 'Marcar como Pendente' : 'Marcar como Paga'}
+            onPress={() => handleToggleDebtStatus(debt)}
+            style={styles.paymentButton}
+            variant={debt.status === 'PAGA' ? 'outline' : 'primary'}
+          />
+        </View>
 
         {debt.isInstallment && debt.installments && (
           <View style={styles.installmentsSection}>

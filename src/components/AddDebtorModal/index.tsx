@@ -1,21 +1,34 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Modal, TextInput, TouchableOpacity, Switch } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
-import { CreateDebtorData, CreateDebtData } from '@/api/debtorService';
+import { CreateDebtorData, CreateDebtData, Debtor } from '@/api/debtorService';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { useToast } from '@/hooks/useToast';
 
 interface AddDebtorModalProps {
   visible: boolean;
+  editingDebtor?: Debtor | null;
+  editingDebt?: Debt | null; // Add support for editing debt
   onClose: () => void;
-  onSubmit: (debtorData: CreateDebtorData, debtData: CreateDebtData) => Promise<void>;
+  onSubmit: (debtorData: CreateDebtorData, debtData: CreateDebtData, wantsReminder?: boolean) => Promise<void>;
 }
 
-export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtorModalProps) {
+interface Debt {
+  id: string;
+  description: string;
+  totalAmount: number;
+  dueDate: string;
+  debtorId: string;
+  isInstallment?: boolean;
+  installmentCount?: number;
+  installmentFrequency?: 'MONTHLY' | 'WEEKLY';
+}
+
+export default function AddDebtorModal({ visible, editingDebtor, editingDebt, onClose, onSubmit }: AddDebtorModalProps) {
   const { showConfirmation } = useConfirmation();
   const toast = useToast();
   
@@ -32,6 +45,42 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
   const [installmentCount, setInstallmentCount] = useState('1');
   const [installmentFrequency, setInstallmentFrequency] = useState<'MONTHLY' | 'WEEKLY'>('MONTHLY');
   const [firstInstallmentDate, setFirstInstallmentDate] = useState('');
+  
+  // Reminder state - default to true for better UX (opt-out)
+  const [wantsReminder, setWantsReminder] = useState(true);
+
+  const isEditMode = !!editingDebtor;
+
+  // Effect to populate form when editing
+  useEffect(() => {
+    if (editingDebtor && visible) {
+      setName(editingDebtor.name);
+      setEmail(editingDebtor.email || '');
+      setPhone(editingDebtor.phone || '');
+      
+      // Populate debt fields if editing debt
+      if (editingDebt) {
+        setDebtAmount(formatCurrency((editingDebt.totalAmount * 100).toString()));
+        setDebtDescription(editingDebt.description);
+        const dueDateFormatted = new Date(editingDebt.dueDate).toLocaleDateString('pt-BR');
+        setDueDate(dueDateFormatted);
+        setIsInstallmentPlan(editingDebt.isInstallment || false);
+        setInstallmentCount((editingDebt.installmentCount || 1).toString());
+        setInstallmentFrequency(editingDebt.installmentFrequency || 'MONTHLY');
+      } else {
+        // Reset debt fields if not editing a debt
+        setDebtAmount('');
+        setDebtDescription('');
+        setDueDate('');
+        setIsInstallmentPlan(false);
+        setInstallmentCount('1');
+        setInstallmentFrequency('MONTHLY');
+      }
+    } else if (!visible) {
+      // Reset form when modal closes
+      resetForm();
+    }
+  }, [editingDebtor, editingDebt, visible]);
 
   // Currency formatting functions
   const formatCurrency = (value: string) => {
@@ -105,6 +154,7 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
     setInstallmentCount('1');
     setInstallmentFrequency('MONTHLY');
     setFirstInstallmentDate('');
+    setWantsReminder(true);
   };
 
   const handleClose = () => {
@@ -118,31 +168,34 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
       return false;
     }
 
-    if (!debtAmount || parseCurrencyToNumber(debtAmount) <= 0) {
-      toast.showError({ message: 'Valor da dívida é obrigatório e deve ser maior que zero' });
-      return false;
-    }
-
-    if (!debtDescription.trim()) {
-      toast.showError({ message: 'Descrição da dívida é obrigatória' });
-      return false;
-    }
-
-    if (!isInstallmentPlan && !dueDate.trim()) {
-      toast.showError({ message: 'Data de vencimento é obrigatória' });
-      return false;
-    }
-
-    if (isInstallmentPlan) {
-      if (!firstInstallmentDate.trim()) {
-        toast.showError({ message: 'Data da primeira parcela é obrigatória' });
+    // Skip debt validation in edit mode unless editing a debt
+    if (!isEditMode || editingDebt) {
+      if (!debtAmount || parseCurrencyToNumber(debtAmount) <= 0) {
+        toast.showError({ message: 'Valor da dívida é obrigatório e deve ser maior que zero' });
         return false;
       }
 
-      const count = parseInt(installmentCount);
-      if (!count || count < 1 || count > 48) {
-        toast.showError({ message: 'Número de parcelas deve ser entre 1 e 48' });
+      if (!debtDescription.trim()) {
+        toast.showError({ message: 'Descrição da dívida é obrigatória' });
         return false;
+      }
+
+      if (!isInstallmentPlan && !dueDate.trim()) {
+        toast.showError({ message: 'Data de vencimento é obrigatória' });
+        return false;
+      }
+
+      if (isInstallmentPlan) {
+        if (!firstInstallmentDate.trim()) {
+          toast.showError({ message: 'Data da primeira parcela é obrigatória' });
+          return false;
+        }
+
+        const count = parseInt(installmentCount);
+        if (!count || count < 1 || count > 48) {
+          toast.showError({ message: 'Número de parcelas deve ser entre 1 e 48' });
+          return false;
+        }
       }
     }
 
@@ -194,18 +247,33 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
         phone: phone.trim() || undefined,
       };
 
-      const debtData: CreateDebtData = {
+      // Create debt data - either for new debt or updating existing debt
+      const debtData: CreateDebtData = (isEditMode && !editingDebt) ? {
+        description: '',
+        totalAmount: 0,
+        dueDate: '',
+        debtorId: '',
+      } : {
         description: debtDescription.trim(),
         totalAmount: parseCurrencyToNumber(debtAmount),
-        dueDate: dueDate.trim(),
-        debtorId: '', // Will be filled by the handler after debtor creation
+        dueDate: isInstallmentPlan ? firstInstallmentDate.trim() : dueDate.trim(),
+        debtorId: editingDebt?.debtorId || editingDebtor?.id || '', // Use debtor ID, not debt ID
+        isInstallment: isInstallmentPlan,
+        installmentCount: isInstallmentPlan ? parseInt(installmentCount) || 1 : undefined,
+        installmentFrequency: isInstallmentPlan ? installmentFrequency : undefined,
       };
 
-      await onSubmit(debtorData, debtData);
-      toast.showSuccess({ message: 'Cobrança criada com sucesso!' });
+      await onSubmit(debtorData, debtData, wantsReminder);
+      toast.showSuccess({ 
+        message: isEditMode 
+          ? (editingDebt ? 'Devedor e dívida atualizados com sucesso!' : 'Devedor atualizado com sucesso!') 
+          : 'Cobrança criada com sucesso!' 
+      });
       handleClose();
     } catch (error: any) {
-      toast.showError({ message: error.message || 'Não foi possível criar a cobrança' });
+      toast.showError({ 
+        message: error.message || (isEditMode ? 'Não foi possível atualizar o devedor' : 'Não foi possível criar a cobrança')
+      });
     } finally {
       setLoading(false);
     }
@@ -215,7 +283,11 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
     <Modal visible={visible} animationType="slide" presentationStyle="formSheet">
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.modalTitle}>Nova Cobrança</Text>
+          <Text style={styles.modalTitle}>
+            {isEditMode 
+              ? (editingDebt ? 'Editar Devedor e Dívida' : 'Editar Devedor') 
+              : 'Nova Cobrança'}
+          </Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
             <Icon name="x" size={24} color="#666" />
           </TouchableOpacity>
@@ -268,137 +340,155 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               />
             </View>
 
-            <View style={styles.divider} />
-            <Text style={styles.sectionTitle}>Informações da Dívida</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Valor da Dívida *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="R$ 0,00"
-                value={debtAmount}
-                onChangeText={handleAmountChange}
-                keyboardType="numeric"
-                returnKeyType="next"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Descrição da Dívida *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ex: Empréstimo pessoal, Material de construção..."
-                value={debtDescription}
-                onChangeText={setDebtDescription}
-                autoCapitalize="sentences"
-                returnKeyType="next"
-                multiline
-                numberOfLines={2}
-              />
-            </View>
-
-            {!isInstallmentPlan && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Data de Vencimento *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="DD/MM/AAAA"
-                  value={dueDate}
-                  onChangeText={handleDateChange}
-                  keyboardType="numeric"
-                  returnKeyType="done"
-                  maxLength={10}
-                />
-              </View>
-            )}
-
-            {/* Payment Plan Section */}
-            <View style={styles.divider} />
-            <Text style={styles.sectionTitle}>Plano de Pagamento</Text>
-
-            <View style={styles.paymentPlanToggle}>
-              <TouchableOpacity
-                style={styles.checkboxContainer}
-                onPress={() => setIsInstallmentPlan(!isInstallmentPlan)}
-              >
-                <View style={[styles.checkbox, isInstallmentPlan && styles.checkboxChecked]}>
-                  {isInstallmentPlan && <Icon name="check" size={16} color="#fff" />}
-                </View>
-                <Text style={styles.checkboxLabel}>Parcelar pagamento</Text>
-              </TouchableOpacity>
-            </View>
-
-            {isInstallmentPlan && (
+            {(!isEditMode || editingDebt) && (
               <>
-                <View style={styles.installmentRow}>
-                  <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                    <Text style={styles.label}>Nº de Parcelas *</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="2"
-                      value={installmentCount}
-                      onChangeText={setInstallmentCount}
-                      keyboardType="numeric"
-                      returnKeyType="next"
-                      maxLength={2}
-                    />
-                  </View>
-                  
-                  <View style={[styles.inputGroup, { flex: 2, marginLeft: 8 }]}>
-                    <Text style={styles.label}>Frequência</Text>
-                    <View style={styles.frequencySelector}>
-                      <TouchableOpacity
-                        style={[
-                          styles.frequencyButton,
-                          installmentFrequency === 'MONTHLY' && styles.frequencyButtonSelected
-                        ]}
-                        onPress={() => setInstallmentFrequency('MONTHLY')}
-                      >
-                        <Text style={[
-                          styles.frequencyButtonText,
-                          installmentFrequency === 'MONTHLY' && styles.frequencyButtonTextSelected
-                        ]}>
-                          Mensal
-                        </Text>
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity
-                        style={[
-                          styles.frequencyButton,
-                          installmentFrequency === 'WEEKLY' && styles.frequencyButtonSelected
-                        ]}
-                        onPress={() => setInstallmentFrequency('WEEKLY')}
-                      >
-                        <Text style={[
-                          styles.frequencyButtonText,
-                          installmentFrequency === 'WEEKLY' && styles.frequencyButtonTextSelected
-                        ]}>
-                          Semanal
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
+                <View style={styles.divider} />
+                <Text style={styles.sectionTitle}>Informações da Dívida</Text>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Data da 1ª Parcela *</Text>
+                  <Text style={styles.label}>Valor da Dívida *</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="DD/MM/AAAA"
-                    value={firstInstallmentDate}
-                    onChangeText={handleFirstInstallmentDateChange}
+                    placeholder="R$ 0,00"
+                    value={debtAmount}
+                    onChangeText={handleAmountChange}
                     keyboardType="numeric"
-                    returnKeyType="done"
-                    maxLength={10}
+                    returnKeyType="next"
                   />
                 </View>
 
-                {debtAmount && installmentCount && parseInt(installmentCount) > 1 && (
-                  <View style={styles.installmentPreview}>
-                    <Text style={styles.previewLabel}>Resumo do Parcelamento:</Text>
-                    <Text style={styles.previewText}>{formatInstallmentInfo()}</Text>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Descrição da Dívida *</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Ex: Empréstimo pessoal, Material de construção..."
+                    value={debtDescription}
+                    onChangeText={setDebtDescription}
+                    autoCapitalize="sentences"
+                    returnKeyType="next"
+                    multiline
+                    numberOfLines={2}
+                  />
+                </View>
+
+                {!isInstallmentPlan && (
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Data de Vencimento *</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="DD/MM/AAAA"
+                      value={dueDate}
+                      onChangeText={handleDateChange}
+                      keyboardType="numeric"
+                      returnKeyType="done"
+                      maxLength={10}
+                    />
                   </View>
                 )}
+
+                {/* Payment Plan Section */}
+                <View style={styles.divider} />
+                <Text style={styles.sectionTitle}>Plano de Pagamento</Text>
+
+                <View style={styles.paymentPlanToggle}>
+                  <TouchableOpacity
+                    style={styles.checkboxContainer}
+                    onPress={() => setIsInstallmentPlan(!isInstallmentPlan)}
+                  >
+                    <View style={[styles.checkbox, isInstallmentPlan && styles.checkboxChecked]}>
+                      {isInstallmentPlan && <Icon name="check" size={16} color="#fff" />}
+                    </View>
+                    <Text style={styles.checkboxLabel}>Parcelar pagamento</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {isInstallmentPlan && (
+                  <>
+                    <View style={styles.installmentRow}>
+                      <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                        <Text style={styles.label}>Nº de Parcelas *</Text>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="2"
+                          value={installmentCount}
+                          onChangeText={setInstallmentCount}
+                          keyboardType="numeric"
+                          returnKeyType="next"
+                          maxLength={2}
+                        />
+                      </View>
+                      
+                      <View style={[styles.inputGroup, { flex: 2, marginLeft: 8 }]}>
+                        <Text style={styles.label}>Frequência</Text>
+                        <View style={styles.frequencySelector}>
+                          <TouchableOpacity
+                            style={[
+                              styles.frequencyButton,
+                              installmentFrequency === 'MONTHLY' && styles.frequencyButtonSelected
+                            ]}
+                            onPress={() => setInstallmentFrequency('MONTHLY')}
+                          >
+                            <Text style={[
+                              styles.frequencyButtonText,
+                              installmentFrequency === 'MONTHLY' && styles.frequencyButtonTextSelected
+                            ]}>
+                              Mensal
+                            </Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity
+                            style={[
+                              styles.frequencyButton,
+                              installmentFrequency === 'WEEKLY' && styles.frequencyButtonSelected
+                            ]}
+                            onPress={() => setInstallmentFrequency('WEEKLY')}
+                          >
+                            <Text style={[
+                              styles.frequencyButtonText,
+                              installmentFrequency === 'WEEKLY' && styles.frequencyButtonTextSelected
+                            ]}>
+                              Semanal
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Data da 1ª Parcela *</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="DD/MM/AAAA"
+                        value={firstInstallmentDate}
+                        onChangeText={handleFirstInstallmentDateChange}
+                        keyboardType="numeric"
+                        returnKeyType="done"
+                        maxLength={10}
+                      />
+                    </View>
+
+                    {debtAmount && installmentCount && parseInt(installmentCount) > 1 && (
+                      <View style={styles.installmentPreview}>
+                        <Text style={styles.previewLabel}>Resumo do Parcelamento:</Text>
+                        <Text style={styles.previewText}>{formatInstallmentInfo()}</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+
+                {/* Reminder Section */}
+                <View style={styles.divider} />
+                <View style={styles.reminderSection}>
+                  <Text style={styles.reminderLabel}>
+                    Deseja ser lembrado perto da data de vencimento?
+                  </Text>
+                  <Switch
+                    value={wantsReminder}
+                    onValueChange={setWantsReminder}
+                    trackColor={{ false: '#E5E5E5', true: '#4CAF50' }}
+                    thumbColor={wantsReminder ? '#FFFFFF' : '#F4F3F4'}
+                  />
+                </View>
               </>
             )}
 
@@ -415,7 +505,7 @@ export default function AddDebtorModal({ visible, onClose, onSubmit }: AddDebtor
               style={styles.cancelButton}
             />
             <CustomButton
-              title="Criar Cobrança"
+              title={isEditMode ? "Salvar" : "Criar Cobrança"}
               onPress={handleSubmit}
               loading={loading}
               style={styles.submitButton}

@@ -23,7 +23,6 @@ export type AppStackParamList = {
   MainTabs: undefined;
   Reminders: undefined;
   Accounts: undefined;
-  Subscriptions: undefined;
 };
 
 // Define o tipo das props para cada tela, para uso dentro dos componentes

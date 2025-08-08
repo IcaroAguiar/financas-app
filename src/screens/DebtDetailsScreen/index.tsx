@@ -7,7 +7,9 @@ import { styles } from './styles';
 import { theme } from '@/styles/theme';
 import Icon from '@/components/Icon';
 import RegisterPaymentModal from '@/components/RegisterPaymentModal';
-import { getDebtById, Debt, Payment } from '@/api/debtorService';
+import { getDebtById, Debt, Payment, createPayment } from '@/api/debtorService';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useToast } from '@/hooks/useToast';
 
 type DebtDetailsRouteParams = {
   DebtDetails: {
@@ -20,6 +22,8 @@ export default function DebtDetailsScreen() {
   const route = useRoute<RouteProp<DebtDetailsRouteParams, 'DebtDetails'>>();
   const navigation = useNavigation();
   const { debtId, debtorName } = route.params;
+  const { showConfirmation } = useConfirmation();
+  const toast = useToast();
 
   const [debtDetails, setDebtDetails] = useState<Debt | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +73,41 @@ export default function DebtDetailsScreen() {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  };
+
+  const handleFullPayment = () => {
+    if (!debtDetails || (debtDetails.remainingAmount || 0) <= 0) {
+      return;
+    }
+
+    const remainingAmount = debtDetails.remainingAmount || 0;
+    
+    showConfirmation({
+      title: 'Confirmar Pagamento Total',
+      message: `Confirmar pagamento total de ${formatCurrency(remainingAmount)}?`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      confirmVariant: 'primary',
+      onConfirm: async () => {
+        try {
+          await createPayment(debtId, {
+            amount: remainingAmount,
+            paymentDate: new Date().toISOString(),
+            notes: 'Pagamento total da dívida'
+          });
+          
+          toast.showSuccess({ 
+            message: `Pagamento total de ${formatCurrency(remainingAmount)} registrado com sucesso!` 
+          });
+          
+          await refreshData();
+        } catch (error) {
+          toast.showError({ 
+            message: 'Não foi possível registrar o pagamento total. Tente novamente.' 
+          });
+        }
+      }
     });
   };
 
@@ -188,14 +227,21 @@ export default function DebtDetailsScreen() {
           />
         </View>
 
-        {/* Register Payment Button */}
+        {/* Payment Buttons */}
         {debtDetails.status === 'PENDENTE' && (
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.registerButton}
+              style={styles.partialPaymentButton}
               onPress={() => setShowRegisterPayment(true)}
             >
-              <Text style={styles.registerButtonText}>Registrar Pagamento</Text>
+              <Text style={styles.partialPaymentButtonText}>Registrar Pagamento</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.fullPaymentButton}
+              onPress={handleFullPayment}
+            >
+              <Text style={styles.fullPaymentButtonText}>Pagamento Total</Text>
             </TouchableOpacity>
           </View>
         )}

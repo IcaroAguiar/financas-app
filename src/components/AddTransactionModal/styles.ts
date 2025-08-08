@@ -176,6 +176,12 @@ export const styles = StyleSheet.create({
     marginLeft: theme.spacing.md,
     marginTop: 2,
   },
+  categoryColorIndicator: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 8,
+  },
   cancelAccountSelection: {
     backgroundColor: theme.colors.danger,
     padding: theme.spacing.md,

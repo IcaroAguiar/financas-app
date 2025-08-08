@@ -8,6 +8,7 @@ import { Switch } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTransactions } from '@/contexts/TransactionContext';
 import { useDebtors } from '@/contexts/DebtorContext';
+import { useToast } from '@/hooks/useToast';
 import CustomButton from '@/components/CustomButton';
 import GlobalHeader from '@/components/GlobalHeader';
 import Icon from '@/components/Icon';
@@ -16,11 +17,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { user, signOut, isBiometricSupported, isBiometricEnabled, setIsBiometricEnabled } = useAuth();
+  const { user, token, signOut, isBiometricSupported, isBiometricEnabled, setIsBiometricEnabled } = useAuth();
   const { summary } = useTransactions();
   const { debtors } = useDebtors();
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [password, setPassword] = useState('');
+  const { showSuccess, showError } = useToast();
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -43,55 +44,54 @@ export default function ProfileScreen() {
 
   const handleBiometricToggle = async (value: boolean) => {
     if (!isBiometricSupported) {
-      Alert.alert('Erro', 'Seu dispositivo não suporta autenticação biométrica.');
+      showError({ message: 'Seu dispositivo não suporta autenticação biométrica.' });
       return;
     }
 
     if (value) {
-      // Enable biometrics - show password modal
-      setShowPasswordModal(true);
+      // Check if user is logged in (has valid token)
+      if (!user || !token) {
+        showError({ message: 'Você precisa estar logado para habilitar a biometria.' });
+        return;
+      }
+      
+      // Enable biometrics - show confirmation modal
+      setShowConfirmationModal(true);
     } else {
       // Disable biometrics
       try {
         await SecureStore.deleteItemAsync('FinancasApp_userEmail');
         await SecureStore.deleteItemAsync('FinancasApp_userPassword');
+        await SecureStore.deleteItemAsync('FinancasApp_userToken');
         await setIsBiometricEnabled(false);
-        Alert.alert('Sucesso', 'Login com biometria desabilitado.');
+        showSuccess({ message: 'Login com biometria desabilitado.' });
       } catch (error) {
-        Alert.alert('Erro', 'Não foi possível desabilitar a biometria.');
+        showError({ message: 'Não foi possível desabilitar a biometria.' });
       }
     }
   };
 
   const handleEnableBiometrics = async () => {
-    if (!password.trim()) {
-      Alert.alert('Erro', 'Por favor, insira sua senha.');
-      return;
-    }
-
     try {
-      // Verify password using the dedicated verification endpoint
-      const { verifyPassword } = await import('@/api/authService');
-      await verifyPassword({ password });
-      
-      // If password verification succeeds, store credentials for biometric use
+      // Store the current session information for biometric use
       await SecureStore.setItemAsync('FinancasApp_userEmail', user?.email || '');
-      await SecureStore.setItemAsync('FinancasApp_userPassword', password);
+      // Store a special marker indicating this is a token-based biometric setup
+      await SecureStore.setItemAsync('FinancasApp_userPassword', 'BIOMETRIC_TOKEN_AUTH');
+      // Store the current token for biometric authentication
+      await SecureStore.setItemAsync('FinancasApp_userToken', token || '');
       
       // Update biometric state (includes AsyncStorage save)
       await setIsBiometricEnabled(true);
-      setShowPasswordModal(false);
-      setPassword('');
+      setShowConfirmationModal(false);
       
-      Alert.alert('Sucesso', 'Login com biometria habilitado.');
+      showSuccess({ message: 'Login com biometria habilitado.' });
     } catch (error: any) {
-      Alert.alert('Erro', error.response?.data?.error || 'Senha incorreta ou erro de conexão.');
+      showError({ message: 'Erro ao habilitar biometria. Tente novamente.' });
     }
   };
 
-  const handleCancelPasswordModal = () => {
-    setShowPasswordModal(false);
-    setPassword('');
+  const handleCancelConfirmationModal = () => {
+    setShowConfirmationModal(false);
   };
 
   return (
@@ -198,34 +198,25 @@ export default function ProfileScreen() {
         
       </ScrollView>
 
-      {/* Password Modal */}
+      {/* Confirmation Modal */}
       <Modal
-        visible={showPasswordModal}
+        visible={showConfirmationModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={handleCancelPasswordModal}
+        onRequestClose={handleCancelConfirmationModal}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Habilitar Login com Biometria</Text>
             <Text style={styles.modalDescription}>
-              Por favor, insira sua senha para confirmar.
+              Deseja habilitar o login com biometria para facilitar o acesso ao aplicativo?
             </Text>
-            
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Digite sua senha"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              autoFocus
-            />
             
             <View style={styles.modalButtons}>
               <CustomButton
                 title="Cancelar"
                 variant="secondary"
-                onPress={handleCancelPasswordModal}
+                onPress={handleCancelConfirmationModal}
                 style={styles.modalButton}
               />
               <CustomButton

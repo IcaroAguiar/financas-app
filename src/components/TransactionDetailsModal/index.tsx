@@ -67,7 +67,7 @@ export default function TransactionDetailsModal({
 
   const handlePartialPayment = () => {
     toast.showConfirmation({
-      title: 'Pagamento Parcial',
+      title: 'Pagar Parcela',
       message: `Registrar pagamento parcial para "${transaction.description}"?`,
       confirmText: 'Confirmar',
       cancelText: 'Cancelar',
@@ -194,7 +194,7 @@ export default function TransactionDetailsModal({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.modalTitle}>Detalhes da Transação</Text>
+          <Text style={styles.modalTitle} numberOfLines={1} ellipsizeMode="tail">Detalhes da Transação</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="x" size={24} color="#666" />
           </TouchableOpacity>
@@ -261,9 +261,9 @@ export default function TransactionDetailsModal({
                   style={styles.paymentButton}
                   variant="primary"
                 />
-                {!transaction.isInstallmentPlan && (
+                {transaction.isInstallmentPlan && (
                   <CustomButton
-                    title="Pagamento Parcial"
+                    title="Pagar Parcela"
                     onPress={handlePartialPayment}
                     style={styles.paymentButton}
                     variant="secondary"

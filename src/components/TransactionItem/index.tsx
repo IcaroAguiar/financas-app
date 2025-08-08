@@ -16,6 +16,9 @@ interface TransactionItemProps {
   onPress: (transactionId: string) => void;
   isInstallmentPlan?: boolean;
   date?: string; // Optional date for display
+  currentInstallment?: number; // Current installment number
+  totalInstallments?: number; // Total number of installments
+  isRecurring?: boolean; // Recurring transaction indicator
 }
 
 export default function TransactionItem({
@@ -27,6 +30,9 @@ export default function TransactionItem({
   onPress,
   isInstallmentPlan,
   date,
+  currentInstallment,
+  totalInstallments,
+  isRecurring,
 }: TransactionItemProps) {
   const isRevenue = type === "RECEITA";
   const isPaid = type === "PAGO";
@@ -71,9 +77,18 @@ export default function TransactionItem({
           <Text style={styles.category} numberOfLines={1}>
             {category}
           </Text>
-          {isInstallmentPlan && (
+          {isInstallmentPlan && currentInstallment && totalInstallments && (
             <View style={styles.installmentBadge}>
-              <Text style={styles.installmentBadgeText}>PARCELADO</Text>
+              <Text style={styles.installmentBadgeText} numberOfLines={1} ellipsizeMode="tail">
+                {currentInstallment}/{totalInstallments}
+              </Text>
+            </View>
+          )}
+          {isRecurring && (
+            <View style={[styles.installmentBadge, styles.recurringBadge]}>
+              <Text style={[styles.installmentBadgeText, styles.recurringBadgeText]} numberOfLines={1} ellipsizeMode="tail">
+                RECORRENTE
+              </Text>
             </View>
           )}
         </View>
@@ -81,11 +96,11 @@ export default function TransactionItem({
       
       {/* Amount and Date */}
       <View style={styles.amountContainer}>
-        <Text style={[styles.amount, { color: amountColor }]}>
+        <Text style={[styles.amount, { color: amountColor }]} numberOfLines={1} ellipsizeMode="tail">
           {isRevenue ? '+' : isPaid ? '✓' : ''}{formattedAmount}
         </Text>
         {formattedDate && (
-          <Text style={styles.dateText}>
+          <Text style={styles.dateText} numberOfLines={1} ellipsizeMode="tail">
             {formattedDate}
           </Text>
         )}

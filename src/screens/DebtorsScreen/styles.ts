@@ -79,11 +79,21 @@ export const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  debtorNameRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
   debtorName: {
     fontSize: 18,
     fontWeight: '600',
     color: theme.colors.textPrimary,
-    marginBottom: 6,
+    flex: 1,
+  },
+  moreOptionsButton: {
+    padding: 4,
+    borderRadius: 4,
   },
   contactInfo: {
     gap: 4,

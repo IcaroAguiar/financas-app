@@ -1,5 +1,5 @@
 // App.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TransactionProvider } from "@/contexts/TransactionContext";
@@ -10,6 +10,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ConfirmationProvider } from "@/contexts/ConfirmationContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
+import * as Notifications from 'expo-notifications';
 
 // Importa o hook 'useFonts' e as fontes específicas que queremos
 import {
@@ -20,6 +21,17 @@ import {
   Roboto_700Bold,
 } from "@expo-google-fonts/roboto";
 
+// Configuração de notificações
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default function App() {
   // O hook useFonts carrega as fontes e nos diz quando elas estão prontas
   const [fontsLoaded] = useFonts({
@@ -28,6 +40,22 @@ export default function App() {
     Roboto_500Medium,
     Roboto_700Bold,
   });
+
+  // Solicitar permissões de notificação ao iniciar o app
+  useEffect(() => {
+    async function requestNotificationPermissions() {
+      try {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Permissão de notificação não foi concedida');
+        }
+      } catch (error) {
+        console.log('Erro ao solicitar permissões de notificação:', error);
+      }
+    }
+
+    requestNotificationPermissions();
+  }, []);
 
   // Se as fontes ainda não foram carregadas, não renderizamos nada (ou um Loading)
   // Isso evita o "flash" de texto sem estilo (FOUT)
@@ -46,7 +74,12 @@ export default function App() {
                 <DebtorProvider>
                   <SubscriptionProvider>
                     <AppNavigator />
-                    <Toast />
+                    <Toast 
+                      position="top"
+                      topOffset={60}
+                      visibilityTime={3000}
+                      autoHide={true}
+                    />
                   </SubscriptionProvider>
                 </DebtorProvider>
               </AccountProvider>

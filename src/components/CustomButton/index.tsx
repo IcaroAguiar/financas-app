@@ -104,7 +104,7 @@ export default function CustomButton({
             size="small" 
             color={variant === "primary" || variant === "danger" ? theme.colors.white : theme.colors.primary} 
           />
-          <Text style={[finalTextStyle, { marginLeft: 8 }]}>Carregando...</Text>
+          <Text style={[finalTextStyle, { marginLeft: 8 }]} numberOfLines={1} ellipsizeMode="tail">Carregando...</Text>
         </View>
       );
     }
@@ -113,13 +113,13 @@ export default function CustomButton({
       return (
         <View style={styles.contentContainer}>
           {iconPosition === "left" && <View style={styles.iconContainer}>{icon}</View>}
-          <Text style={finalTextStyle}>{title}</Text>
+          <Text style={finalTextStyle} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
           {iconPosition === "right" && <View style={styles.iconContainer}>{icon}</View>}
         </View>
       );
     }
 
-    return <Text style={finalTextStyle}>{title}</Text>;
+    return <Text style={finalTextStyle} numberOfLines={1} ellipsizeMode="tail">{title}</Text>;
   };
 
   return (

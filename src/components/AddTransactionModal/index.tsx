@@ -22,6 +22,8 @@ import AddEditAccountModal from '@/components/AddEditAccountModal';
 import { useToast } from '@/hooks/useToast';
 import { useDebtors } from '@/contexts/DebtorContext';
 import { SubscriptionFrequency } from '@/api/subscriptionService';
+import { useCategories } from '@/contexts/CategoryContext';
+import { Category } from '@/types/category';
 
 
 interface AddTransactionModalProps {
@@ -43,12 +45,15 @@ export default function AddTransactionModal({
 }: AddTransactionModalProps) {
   const { accounts, refreshData } = useAccounts();
   const { debts } = useDebtors();
+  const { categories } = useCategories();
   const toast = useToast();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<TransactionType>(initialType);
   const [selectedAccountId, setSelectedAccountId] = useState<string | undefined>(undefined);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | undefined>(undefined);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   
   // New states for subscription and debt payment options
@@ -75,6 +80,25 @@ export default function AddTransactionModal({
       setAmount(formatCurrency((transaction.amount * 100).toString())); // Convert to cents format for mask
       setType(transaction.type);
       setSelectedAccountId(transaction.account?.id);
+      setSelectedCategoryId(transaction.category?.id);
+      
+      // Set recurring transaction fields
+      setIsRecurring(transaction.isRecurring === true);
+      if (transaction.subscriptionFrequency) {
+        setSubscriptionFrequency(transaction.subscriptionFrequency);
+      }
+      
+      // Set payment plan fields
+      setIsInstallmentPlan(Boolean(transaction.isInstallmentPlan));
+      if (transaction.installmentCount) {
+        setInstallmentCount(transaction.installmentCount.toString());
+      }
+      if (transaction.installmentFrequency) {
+        setInstallmentFrequency(transaction.installmentFrequency);
+      }
+      if (transaction.firstInstallmentDate) {
+        setFirstInstallmentDate(transaction.firstInstallmentDate);
+      }
     } else {
       setType(initialType);
     }
@@ -149,7 +173,9 @@ export default function AddTransactionModal({
     setAmount("");
     setType(initialType);
     setSelectedAccountId(undefined);
+    setSelectedCategoryId(undefined);
     setShowAccountPicker(false);
+    setShowCategoryPicker(false);
     setIsRecurring(false);
     setSubscriptionFrequency('MONTHLY');
     setSelectedDebtId(undefined);
@@ -204,6 +230,7 @@ export default function AddTransactionModal({
         description,
         amount: numericAmount,
         type,
+        categoryId: selectedCategoryId,
         accountId: selectedAccountId,
       };
       
@@ -214,6 +241,7 @@ export default function AddTransactionModal({
         description,
         amount: numericAmount,
         type,
+        categoryId: selectedCategoryId,
         accountId: selectedAccountId,
         isRecurring,
         subscriptionFrequency: isRecurring ? subscriptionFrequency : undefined,
@@ -235,6 +263,12 @@ export default function AddTransactionModal({
     if (!selectedAccountId) return "Nenhuma";
     const account = accounts.find(acc => acc.id === selectedAccountId);
     return account ? account.name : "Nenhuma";
+  };
+
+  const getSelectedCategoryName = () => {
+    if (!selectedCategoryId) return "Nenhuma";
+    const category = categories.find(cat => cat.id === selectedCategoryId);
+    return category ? category.name : "Nenhuma";
   };
 
   const getSelectedDebtName = () => {
@@ -271,7 +305,7 @@ export default function AddTransactionModal({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.modalView}>
-          <Text style={styles.title}>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
             {isEditing ? "Editar Transação" : "Nova Transação"}
           </Text>
 
@@ -331,6 +365,23 @@ export default function AddTransactionModal({
             keyboardType="numeric"
           />
 
+          {/* Category Selector */}
+          <View style={styles.accountSelectorContainer}>
+            <Text style={styles.accountLabel}>Categoria (Opcional)</Text>
+            <TouchableOpacity
+              style={styles.accountSelector}
+              onPress={() => setShowCategoryPicker(true)}
+            >
+              <View style={styles.accountSelectorContent}>
+                <Icon name="list" size={20} color={theme.colors.text.secondary} />
+                <Text style={styles.accountSelectorText}>
+                  {getSelectedCategoryName()}
+                </Text>
+              </View>
+              <Icon name="chevron-down" size={20} color={theme.colors.text.secondary} />
+            </TouchableOpacity>
+          </View>
+
           {/* Account Selector */}
           <View style={styles.accountSelectorContainer}>
             <Text style={styles.accountLabel}>Conta/Banco (Opcional)</Text>
@@ -357,7 +408,7 @@ export default function AddTransactionModal({
               <View style={[styles.checkbox, isRecurring && styles.checkboxChecked]}>
                 {isRecurring && <Icon name="check" size={16} color={theme.colors.surface} />}
               </View>
-              <Text style={styles.checkboxLabel}>Tornar recorrente (assinatura)</Text>
+              <Text style={styles.checkboxLabel}>Tornar recorrente</Text>
             </TouchableOpacity>
             
             {isRecurring && (
@@ -396,7 +447,7 @@ export default function AddTransactionModal({
                 <View style={[styles.checkbox, isPartialPayment && styles.checkboxChecked]}>
                   {isPartialPayment && <Icon name="check" size={16} color={theme.colors.surface} />}
                 </View>
-                <Text style={styles.checkboxLabel}>Pagamento parcial de dívida</Text>
+                <Text style={styles.checkboxLabel}>Pagamento parcelado</Text>
               </TouchableOpacity>
               
               {isPartialPayment && (
@@ -651,6 +702,78 @@ export default function AddTransactionModal({
             <TouchableOpacity
               style={styles.cancelAccountSelection}
               onPress={() => setShowDebtPicker(false)}
+            >
+              <Text style={styles.cancelAccountText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Category Picker Modal */}
+      {showCategoryPicker && (
+        <View style={styles.accountPickerOverlay}>
+          <View style={styles.accountPickerContainer}>
+            <Text style={styles.accountPickerTitle}>Selecione uma categoria:</Text>
+            
+            {/* Option for "Nenhuma" */}
+            <TouchableOpacity
+              style={[
+                styles.accountOption,
+                !selectedCategoryId && styles.accountOptionSelected
+              ]}
+              onPress={() => {
+                setSelectedCategoryId(undefined);
+                setShowCategoryPicker(false);
+              }}
+            >
+              <View style={styles.accountOptionContent}>
+                <Icon name="x" size={20} color={theme.colors.text.secondary} />
+                <Text style={[
+                  styles.accountOptionText,
+                  !selectedCategoryId && styles.accountOptionTextSelected
+                ]}>
+                  Nenhuma
+                </Text>
+              </View>
+              {!selectedCategoryId && (
+                <Icon name="check" size={16} color={theme.colors.primary} />
+              )}
+            </TouchableOpacity>
+
+            {/* User categories */}
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={[
+                  styles.accountOption,
+                  selectedCategoryId === category.id && styles.accountOptionSelected
+                ]}
+                onPress={() => {
+                  setSelectedCategoryId(category.id);
+                  setShowCategoryPicker(false);
+                }}
+              >
+                <View style={styles.accountOptionContent}>
+                  <View style={[
+                    styles.categoryColorIndicator,
+                    { backgroundColor: category.color || theme.colors.primary }
+                  ]} />
+                  <Text style={[
+                    styles.accountOptionText,
+                    selectedCategoryId === category.id && styles.accountOptionTextSelected
+                  ]}>
+                    {category.name}
+                  </Text>
+                </View>
+                {selectedCategoryId === category.id && (
+                  <Icon name="check" size={16} color={theme.colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              style={styles.cancelAccountSelection}
+              onPress={() => setShowCategoryPicker(false)}
             >
               <Text style={styles.cancelAccountText}>Cancelar</Text>
             </TouchableOpacity>

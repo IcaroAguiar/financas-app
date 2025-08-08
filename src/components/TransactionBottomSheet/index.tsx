@@ -15,6 +15,7 @@ interface TransactionBottomSheetProps {
   onDelete: (transactionId: string) => void;
   onMarkPaid: (transactionId: string) => void;
   onPartialPayment: (transactionId: string, amount: number) => void;
+  onStopRecurring?: (transactionId: string) => void;
 }
 
 export default function TransactionBottomSheet({
@@ -25,6 +26,7 @@ export default function TransactionBottomSheet({
   onDelete,
   onMarkPaid,
   onPartialPayment,
+  onStopRecurring,
 }: TransactionBottomSheetProps) {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const { showConfirmation } = useConfirmation();
@@ -115,6 +117,20 @@ export default function TransactionBottomSheet({
               <Icon name="edit-2" size={16} color={theme.colors.text.primary} />
               <Text style={styles.optionText}>Editar</Text>
             </TouchableOpacity>
+            {/* Stop Recurring Option for recurring transactions */}
+            {transaction.isRecurring === true && onStopRecurring && (
+              <TouchableOpacity 
+                style={styles.optionItem}
+                onPress={() => {
+                  onStopRecurring(transaction.id);
+                  setShowOptionsMenu(false);
+                  onClose();
+                }}
+              >
+                <Icon name="pause" size={16} color={theme.colors.warning} />
+                <Text style={[styles.optionText, { color: theme.colors.warning }]}>Parar Recorrência</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity 
               style={[styles.optionItem, { borderBottomWidth: 0 }]}
               onPress={() => {
@@ -124,7 +140,9 @@ export default function TransactionBottomSheet({
               }}
             >
               <Icon name="trash-2" size={16} color={theme.colors.error} />
-              <Text style={[styles.optionText, { color: theme.colors.error }]}>Excluir</Text>
+              <Text style={[styles.optionText, { color: theme.colors.error }]}>
+                {transaction.isRecurring === true ? 'Excluir Esta Ocorrência' : 'Excluir'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -157,6 +175,19 @@ export default function TransactionBottomSheet({
               <Text style={styles.detailLabel}>Parcelamento</Text>
               <Text style={styles.detailValue}>
                 {transaction.installmentCount} parcelas
+              </Text>
+            </View>
+          )}
+
+          {transaction.isRecurring && (
+            <View style={styles.detailRow}>
+              <Icon name="calendar" size={16} color={theme.colors.warning} />
+              <Text style={styles.detailLabel}>Recorrente</Text>
+              <Text style={styles.detailValue}>
+                {transaction.subscriptionFrequency === 'DAILY' ? 'Diário' :
+                 transaction.subscriptionFrequency === 'WEEKLY' ? 'Semanal' :
+                 transaction.subscriptionFrequency === 'MONTHLY' ? 'Mensal' :
+                 transaction.subscriptionFrequency === 'YEARLY' ? 'Anual' : 'Recorrente'}
               </Text>
             </View>
           )}

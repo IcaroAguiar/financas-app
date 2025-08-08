@@ -13,9 +13,10 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
 import { theme } from '@/styles/theme';
 import Icon from '@/components/Icon';
-import { createPayment } from '@/api/debtorService';
+import { createPayment, getDebtById, updateDebtNotification } from '@/api/debtorService';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { useToast } from '@/hooks/useToast';
+import { cancelScheduledNotification } from '@/utils/notifications';
 
 interface RegisterPaymentModalProps {
   visible: boolean;
@@ -125,6 +126,23 @@ export default function RegisterPaymentModal({
       };
       
       await createPayment(debtId, paymentData);
+      
+      // Check if debt is now fully paid and cancel notification if needed
+      try {
+        const updatedDebt = await getDebtById(debtId);
+        if (updatedDebt.status === 'PAGA' && updatedDebt.notificationId) {
+          // Cancel the scheduled notification
+          const cancelled = await cancelScheduledNotification(updatedDebt.notificationId);
+          if (cancelled) {
+            // Remove the notificationId from the debt record
+            await updateDebtNotification(debtId, null);
+            console.log(`Lembrete cancelado para dívida paga: ${debtId}`);
+          }
+        }
+      } catch (notificationError) {
+        // Don't fail the payment process if notification cancellation fails
+        console.warn('Erro ao cancelar lembrete:', notificationError);
+      }
       
       toast.showSuccess({ message: `Pagamento de ${formatCurrency(amountValue)} registrado com sucesso!` });
       handleClose();
