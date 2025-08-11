@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/useToast';
 interface AddDebtorModalProps {
   visible: boolean;
   editingDebtor?: Debtor | null;
-  editingDebt?: Debt | null; // Add support for editing debt
+  editingDebt?: any; // Add support for editing debt (flexible type)
   onClose: () => void;
   onSubmit: (debtorData: CreateDebtorData, debtData: CreateDebtData, wantsReminder?: boolean) => Promise<void>;
 }
@@ -175,10 +175,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         return false;
       }
 
-      if (!isInstallmentPlan && !dueDate.trim()) {
-        toast.showError({ message: 'Data de vencimento é obrigatória' });
-        return false;
-      }
+      // Data de vencimento é opcional - removida validação
 
       if (isInstallmentPlan) {
         if (!firstInstallmentDate.trim()) {
@@ -246,12 +243,15 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
       const debtData: CreateDebtData = {
         description: debtDescription.trim(),
         totalAmount: parseCurrencyToNumber(debtAmount),
-        dueDate: isInstallmentPlan ? firstInstallmentDate.trim() : dueDate.trim(),
         debtorId: editingDebt?.debtorId || editingDebtor?.id || '', // Use debtor ID, not debt ID
         isInstallment: isInstallmentPlan,
         installmentCount: isInstallmentPlan ? parseInt(installmentCount) || 1 : undefined,
         installmentFrequency: isInstallmentPlan ? installmentFrequency : undefined,
       };
+
+      // Add dueDate - send undefined if empty to match interface
+      const dateValue = isInstallmentPlan ? firstInstallmentDate.trim() : dueDate.trim();
+      debtData.dueDate = (dateValue && dateValue.length > 0) ? dateValue : undefined;
 
       await onSubmit(debtorData, debtData, wantsReminder);
       toast.showSuccess({ 
@@ -366,10 +366,10 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
 
                 {!isInstallmentPlan && (
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Data de Vencimento *</Text>
+                    <Text style={styles.label}>Data de Vencimento</Text>
                     <TextInput
                       style={styles.input}
-                      placeholder="DD/MM/AAAA"
+                      placeholder="DD/MM/AAAA (opcional)"
                       value={dueDate}
                       onChangeText={handleDateChange}
                       keyboardType="numeric"

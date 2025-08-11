@@ -34,7 +34,7 @@ api.interceptors.request.use(
     } catch (error) {
     }
 
-    // Logs removidos para ambiente de produção
+    
     // É obrigatório retornar a config para que a requisição continue
     return config;
   },
@@ -52,6 +52,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    
     // Trata todos os erros de resposta (status 4xx, 5xx)
 
     // Trata token expirado (401 Unauthorized)

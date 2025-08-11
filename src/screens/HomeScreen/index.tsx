@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,8 +16,10 @@ import { Transaction } from "@/types/transactions";
 import Icon from "@/components/Icon";
 import QuickActionCard from "@/components/QuickActionCard";
 import DashboardCard from "@/components/DashboardCard";
+import DashboardHeader from "@/components/DashboardHeader";
+import MonthSelector, { MonthData } from "@/components/MonthSelector";
 import AddTransactionModal from "@/components/AddTransactionModal";
-import { CreateTransactionData } from '@/api/transactionService';
+import { CreateTransactionData, getMonthlySummary, MonthlySummary } from '@/api/transactionService';
 import { theme } from "@/styles/theme";
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
@@ -36,6 +38,18 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Modal states
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalTransactionType, setModalTransactionType] = useState<"RECEITA" | "DESPESA">("DESPESA");
+  
+  // Balance visibility state
+  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  
+  // Month selection state
+  const currentDate = new Date();
+  const currentMonthId = `${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthId);
+  
+  // Monthly summary state
+  const [monthlySummary, setMonthlySummary] = useState<MonthlySummary | null>(null);
+  const [loadingMonthlySummary, setLoadingMonthlySummary] = useState(false);
 
 
   // Calculando dados reais das cobranças e dívidas
@@ -46,7 +60,69 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     totalDebtors: debtors.length,
   };
 
+  // Generate months for selector (6 months back and 6 months forward from current)
+  const generateMonths = (): MonthData[] => {
+    const months: MonthData[] = [];
+    const today = new Date();
+    
+    // Generate 6 months back and 6 months forward (13 months total including current)
+    for (let i = -6; i <= 6; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      const id = `${month}-${year}`;
+      
+      const monthNames = [
+        'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+        'jul', 'ago', 'set', 'out', 'nov', 'dez'
+      ];
+      
+      months.push({
+        id,
+        month,
+        year,
+        displayText: `${monthNames[date.getMonth()]}/${year.toString().slice(-2)}`,
+        isSelected: id === selectedMonth
+      });
+    }
+    
+    return months;
+  };
+
+  const monthsData = generateMonths();
   const recentTransactions = getRecentTransactions(4);
+
+  // Function to fetch monthly data
+  const fetchMonthlySummary = async (monthId: string) => {
+    try {
+      setLoadingMonthlySummary(true);
+      const [month, year] = monthId.split('-').map(Number);
+      const summary = await getMonthlySummary(month, year);
+      setMonthlySummary(summary);
+    } catch (error) {
+      console.error('Erro ao buscar resumo mensal:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados mensais');
+    } finally {
+      setLoadingMonthlySummary(false);
+    }
+  };
+
+  // Load initial monthly data
+  useEffect(() => {
+    fetchMonthlySummary(selectedMonth);
+  }, [selectedMonth]);
+
+  // Month selector handler
+  const handleMonthSelect = (monthId: string) => {
+    setSelectedMonth(monthId);
+    fetchMonthlySummary(monthId);
+  };
+
+  // Dashboard Header handlers
+  const handleToggleBalance = () => {
+    setIsBalanceVisible(prev => !prev);
+  };
+
 
   // Handler functions for interactions
   const handleOpenTransactionModal = (type: "RECEITA" | "DESPESA") => {
@@ -75,11 +151,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }).format(value);
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Bom dia";
-    if (hour < 18) return "Boa tarde";
-    return "Boa noite";
+
+  // Determine which data to display (monthly or general)
+  const displayData = monthlySummary || {
+    totalIncome: summary.totalIncome,
+    totalExpenses: summary.totalExpenses,
+    balance: summary.balance,
   };
 
   const renderTransaction = (transaction: Transaction) => (
@@ -127,7 +204,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     </View>
   );
 
-  const isBalanceNegative = summary.balance < 0;
+  const isBalanceNegative = displayData.balance < 0;
 
   return (
     <View style={styles.container}>
@@ -137,23 +214,31 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing || debtorsRefreshing}
+            refreshing={refreshing || debtorsRefreshing || loadingMonthlySummary}
             onRefresh={async () => {
-              await Promise.all([refreshTransactions(), refreshDebtors()]);
+              await Promise.all([
+                refreshTransactions(),
+                refreshDebtors(),
+                fetchMonthlySummary(selectedMonth)
+              ]);
             }}
             colors={[theme.colors.primary]}
             tintColor={theme.colors.primary}
           />
         }
       >
-        <View style={styles.welcomeSection}>
-          <Text style={styles.greeting} numberOfLines={1} ellipsizeMode="tail">
-            {getGreeting()}, {user?.name?.split(" ")[0]}!
-          </Text>
-          <Text style={styles.subtitle} numberOfLines={1} ellipsizeMode="tail">
-            Aqui está o resumo das suas finanças
-          </Text>
-        </View>
+        <DashboardHeader
+          userName={user?.name || 'Usuário'}
+          isBalanceVisible={isBalanceVisible}
+          onToggleBalance={handleToggleBalance}
+        />
+
+        {/* Month Selector */}
+        <MonthSelector
+          months={monthsData}
+          selectedMonth={selectedMonth}
+          onMonthSelect={handleMonthSelect}
+        />
 
         {/* Balance Card */}
         <View
@@ -166,20 +251,22 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             },
           ]}
         >
-          <Text style={styles.balanceLabel} numberOfLines={1} ellipsizeMode="tail">Saldo Atual</Text>
+          <Text style={styles.balanceLabel} numberOfLines={1} ellipsizeMode="tail">
+            {monthlySummary ? `Resultado ${monthlySummary.period.monthName}` : 'Saldo Atual'}
+          </Text>
           <Text style={styles.balanceAmount} numberOfLines={1} ellipsizeMode="tail">
-            {formatCurrency(summary.balance)}
+            {isBalanceVisible ? formatCurrency(displayData.balance) : "•••••"}
           </Text>
           <View style={styles.balanceDetails}>
             <View style={styles.balanceItem}>
               <Text style={styles.incomeAmount} numberOfLines={1} ellipsizeMode="tail">
-                +{formatCurrency(summary.totalIncome)}
+                {isBalanceVisible ? `+${formatCurrency(displayData.totalIncome)}` : "•••••"}
               </Text>
               <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Recebimentos</Text>
             </View>
             <View style={styles.balanceItem}>
               <Text style={styles.expenseAmount} numberOfLines={1} ellipsizeMode="tail">
-                -{formatCurrency(summary.totalExpenses)}
+                {isBalanceVisible ? `-${formatCurrency(displayData.totalExpenses)}` : "•••••"}
               </Text>
               <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Despesas</Text>
             </View>

@@ -39,7 +39,7 @@ export default function RemindersScreen() {
 
     // Add debt reminders
     debts.forEach(debt => {
-      if (debt.status === 'PENDENTE') {
+      if (debt.status === 'PENDENTE' && debt.dueDate) {
         const dueDate = new Date(debt.dueDate);
         if (dueDate <= thirtyDaysFromNow) {
           generatedReminders.push({

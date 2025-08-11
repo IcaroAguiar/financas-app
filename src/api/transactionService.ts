@@ -83,3 +83,36 @@ export const registerPartialPayment = async (
   const response = await api.post(`/transactions/${transactionId}/partial-payment`, { amount });
   return response.data;
 };
+
+// Monthly summary data interface
+export interface MonthlySummary {
+  period: {
+    month: number;
+    year: number;
+    monthName: string;
+  };
+  totalIncome: number;
+  totalExpenses: number;
+  balance: number;
+  transactionCount: number;
+}
+
+// Get monthly summary with optional month/year filters
+export const getMonthlySummary = async (month?: number, year?: number): Promise<MonthlySummary> => {
+  const params = new URLSearchParams();
+  if (month) params.append('month', month.toString());
+  if (year) params.append('year', year.toString());
+  
+  const response = await api.get<MonthlySummary>(`/transactions/monthly-summary?${params.toString()}`);
+  return response.data;
+};
+
+// Get transactions with optional month/year filters
+export const getTransactionsFiltered = async (month?: number, year?: number): Promise<Transaction[]> => {
+  const params = new URLSearchParams();
+  if (month) params.append('month', month.toString());
+  if (year) params.append('year', year.toString());
+  
+  const response = await api.get<Transaction[]>(`/transactions?${params.toString()}`);
+  return response.data;
+};

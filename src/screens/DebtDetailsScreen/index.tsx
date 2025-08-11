@@ -200,7 +200,7 @@ export default function DebtDetailsScreen() {
               </Text>
             </View>
             <Text style={styles.dueDateText}>
-              Vencimento: {formatDate(debtDetails.dueDate)}
+              Vencimento: {debtDetails.dueDate ? formatDate(debtDetails.dueDate) : 'Sem vencimento'}
             </Text>
           </View>
         </View>

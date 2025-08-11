@@ -14,7 +14,7 @@ export interface Debt {
   id: string;
   description: string;
   totalAmount: number;
-  dueDate: string;
+  dueDate?: string;
   status: 'PENDENTE' | 'PAGA' | 'DELETED';
   createdAt: string;
   updatedAt: string;
@@ -47,7 +47,7 @@ export interface CreateDebtorData {
 export interface CreateDebtData {
   description: string;
   totalAmount: number;
-  dueDate: string;
+  dueDate?: string;
   debtorId: string;
   isInstallment?: boolean;
   installmentCount?: number;
@@ -102,8 +102,29 @@ export const getDebtsByDebtor = async (debtorId: string): Promise<Debt[]> => {
 };
 
 export const createDebt = async (data: CreateDebtData): Promise<Debt> => {
-  const response = await api.post('/debts', data);
-  return response.data;
+  try {
+    // Clean data: remove undefined fields, but keep null values for optional fields
+    const cleanData = Object.keys(data).reduce((acc: any, key) => {
+      const value = data[key as keyof CreateDebtData];
+      if (value !== undefined) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
+    
+    console.log('🔗 API SERVICE - Sending request to /debts with data:', JSON.stringify(cleanData, null, 2));
+    console.log('🔗 API SERVICE - API base URL:', 'Should be from .env');
+    
+    const response = await api.post('/debts', cleanData);
+    console.log('🔗 API SERVICE - Received response:', response.status, JSON.stringify(response.data, null, 2));
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ API SERVICE - Error in createDebt:', error);
+    console.error('❌ API SERVICE - Error status:', error.response?.status);
+    console.error('❌ API SERVICE - Error data:', error.response?.data);
+    console.error('❌ API SERVICE - Error message:', error.message);
+    throw error;
+  }
 };
 
 export const updateDebt = async (id: string, data: Partial<UpdateDebtData>): Promise<Debt> => {

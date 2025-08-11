@@ -50,6 +50,8 @@ interface DebtDetailsModalProps {
   onMarkDebtPaid?: (debtId: string) => void;
   onMarkPartialPayment?: (debtId: string) => void;
   onAddNewDebt?: (debtor: { id: string; name: string; email?: string; phone?: string }) => void;
+  onEditDebt?: (debt: Debt) => void;
+  onDeleteDebt?: (debtId: string) => void;
 }
 
 export default function DebtDetailsModal({
@@ -61,6 +63,8 @@ export default function DebtDetailsModal({
   onMarkDebtPaid,
   onMarkPartialPayment,
   onAddNewDebt,
+  onEditDebt,
+  onDeleteDebt,
 }: DebtDetailsModalProps) {
   const toast = useToast();
   const { showConfirmation } = useConfirmation();
@@ -186,7 +190,7 @@ export default function DebtDetailsModal({
         
         <View style={styles.installmentDetails}>
           <Text style={styles.dueDate}>
-            Vencimento: {installment.dueDate ? new Date(installment.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
+            Vencimento: {installment.dueDate ? new Date(installment.dueDate).toLocaleDateString('pt-BR') : 'Sem vencimento'}
           </Text>
           {installment.paidDate && (
             <Text style={styles.paidDate}>
@@ -211,6 +215,43 @@ export default function DebtDetailsModal({
     );
   };
 
+  const handleEditDebt = (debt: Debt) => {
+    if (onEditDebt) {
+      onEditDebt(debt);
+      onClose();
+    }
+  };
+
+  const handleDeleteDebt = (debt: Debt) => {
+    console.log('🗑️ Direct delete for:', debt.description);
+    if (onDeleteDebt) {
+      onDeleteDebt(debt.id);
+      onClose();
+    } else {
+      console.error('🗑️ onDeleteDebt function not available');
+    }
+  };
+
+  const showDebtActions = (debt: Debt) => {
+    console.log('🔧 showDebtActions called for debt:', debt.description);
+    
+    showConfirmation({
+      title: `${debt.description}`,
+      message: 'Escolha uma ação:',
+      confirmText: 'Editar',
+      cancelText: 'Excluir',
+      confirmVariant: 'primary',
+      onConfirm: () => {
+        console.log('🔧 Edit debt confirmed');
+        handleEditDebt(debt);
+      },
+      onCancel: () => {
+        console.log('🔧 Delete debt confirmed');
+        handleDeleteDebt(debt);
+      }
+    });
+  };
+
   const renderDebt = (debt: Debt) => {
     const progress = getInstallmentProgress(debt);
     
@@ -218,9 +259,19 @@ export default function DebtDetailsModal({
       <View key={debt.id} style={styles.debtCard}>
         <View style={styles.debtHeader}>
           <Text style={styles.debtTitle}>{debt.description}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(debt.status) }]}>
-            <Icon name={getStatusIcon(debt.status)} size={16} color="#fff" />
-            <Text style={styles.statusText}>{debt.status}</Text>
+          <View style={styles.debtHeaderRight}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(debt.status) }]}>
+              <Icon name={getStatusIcon(debt.status)} size={16} color="#fff" />
+              <Text style={styles.statusText}>{debt.status}</Text>
+            </View>
+            {(onEditDebt || onDeleteDebt) && (
+              <TouchableOpacity
+                style={styles.debtActionsButton}
+                onPress={() => showDebtActions(debt)}
+              >
+                <Icon name="more-horizontal" size={20} color="#666" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -243,7 +294,7 @@ export default function DebtDetailsModal({
           
           {!debt.isInstallment && (
             <Text style={styles.dueDate}>
-              Vencimento: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('pt-BR') : 'Data inválida'}
+              Vencimento: {debt.dueDate ? new Date(debt.dueDate).toLocaleDateString('pt-BR') : 'Sem vencimento'}
             </Text>
           )}
         </View>

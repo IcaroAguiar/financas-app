@@ -32,7 +32,7 @@ interface Debt {
   description: string;
   totalAmount: number;
   originalAmount: number;
-  dueDate: Date;
+  dueDate?: Date;
   status: 'PENDENTE' | 'PAGA' | 'ATRASADA';
   debtorId: string;
   interestRate?: number; // Monthly interest rate percentage
@@ -75,11 +75,28 @@ export default function DebtorsScreen() {
   
   // Loading state for debt status changes
   const [updatingDebtIds, setUpdatingDebtIds] = useState<Set<string>>(new Set());
+  
+  // Local deleted items (frontend-only)
+  const [deletedDebtorIds, setDeletedDebtorIds] = useState<Set<string>>(new Set());
+  const [deletedDebtIds, setDeletedDebtIds] = useState<Set<string>>(new Set());
 
 
-  // Get debts for a specific debtor using real API data
+  // Get debts for a specific debtor using real API data, filtering out deleted ones
   const getDebtorDebts = (debtorId: string) => {
-    return getDebtsByDebtorId(debtorId);
+    return getDebtsByDebtorId(debtorId).filter(debt => !deletedDebtIds.has(debt.id));
+  };
+
+  // Local versions that consider deleted items
+  const getLocalTotalPendingDebtForDebtor = (debtorId: string) => {
+    const debtorDebts = getDebtorDebts(debtorId);
+    return debtorDebts
+      .filter(debt => debt.status === 'PENDENTE')
+      .reduce((sum, debt) => sum + debt.totalAmount, 0);
+  };
+
+  const getLocalPendingDebtsForDebtor = (debtorId: string) => {
+    const debtorDebts = getDebtorDebts(debtorId);
+    return debtorDebts.filter(debt => debt.status === 'PENDENTE').length;
   };
 
   const handleMarkInstallmentPaid = (debtId: string, installmentId: string) => {
@@ -131,6 +148,20 @@ export default function DebtorsScreen() {
       // Call backend API to persist the status change
       await updateDebt(debtId, { status: newStatus });
       
+      // Cancel notification if debt is marked as PAID
+      if (newStatus === 'PAGA' && debt.notificationId) {
+        try {
+          const cancelResult = await cancelMultipleNotifications([debt.notificationId]);
+          if (cancelResult) {
+            console.log(`✅ Notificação cancelada para dívida paga: ${debt.notificationId}`);
+            // Clear the notificationId from the debt record
+            await updateDebtNotification(debtId, null);
+          }
+        } catch (notificationError) {
+          console.warn('Erro ao cancelar notificação da dívida paga:', notificationError);
+        }
+      }
+      
       // Refresh context data to ensure consistency
       await refreshData();
       
@@ -180,36 +211,135 @@ export default function DebtorsScreen() {
   const sendWhatsAppMessage = (phone: string, debtorName: string, totalDebt: number) => {
     console.log('📱 sendWhatsAppMessage called - Phone:', phone, 'Debtor:', debtorName, 'Amount:', totalDebt);
     
+    // Validate phone number
+    if (!phone || phone.trim().length === 0) {
+      console.error('📱 Invalid phone number:', phone);
+      toast.showError({ message: 'Número de telefone inválido' });
+      return;
+    }
+    
+    // Clean phone number (remove spaces, dashes, parentheses, etc)
+    const cleanPhone = phone.replace(/[^\d]/g, '');
+    console.log('📱 Cleaned phone number:', cleanPhone);
+    
+    if (cleanPhone.length < 10) {
+      console.error('📱 Phone number too short after cleaning:', cleanPhone);
+      toast.showError({ message: 'Número de telefone muito curto' });
+      return;
+    }
+    
     const formattedAmount = new Intl.NumberFormat('pt-BR', { 
       style: 'currency', 
       currency: 'BRL' 
     }).format(totalDebt);
     
-    const message = `Olá, ${debtorName}! Este é um lembrete sobre sua dívida pendente no valor de ${formattedAmount}. Por favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
-    const url = `whatsapp://send?phone=${phone}&text=${encodeURIComponent(message)}`;
+    // Get pending debts with descriptions for this debtor
+    const debtorId = chargeDebtDebtor?.id;
+    const pendingDebts = debtorId ? getDebtsByDebtorId(debtorId)
+      .filter(debt => debt.status === 'PENDENTE' && !deletedDebtIds.has(debt.id)) : [];
     
-    console.log('📱 WhatsApp URL:', url);
+    // Build debt details for the message
+    let debtDetails = '';
+    if (pendingDebts.length > 0) {
+      debtDetails = '\n\nDetalhes das dívidas:\n';
+      pendingDebts.forEach((debt, index) => {
+        const debtAmount = new Intl.NumberFormat('pt-BR', { 
+          style: 'currency', 
+          currency: 'BRL' 
+        }).format(debt.totalAmount);
+        debtDetails += `${index + 1}. ${debt.description} - ${debtAmount}\n`;
+      });
+    }
     
-    Linking.canOpenURL(url).then((supported) => {
-      console.log('📱 WhatsApp supported:', supported);
-      if (supported) {
-        console.log('📱 Opening WhatsApp...');
-        Linking.openURL(url);
-      } else {
-        console.log('📱 WhatsApp not supported, showing error');
-        toast.showError({ message: 'WhatsApp não está instalado neste dispositivo' });
+    const message = `Olá, ${debtorName}! Este é um lembrete sobre sua(s) dívida(s) pendente(s) no valor total de ${formattedAmount}.${debtDetails}\nPor favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
+    
+    // Try multiple WhatsApp URL formats
+    const urls = [
+      `whatsapp://send?phone=55${cleanPhone}&text=${encodeURIComponent(message)}`,
+      `whatsapp://send/?phone=55${cleanPhone}&text=${encodeURIComponent(message)}`,
+      `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`,
+      `https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(message)}`,
+      `whatsapp://send?text=${encodeURIComponent(message)}&phone=55${cleanPhone}`
+    ];
+    
+    console.log('📱 Trying WhatsApp URLs:', urls);
+    
+    const tryOpenWhatsApp = async (urlIndex = 0) => {
+      if (urlIndex >= urls.length) {
+        // Last resort: try the simplest WhatsApp format
+        console.log('📱 All standard URLs failed, trying last resort...');
+        try {
+          const lastResortUrl = `whatsapp://send?text=${encodeURIComponent(`${debtorName}: ${formattedAmount} - Por favor entre em contato para acertar o pagamento. Obrigado!`)}`;
+          console.log('📱 Last resort URL:', lastResortUrl);
+          await Linking.openURL(lastResortUrl);
+          toast.showSuccess({ message: '✅ WhatsApp aberto! Por favor, insira o número manualmente.' });
+          return;
+        } catch (error: any) {
+          console.log('📱 Last resort also failed:', error?.message || error);
+          toast.showError({ message: 'WhatsApp não está instalado ou não pode ser aberto neste dispositivo. Por favor, instale o WhatsApp.' });
+        }
+        return;
       }
-    }).catch((error) => {
-      console.error('📱 Error checking WhatsApp support:', error);
-      toast.showError({ message: 'Erro ao abrir WhatsApp: ' + error.message });
-    });
+      
+      const url = urls[urlIndex];
+      console.log(`📱 Trying URL ${urlIndex + 1}:`, url);
+      
+      try {
+        // First, try to open directly (sometimes canOpenURL is overly restrictive)
+        console.log(`📱 Attempting direct open for URL ${urlIndex + 1}...`);
+        await Linking.openURL(url);
+        console.log('📱 WhatsApp opened successfully via direct method');
+        toast.showSuccess({ message: '✅ Mensagem enviada para o WhatsApp!' });
+        return;
+      } catch (directError: any) {
+        console.log(`📱 Direct open failed for URL ${urlIndex + 1}:`, directError?.message || directError);
+        
+        // If direct open fails, check if it's supported first
+        try {
+          const supported = await Linking.canOpenURL(url);
+          console.log(`📱 URL ${urlIndex + 1} supported via canOpenURL:`, supported);
+          
+          if (supported) {
+            console.log(`📱 Opening WhatsApp with URL ${urlIndex + 1} after canOpenURL check...`);
+            await Linking.openURL(url);
+            console.log('📱 WhatsApp opened successfully after support check');
+            toast.showSuccess({ message: '✅ Mensagem enviada para o WhatsApp!' });
+            return;
+          } else {
+            // Try next URL
+            console.log(`📱 URL ${urlIndex + 1} not supported, trying next...`);
+            await tryOpenWhatsApp(urlIndex + 1);
+          }
+        } catch (supportError) {
+          console.error(`📱 Support check error for URL ${urlIndex + 1}:`, supportError);
+          // Try next URL
+          await tryOpenWhatsApp(urlIndex + 1);
+        }
+      }
+    };
+    
+    tryOpenWhatsApp();
   };
 
   const handleCreateDebtorAndDebt = async (debtorData: CreateDebtorData, debtData: CreateDebtData, wantsReminder?: boolean) => {
     try {
       if (editingDebtor) {
         // Edit mode - update the debtor (only if debtor data changed)
-        await updateDebtor(editingDebtor.id, debtorData);
+        console.log('🔧 About to update debtor:', {
+          debtorId: editingDebtor.id,
+          debtorData: JSON.stringify(debtorData, null, 2),
+          editingDebtor: JSON.stringify(editingDebtor, null, 2)
+        });
+        
+        try {
+          await updateDebtor(editingDebtor.id, debtorData);
+          console.log('🔧 Debtor update successful');
+        } catch (updateError: any) {
+          console.error('🔧 Debtor update failed:', updateError);
+          console.error('🔧 Error message:', updateError?.message);
+          console.error('🔧 Error response:', updateError?.response?.data);
+          throw updateError; // Re-throw to be handled by outer catch
+        }
         
         // If we're editing an existing debt, update it
         if (editingDebt) {
@@ -233,8 +363,10 @@ export default function DebtorsScreen() {
           console.log('📝 Description:', debtData.description);
           console.log('📝 Total Amount:', debtData.totalAmount);
           console.log('📝 Due Date:', debtData.dueDate);
+          console.log('🚀 ABOUT TO CALL createDebt API...');
           
           const createdDebt = await createDebt(debtDataWithDebtorId);
+          console.log('✅ API CALL COMPLETED, response:', createdDebt);
           
           // Schedule notification if user wants reminder
           if (wantsReminder && createdDebt) {
@@ -243,7 +375,7 @@ export default function DebtorsScreen() {
                 id: createdDebt.id,
                 description: createdDebt.description,
                 totalAmount: createdDebt.totalAmount,
-                dueDate: createdDebt.dueDate,
+                dueDate: createdDebt.dueDate || new Date().toISOString(),
                 debtorId: createdDebt.debtorId,
                 debtor: {
                   name: editingDebtor.name
@@ -274,7 +406,10 @@ export default function DebtorsScreen() {
           debtorId: createdDebtor.id
         };
         
+        console.log('🚀 ABOUT TO CALL createDebt API for new debtor...');
+        console.log('📝 Final debt data:', JSON.stringify(debtDataWithDebtorId, null, 2));
         const createdDebt = await createDebt(debtDataWithDebtorId);
+        console.log('✅ API CALL COMPLETED for new debtor, response:', createdDebt);
         
         // Schedule notification if user wants reminder
         if (wantsReminder && createdDebt) {
@@ -283,7 +418,7 @@ export default function DebtorsScreen() {
               id: createdDebt.id,
               description: createdDebt.description,
               totalAmount: createdDebt.totalAmount,
-              dueDate: createdDebt.dueDate,
+              dueDate: createdDebt.dueDate || new Date().toISOString(),
               debtorId: createdDebt.debtorId,
               debtor: {
                 name: createdDebtor.name
@@ -324,22 +459,59 @@ export default function DebtorsScreen() {
   const sendEmail = (email: string, debtorName: string, totalDebt: number) => {
     console.log('📧 sendEmail called - Email:', email, 'Debtor:', debtorName, 'Amount:', totalDebt);
     
+    // Validate email
+    if (!email || email.trim().length === 0) {
+      console.error('📧 Invalid email:', email);
+      toast.showError({ message: 'Endereço de email inválido' });
+      return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      console.error('📧 Email format invalid:', email);
+      toast.showError({ message: 'Formato de email inválido' });
+      return;
+    }
+    
     const formattedAmount = new Intl.NumberFormat('pt-BR', { 
       style: 'currency', 
       currency: 'BRL' 
     }).format(totalDebt);
     
+    // Get pending debts with descriptions for this debtor
+    const debtorId = chargeDebtDebtor?.id;
+    const pendingDebts = debtorId ? getDebtsByDebtorId(debtorId)
+      .filter(debt => debt.status === 'PENDENTE' && !deletedDebtIds.has(debt.id)) : [];
+    
+    // Build debt details for the message
+    let debtDetails = '';
+    if (pendingDebts.length > 0) {
+      debtDetails = '\n\nDetalhes das dívidas:\n';
+      pendingDebts.forEach((debt, index) => {
+        const debtAmount = new Intl.NumberFormat('pt-BR', { 
+          style: 'currency', 
+          currency: 'BRL' 
+        }).format(debt.totalAmount);
+        debtDetails += `${index + 1}. ${debt.description} - ${debtAmount}\n`;
+      });
+    }
+    
     const subject = 'Lembrete - Dívida Pendente';
-    const body = `Olá, ${debtorName}! Este é um lembrete sobre sua dívida pendente no valor de ${formattedAmount}. Por favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
-    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const body = `Olá, ${debtorName}! Este é um lembrete sobre sua(s) dívida(s) pendente(s) no valor total de ${formattedAmount}.${debtDetails}\nPor favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
+    const url = `mailto:${email.trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
     console.log('📧 Email URL:', url);
+    console.log('📧 Subject:', subject);
+    console.log('📧 Body:', body);
     
     Linking.canOpenURL(url).then((supported) => {
       console.log('📧 Email supported:', supported);
       if (supported) {
         console.log('📧 Opening email app...');
-        Linking.openURL(url);
+        return Linking.openURL(url).then(() => {
+          console.log('📧 Email app opened successfully');
+          toast.showSuccess({ message: '✅ Email aberto no aplicativo padrão!' });
+        });
       } else {
         console.log('📧 Email not supported, showing error');
         toast.showError({ message: 'Não foi possível abrir o aplicativo de email' });
@@ -360,52 +532,29 @@ export default function DebtorsScreen() {
     
     setChargeDebtDebtor(debtor);
     setShowChargeDebt(true);
-    console.log('📞 Charge modal should now be visible');
   };
 
   const showDebtorActions = (debtor: ApiDebtor) => {
     console.log('⚙️ showDebtorActions called for:', debtor.name);
     
-    const debtorDebts = getDebtsByDebtorId(debtor.id);
-    const hasPendingDebt = debtorDebts.length > 0;
+    const debtorDebts = getDebtorDebts(debtor.id);
     
-    console.log('⚙️ Debtor has', debtorDebts.length, 'debts, hasPendingDebt:', hasPendingDebt);
-    
-    // First action: Edit or Delete choice
+    // Simplified approach: Show edit/delete choice directly  
     showConfirmation({
-      title: `Ações - ${debtor.name}`,
-      message: 'O que deseja fazer?',
+      title: `${debtor.name}`,
+      message: 'Escolha uma ação:',
       confirmText: 'Editar',
       cancelText: 'Excluir',
       confirmVariant: 'primary',
       onConfirm: () => {
-        // Show edit options
-        if (hasPendingDebt) {
-          showConfirmation({
-            title: 'Tipo de Edição',
-            message: 'Como deseja editar?',
-            confirmText: 'Editar Dados',
-            cancelText: 'Editar com Dívida',
-            onConfirm: () => handleEditDebtor(debtor),
-            onCancel: () => {
-              const firstDebt = debtorDebts.find(d => d.status === 'PENDENTE') || debtorDebts[0];
-              handleEditDebtor(debtor, firstDebt);
-            }
-          });
-        } else {
-          handleEditDebtor(debtor);
-        }
+        console.log('⚙️ Edit confirmed for:', debtor.name);
+        // Direct edit - use first pending debt if exists
+        const firstPendingDebt = debtorDebts.find(d => d.status === 'PENDENTE');
+        handleEditDebtor(debtor, firstPendingDebt);
       },
       onCancel: () => {
-        // Confirm deletion
-        showConfirmation({
-          title: '🗑️ Confirmar Exclusão',
-          message: `Tem certeza que deseja excluir ${debtor.name}?\n\n(Apenas visual - não afeta servidor)`,
-          confirmText: 'SIM, Excluir',
-          cancelText: 'Cancelar',
-          confirmVariant: 'danger',
-          onConfirm: () => handleDeleteDebtor(debtor)
-        });
+        console.log('⚙️ Delete confirmed for:', debtor.name);
+        handleDeleteDebtor(debtor);
       }
     });
   };
@@ -438,21 +587,114 @@ export default function DebtorsScreen() {
     console.log(`Adding new debt for debtor: ${debtor.name}`);
   };
 
-  const handleDeleteDebtor = (debtor: ApiDebtor) => {
+  const handleEditDebt = (debt: any) => {
+    console.log('✏️ handleEditDebt called for debt:', debt.description);
+    
+    // Find the API debt from context
+    const apiDebt = debts.find(d => d.id === debt.id);
+    if (!apiDebt) {
+      toast.showError({ message: 'Dívida não encontrada' });
+      return;
+    }
+    
+    // Find the debtor for this debt
+    const debtorForDebt = debtors.find(d => d.id === debt.debtorId);
+    if (!debtorForDebt) {
+      toast.showError({ message: 'Devedor não encontrado' });
+      return;
+    }
+    
+    // Set editing state and open modal
+    setEditingDebtor(debtorForDebt);
+    setEditingDebt(apiDebt);
+    setShowDebtDetails(false);
+    setSelectedDebtor(null);
+    setShowAddDebtor(true);
+    
+    console.log('✏️ Edit debt modal should now be visible');
+  };
+
+  const handleDeleteDebt = async (debtId: string) => {
+    console.log('🗑️ handleDeleteDebt called for debt ID:', debtId);
+    
+    // Frontend-only deletion: Add to deleted set
+    const debt = debts.find(d => d.id === debtId);
+    if (!debt) {
+      toast.showError({ message: 'Dívida não encontrada' });
+      return;
+    }
+    
+    console.log(`🗑️ Deleting debt: ${debt.description}`);
+    
+    // Cancel notification if debt has one scheduled
+    if (debt.notificationId) {
+      try {
+        const cancelResult = await cancelMultipleNotifications([debt.notificationId]);
+        if (cancelResult) {
+          console.log(`✅ Notificação cancelada para dívida deletada: ${debt.notificationId}`);
+          // Clear the notificationId from the debt record
+          await updateDebtNotification(debtId, null);
+        }
+      } catch (notificationError) {
+        console.warn('Erro ao cancelar notificação da dívida deletada:', notificationError);
+      }
+    }
+    
+    // Add to deleted set (frontend-only)
+    setDeletedDebtIds(prev => new Set([...prev, debtId]));
+    
+    toast.showSuccess({ message: `🗑️ Dívida "${debt.description}" removida da lista!` });
+    
+    // Force UI refresh
+    setShowDebtDetails(false);
+    setSelectedDebtor(null);
+    
+    console.log('🗑️ Delete debt operation completed');
+  };
+
+  const handleDeleteDebtor = async (debtor: ApiDebtor) => {
     console.log('🗑️ handleDeleteDebtor called for:', debtor.name);
     
-    // Frontend-only deletion: Mark all debtor's debts as deleted
-    const debtorDebts = getDebtsByDebtorId(debtor.id);
+    // Frontend-only deletion: Add debtor to deleted set
+    const debtorDebts = getDebtorDebts(debtor.id);
     
     console.log(`🗑️ Deleting debtor ${debtor.name} with ${debtorDebts.length} debts`);
     
-    debtorDebts.forEach(debt => {
-      debt.status = 'DELETED' as any;
-      console.log(`🗑️ Marked debt ${debt.id} as DELETED`);
-    });
+    // Cancel all notifications for debtor's debts
+    const notificationIds = debtorDebts
+      .filter(debt => debt.notificationId)
+      .map(debt => debt.notificationId!);
     
-    // Also mark the debtor as deleted in a custom property
-    (debtor as any).deleted = true;
+    if (notificationIds.length > 0) {
+      try {
+        const cancelResult = await cancelMultipleNotifications(notificationIds);
+        if (cancelResult) {
+          console.log(`✅ ${notificationIds.length} notificações canceladas para devedor ${debtor.name}`);
+          
+          // Clear notificationIds from all debt records
+          for (const debt of debtorDebts) {
+            if (debt.notificationId) {
+              try {
+                await updateDebtNotification(debt.id, null);
+              } catch (updateError) {
+                console.warn(`Erro ao limpar notificationId da dívida ${debt.id}:`, updateError);
+              }
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.warn(`Erro ao cancelar notificações do devedor ${debtor.name}:`, notificationError);
+      }
+    }
+    
+    // Add debtor to deleted set
+    setDeletedDebtorIds(prev => new Set([...prev, debtor.id]));
+    
+    // Also add all their debts to deleted set
+    const debtIds = debtorDebts.map(debt => debt.id);
+    if (debtIds.length > 0) {
+      setDeletedDebtIds(prev => new Set([...prev, ...debtIds]));
+    }
     
     toast.showSuccess({ message: `🗑️ ${debtor.name} removido da lista!` });
     
@@ -460,28 +702,28 @@ export default function DebtorsScreen() {
     setSelectedDebtor(null);
     setShowDebtDetails(false);
     
-    // Trigger a context refresh to update the debtor list
-    refreshData();
     console.log('🗑️ Delete operation completed');
   };
 
   const handleWhatsApp = () => {
     if (chargeDebtDebtor?.phone) {
-      // Use pending debt amount for charge messages, not total debt (which includes paid debts)
-      const pendingAmount = getTotalPendingDebtForDebtor(chargeDebtDebtor.id);
-      console.log('📱 Sending WhatsApp to:', chargeDebtDebtor.name, '- Amount: R$', pendingAmount);
+      const pendingAmount = getLocalTotalPendingDebtForDebtor(chargeDebtDebtor.id);
+      console.log('📱 Sending WhatsApp to:', chargeDebtDebtor.name, '- Phone:', chargeDebtDebtor.phone, '- Amount: R$', pendingAmount);
       sendWhatsAppMessage(chargeDebtDebtor.phone, chargeDebtDebtor.name, pendingAmount);
       setShowChargeDebt(false);
+    } else {
+      toast.showError({ message: 'Número de telefone não encontrado para este devedor.' });
     }
   };
 
   const handleEmail = () => {
     if (chargeDebtDebtor?.email) {
-      // Use pending debt amount for charge messages, not total debt (which includes paid debts)
-      const pendingAmount = getTotalPendingDebtForDebtor(chargeDebtDebtor.id);
-      console.log('📧 Sending Email to:', chargeDebtDebtor.name, '- Amount: R$', pendingAmount);
+      const pendingAmount = getLocalTotalPendingDebtForDebtor(chargeDebtDebtor.id);
+      console.log('📧 Sending Email to:', chargeDebtDebtor.name, '- Email:', chargeDebtDebtor.email, '- Amount: R$', pendingAmount);
       sendEmail(chargeDebtDebtor.email, chargeDebtDebtor.name, pendingAmount);
       setShowChargeDebt(false);
+    } else {
+      toast.showError({ message: 'Email não encontrado para este devedor.' });
     }
   };
 
@@ -493,7 +735,10 @@ export default function DebtorsScreen() {
             <Text style={styles.debtorName} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
             <TouchableOpacity
               style={styles.moreOptionsButton}
-              onPress={() => showDebtorActions(item)}
+              onPress={() => {
+                console.log('🔘 More options button pressed for:', item.name);
+                showDebtorActions(item);
+              }}
             >
               <Icon name="more-horizontal" size={20} color={theme.colors.textSecondary} />
             </TouchableOpacity>
@@ -518,8 +763,8 @@ export default function DebtorsScreen() {
         </View>
         <View style={styles.debtInfo}>
           {(() => {
-            const pendingCount = getPendingDebtsForDebtor(item.id);
-            const pendingDebtAmount = getTotalPendingDebtForDebtor(item.id);
+            const pendingCount = getLocalPendingDebtsForDebtor(item.id);
+            const pendingDebtAmount = getLocalTotalPendingDebtForDebtor(item.id);
             
             return pendingCount > 0 ? (
               <>
@@ -579,7 +824,7 @@ export default function DebtorsScreen() {
           </Text>
         </TouchableOpacity>
         
-        {getTotalPendingDebtForDebtor(item.id) > 0 && (item.email || item.phone) && (
+        {getLocalTotalPendingDebtForDebtor(item.id) > 0 && (item.email || item.phone) && (
           <TouchableOpacity
             style={[
               styles.chargeButton,
@@ -626,7 +871,7 @@ export default function DebtorsScreen() {
           <View style={styles.summaryStats}>
             <View style={styles.statItem}>
               <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
-                {debtors.length}
+                {debtors.filter(debtor => !deletedDebtorIds.has(debtor.id)).length}
               </Text>
               <Text style={styles.statLabel} numberOfLines={1}>
                 Cobranças
@@ -634,7 +879,10 @@ export default function DebtorsScreen() {
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
-                R$ {debtors.reduce((sum, debtor) => sum + getTotalPendingDebtForDebtor(debtor.id), 0).toFixed(2)}
+                R$ {debtors
+                  .filter(debtor => !deletedDebtorIds.has(debtor.id))
+                  .reduce((sum, debtor) => sum + getLocalTotalPendingDebtForDebtor(debtor.id), 0)
+                  .toFixed(2)}
               </Text>
               <Text style={styles.statLabel} numberOfLines={1}>
                 Total Pendente
@@ -642,7 +890,9 @@ export default function DebtorsScreen() {
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
-                {debtors.reduce((sum, debtor) => sum + getPendingDebtsForDebtor(debtor.id), 0)}
+                {debtors
+                  .filter(debtor => !deletedDebtorIds.has(debtor.id))
+                  .reduce((sum, debtor) => sum + getLocalPendingDebtsForDebtor(debtor.id), 0)}
               </Text>
               <Text style={styles.statLabel} numberOfLines={1}>
                 Pendentes
@@ -665,7 +915,7 @@ export default function DebtorsScreen() {
           </View>
         ) : (
           <FlatList
-            data={debtors.filter(debtor => !(debtor as any).deleted)}
+            data={debtors.filter(debtor => !deletedDebtorIds.has(debtor.id))}
             keyExtractor={(item) => item.id}
             renderItem={renderDebtor}
             showsVerticalScrollIndicator={false}
@@ -689,22 +939,26 @@ export default function DebtorsScreen() {
           visible={showDebtDetails}
           debtor={selectedDebtor ? {
             ...selectedDebtor,
-            totalDebt: getTotalPendingDebtForDebtor(selectedDebtor.id),
-            pendingDebts: getPendingDebtsForDebtor(selectedDebtor.id),
+            totalDebt: getLocalTotalPendingDebtForDebtor(selectedDebtor.id),
+            pendingDebts: getLocalPendingDebtsForDebtor(selectedDebtor.id),
             overdueDebts: 0 // TODO: Implement overdue calculation when needed
           } : null}
-          debts={selectedDebtor ? getDebtsByDebtorId(selectedDebtor.id).map((debt: ApiDebt) => ({
-            ...debt,
-            originalAmount: debt.totalAmount, // Use totalAmount as originalAmount for API debts
-            isInstallment: false, // API debts don't have installment info yet
-            dueDate: new Date(debt.dueDate), // Convert string to Date
-            installments: [], // No installments from API yet
-          })) : []}
+          debts={selectedDebtor ? getDebtsByDebtorId(selectedDebtor.id)
+            .filter((debt: ApiDebt) => !deletedDebtIds.has(debt.id))
+            .map((debt: ApiDebt) => ({
+              ...debt,
+              originalAmount: debt.totalAmount, // Use totalAmount as originalAmount for API debts
+              isInstallment: false, // API debts don't have installment info yet
+              dueDate: debt.dueDate ? new Date(debt.dueDate) : new Date(), // Convert string to Date
+              installments: [], // No installments from API yet
+            })) : []}
           onClose={() => setShowDebtDetails(false)}
           onMarkInstallmentPaid={handleMarkInstallmentPaid}
           onMarkDebtPaid={handleMarkDebtPaid}
           onMarkPartialPayment={handleMarkPartialPayment}
           onAddNewDebt={handleAddNewDebt}
+          onEditDebt={handleEditDebt}
+          onDeleteDebt={handleDeleteDebt}
         />
 
         <AddDebtorModal

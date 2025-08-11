@@ -75,6 +75,16 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  debtHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  debtActionsButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+  },
   debtTitle: {
     fontSize: 18,
     fontWeight: '600',
