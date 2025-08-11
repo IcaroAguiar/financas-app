@@ -39,5 +39,10 @@ yarn-error.*
 # APK files (build artifacts)
 *.apk
 
+# Environment files
 .env
+.env.production
+.env.local
+.env.staging
+
 android/
