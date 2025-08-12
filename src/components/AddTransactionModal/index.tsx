@@ -25,6 +25,7 @@ import { SubscriptionFrequency } from '@/api/subscriptionService';
 import { useCategories } from '@/contexts/CategoryContext';
 import { Category } from '@/types/category';
 import AddCategoryModal from '@/components/AddCategoryModal';
+import { predefinedCategories, getPredefinedCategoriesByType, PredefinedCategory } from '@/data/categories';
 
 interface CreateCategoryData {
   name: string;
@@ -274,8 +275,16 @@ export default function AddTransactionModal({
 
   const getSelectedCategoryName = () => {
     if (!selectedCategoryId) return "Nenhuma";
-    const category = categories.find(cat => cat.id === selectedCategoryId);
-    return category ? category.name : "Nenhuma";
+    
+    // Check user categories first
+    const userCategory = categories.find(cat => cat.id === selectedCategoryId);
+    if (userCategory) return userCategory.name;
+    
+    // Check predefined categories
+    const predefinedCategory = predefinedCategories.find(cat => cat.id === selectedCategoryId);
+    if (predefinedCategory) return predefinedCategory.name;
+    
+    return "Nenhuma";
   };
 
   const getSelectedDebtName = () => {
@@ -763,36 +772,86 @@ export default function AddTransactionModal({
               )}
             </TouchableOpacity>
 
-            {/* User categories */}
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.accountOption,
-                  selectedCategoryId === category.id && styles.accountOptionSelected
-                ]}
-                onPress={() => {
-                  setSelectedCategoryId(category.id);
-                  setShowCategoryPicker(false);
-                }}
-              >
-                <View style={styles.accountOptionContent}>
-                  <View style={[
-                    styles.categoryColorIndicator,
-                    { backgroundColor: category.color || theme.colors.primary }
-                  ]} />
-                  <Text style={[
-                    styles.accountOptionText,
-                    selectedCategoryId === category.id && styles.accountOptionTextSelected
-                  ]}>
-                    {category.name}
-                  </Text>
+            {/* Predefined Categories Section */}
+            {(type === 'RECEITA' || type === 'DESPESA') && getPredefinedCategoriesByType(type).length > 0 && (
+              <>
+                <View style={styles.categorySectionHeader}>
+                  <Text style={styles.categorySectionTitle}>Categorias Principais</Text>
                 </View>
-                {selectedCategoryId === category.id && (
-                  <Icon name="check" size={16} color={theme.colors.primary} />
-                )}
-              </TouchableOpacity>
-            ))}
+                
+                {getPredefinedCategoriesByType(type).map((predefinedCategory) => (
+                  <TouchableOpacity
+                    key={`predefined-${predefinedCategory.id}`}
+                    style={[
+                      styles.accountOption,
+                      selectedCategoryId === predefinedCategory.id && styles.accountOptionSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedCategoryId(predefinedCategory.id);
+                      setShowCategoryPicker(false);
+                    }}
+                  >
+                    <View style={styles.accountOptionContent}>
+                      <View style={styles.predefinedIconContainer}>
+                        <Icon 
+                          name={predefinedCategory.icon as any} 
+                          size={18} 
+                          color={predefinedCategory.color} 
+                        />
+                      </View>
+                      <Text style={[
+                        styles.accountOptionText,
+                        selectedCategoryId === predefinedCategory.id && styles.accountOptionTextSelected
+                      ]}>
+                        {predefinedCategory.name}
+                      </Text>
+                    </View>
+                    {selectedCategoryId === predefinedCategory.id && (
+                      <Icon name="check" size={16} color={theme.colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
+
+            {/* User Categories Section */}
+            {categories.length > 0 && (
+              <>
+                <View style={styles.categorySectionHeader}>
+                  <Text style={styles.categorySectionTitle}>Suas Categorias</Text>
+                </View>
+                
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={`user-${category.id}`}
+                    style={[
+                      styles.accountOption,
+                      selectedCategoryId === category.id && styles.accountOptionSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedCategoryId(category.id);
+                      setShowCategoryPicker(false);
+                    }}
+                  >
+                    <View style={styles.accountOptionContent}>
+                      <View style={[
+                        styles.categoryColorIndicator,
+                        { backgroundColor: category.color || theme.colors.primary }
+                      ]} />
+                      <Text style={[
+                        styles.accountOptionText,
+                        selectedCategoryId === category.id && styles.accountOptionTextSelected
+                      ]}>
+                        {category.name}
+                      </Text>
+                    </View>
+                    {selectedCategoryId === category.id && (
+                      <Icon name="check" size={16} color={theme.colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </>
+            )}
 
             {/* Add Category Button */}
             <TouchableOpacity

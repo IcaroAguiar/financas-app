@@ -20,7 +20,8 @@ import DashboardHeader from "@/components/DashboardHeader";
 import SummaryMetricCard from "@/components/SummaryMetricCard";
 import MonthSelector, { MonthData } from "@/components/MonthSelector";
 import AddTransactionModal from "@/components/AddTransactionModal";
-import { CreateTransactionData, getMonthlySummary, MonthlySummary } from '@/api/transactionService';
+import CategorySummary from "@/components/CategorySummary";
+import { CreateTransactionData, getMonthlySummary, MonthlySummary, getTransactionsFiltered } from '@/api/transactionService';
 import { theme } from "@/styles/theme";
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
@@ -51,6 +52,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   // Monthly summary state
   const [monthlySummary, setMonthlySummary] = useState<MonthlySummary | null>(null);
   const [loadingMonthlySummary, setLoadingMonthlySummary] = useState(false);
+  
+  // Monthly transactions state for CategorySummary
+  const [monthlyTransactions, setMonthlyTransactions] = useState<Transaction[]>([]);
 
 
   // Calculando dados reais das cobranças e dívidas
@@ -98,8 +102,15 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     try {
       setLoadingMonthlySummary(true);
       const [month, year] = monthId.split('-').map(Number);
-      const summary = await getMonthlySummary(month, year);
+      
+      // Fetch both summary and transactions in parallel
+      const [summary, transactions] = await Promise.all([
+        getMonthlySummary(month, year),
+        getTransactionsFiltered(month, year)
+      ]);
+      
       setMonthlySummary(summary);
+      setMonthlyTransactions(transactions);
     } catch (error) {
       console.error('Erro ao buscar resumo mensal:', error);
       Alert.alert('Erro', 'Não foi possível carregar os dados mensais');
@@ -309,6 +320,11 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             isVisible={isBalanceVisible}
           />
         </View>
+
+        {/* Category Summary */}
+        {monthlySummary && monthlyTransactions.length > 0 && (
+          <CategorySummary transactions={monthlyTransactions} />
+        )}
 
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>

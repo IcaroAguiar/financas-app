@@ -23,22 +23,16 @@ export const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
   },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  categoryIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginRight: theme.spacing.md,
-    // Add subtle inner shadow
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   contentContainer: {
     flex: 1,

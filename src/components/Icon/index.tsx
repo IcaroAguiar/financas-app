@@ -8,7 +8,8 @@ export interface IconProps {
         'dollar-sign' | 'receipt' | 'wallet' | 'coins' | 'close' | 'alert-circle' | 'alert-triangle' | 'checkmark-circle' | 'clock' | 
         'help-circle' | 'minus' | 'brief-case' | 'brief-case-filled' | 'check-circle' | 'x' | 'credit-card' |
         'lock' | 'chevron-right' | 'log-out' | 'message-circle' | 'check' | 'chevron-down' | 'eye' | 'eye-off' |
-        'edit-2' | 'trash-2' | 'pause' | 'play' | 'refresh-cw' | 'arrow-up-circle' | 'arrow-down-circle' | 'repeat' | 'more-horizontal';
+        'edit-2' | 'trash-2' | 'pause' | 'play' | 'refresh-cw' | 'arrow-up-circle' | 'arrow-down-circle' | 'repeat' | 'more-horizontal' |
+        'coffee' | 'truck' | 'heart' | 'book' | 'smile' | 'shopping-bag' | 'file-text' | 'briefcase' | 'tag' | 'gift' | 'pie-chart';
   size?: number;
   color?: string;
 }
@@ -62,6 +63,17 @@ const iconMap = {
   'arrow-down-circle': FeatherIcons.ArrowDownCircle,
   'repeat': FeatherIcons.Repeat,
   'more-horizontal': FeatherIcons.MoreHorizontal,
+  'coffee': FeatherIcons.Coffee,
+  'truck': FeatherIcons.Truck,
+  'heart': FeatherIcons.Heart,
+  'book': FeatherIcons.Book,
+  'smile': FeatherIcons.Smile,
+  'shopping-bag': FeatherIcons.ShoppingBag,
+  'file-text': FeatherIcons.FileText,
+  'briefcase': FeatherIcons.Briefcase,
+  'tag': FeatherIcons.Tag,
+  'gift': FeatherIcons.Gift,
+  'pie-chart': FeatherIcons.PieChart,
 };
 
 export default function Icon({ name, size = 24, color = '#000', ...props }: IconProps) {

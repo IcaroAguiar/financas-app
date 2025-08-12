@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import Icon from "@/components/Icon";
+import { getPredefinedCategoryByName } from '@/data/categories';
 
 
 type TransactionType = "RECEITA" | "DESPESA" | "PAGO";
@@ -37,8 +38,11 @@ export default function TransactionItem({
   const isRevenue = type === "RECEITA";
   const isPaid = type === "PAGO";
   const amountColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
-  const iconName = isRevenue ? "arrow-up-circle" : isPaid ? "check-circle" : "arrow-down-circle";
-  const iconColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
+
+  // Get category icon from predefined categories
+  const predefinedCategory = getPredefinedCategoryByName(category);
+  const categoryIcon = (predefinedCategory?.icon || "list") as any;
+  const categoryColor = predefinedCategory?.color || theme.colors.text.secondary;
 
   const formattedAmount = new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -56,15 +60,12 @@ export default function TransactionItem({
       onPress={() => onPress(id)}
       activeOpacity={1}
     >
-      {/* Icon with gradient-like background */}
-      <View style={[
-        styles.iconContainer, 
-        { backgroundColor: isRevenue ? '#10B98120' : isPaid ? '#10B98120' : '#EF444420' }
-      ]}>
+      {/* Small Category Icon (replacing large arrow icons) */}
+      <View style={styles.categoryIconContainer}>
         <Icon 
-          name={iconName} 
-          size={26} 
-          color={iconColor} 
+          name={categoryIcon} 
+          size={24} 
+          color={categoryColor} 
         />
       </View>
       

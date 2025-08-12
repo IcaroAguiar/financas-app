@@ -307,4 +307,31 @@ export const styles = StyleSheet.create({
     fontFamily: theme.fonts.bold,
     color: theme.colors.text.primary,
   },
+  
+  // Category section styles
+  categorySectionHeader: {
+    width: "100%",
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: theme.colors.background,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+    marginTop: theme.spacing.sm,
+  },
+  categorySectionTitle: {
+    fontSize: 14,
+    fontFamily: theme.fonts.medium,
+    color: theme.colors.text.secondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  predefinedIconContainer: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
+  },
 });
