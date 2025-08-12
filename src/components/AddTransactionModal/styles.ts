@@ -334,4 +334,13 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: theme.spacing.sm,
   },
+  
+  // Category ScrollView styles
+  categoryScrollView: {
+    maxHeight: 400, // Limit height to prevent modal from getting too tall
+    flex: 0, // Don't take all available space
+  },
+  categoryScrollContent: {
+    paddingBottom: theme.spacing.sm,
+  },
 });

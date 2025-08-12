@@ -6,6 +6,7 @@ import {
   Text,
   Button,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { styles } from "./styles";
@@ -747,125 +748,132 @@ export default function AddTransactionModal({
           <View style={styles.accountPickerContainer}>
             <Text style={styles.accountPickerTitle}>Selecione uma categoria:</Text>
             
-            {/* Option for "Nenhuma" */}
-            <TouchableOpacity
-              style={[
-                styles.accountOption,
-                !selectedCategoryId && styles.accountOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedCategoryId(undefined);
-                setShowCategoryPicker(false);
-              }}
+            <ScrollView
+              style={styles.categoryScrollView}
+              contentContainerStyle={styles.categoryScrollContent}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
             >
-              <View style={styles.accountOptionContent}>
-                <Icon name="x" size={20} color={theme.colors.text.secondary} />
-                <Text style={[
-                  styles.accountOptionText,
-                  !selectedCategoryId && styles.accountOptionTextSelected
-                ]}>
-                  Nenhuma
-                </Text>
-              </View>
-              {!selectedCategoryId && (
-                <Icon name="check" size={16} color={theme.colors.primary} />
-              )}
-            </TouchableOpacity>
-
-            {/* Predefined Categories Section */}
-            {(type === 'RECEITA' || type === 'DESPESA') && getPredefinedCategoriesByType(type).length > 0 && (
-              <>
-                <View style={styles.categorySectionHeader}>
-                  <Text style={styles.categorySectionTitle}>Categorias Principais</Text>
+              {/* Option for "Nenhuma" */}
+              <TouchableOpacity
+                style={[
+                  styles.accountOption,
+                  !selectedCategoryId && styles.accountOptionSelected
+                ]}
+                onPress={() => {
+                  setSelectedCategoryId(undefined);
+                  setShowCategoryPicker(false);
+                }}
+              >
+                <View style={styles.accountOptionContent}>
+                  <Icon name="x" size={20} color={theme.colors.text.secondary} />
+                  <Text style={[
+                    styles.accountOptionText,
+                    !selectedCategoryId && styles.accountOptionTextSelected
+                  ]}>
+                    Nenhuma
+                  </Text>
                 </View>
-                
-                {getPredefinedCategoriesByType(type).map((predefinedCategory) => (
-                  <TouchableOpacity
-                    key={`predefined-${predefinedCategory.id}`}
-                    style={[
-                      styles.accountOption,
-                      selectedCategoryId === predefinedCategory.id && styles.accountOptionSelected
-                    ]}
-                    onPress={() => {
-                      setSelectedCategoryId(predefinedCategory.id);
-                      setShowCategoryPicker(false);
-                    }}
-                  >
-                    <View style={styles.accountOptionContent}>
-                      <View style={styles.predefinedIconContainer}>
-                        <Icon 
-                          name={predefinedCategory.icon as any} 
-                          size={18} 
-                          color={predefinedCategory.color} 
-                        />
+                {!selectedCategoryId && (
+                  <Icon name="check" size={16} color={theme.colors.primary} />
+                )}
+              </TouchableOpacity>
+
+              {/* Predefined Categories Section */}
+              {(type === 'RECEITA' || type === 'DESPESA') && getPredefinedCategoriesByType(type).length > 0 && (
+                <>
+                  <View style={styles.categorySectionHeader}>
+                    <Text style={styles.categorySectionTitle}>Categorias Principais</Text>
+                  </View>
+                  
+                  {getPredefinedCategoriesByType(type).map((predefinedCategory) => (
+                    <TouchableOpacity
+                      key={`predefined-${predefinedCategory.id}`}
+                      style={[
+                        styles.accountOption,
+                        selectedCategoryId === predefinedCategory.id && styles.accountOptionSelected
+                      ]}
+                      onPress={() => {
+                        setSelectedCategoryId(predefinedCategory.id);
+                        setShowCategoryPicker(false);
+                      }}
+                    >
+                      <View style={styles.accountOptionContent}>
+                        <View style={styles.predefinedIconContainer}>
+                          <Icon 
+                            name={predefinedCategory.icon as any} 
+                            size={18} 
+                            color={predefinedCategory.color} 
+                          />
+                        </View>
+                        <Text style={[
+                          styles.accountOptionText,
+                          selectedCategoryId === predefinedCategory.id && styles.accountOptionTextSelected
+                        ]}>
+                          {predefinedCategory.name}
+                        </Text>
                       </View>
-                      <Text style={[
-                        styles.accountOptionText,
-                        selectedCategoryId === predefinedCategory.id && styles.accountOptionTextSelected
-                      ]}>
-                        {predefinedCategory.name}
-                      </Text>
-                    </View>
-                    {selectedCategoryId === predefinedCategory.id && (
-                      <Icon name="check" size={16} color={theme.colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
+                      {selectedCategoryId === predefinedCategory.id && (
+                        <Icon name="check" size={16} color={theme.colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
 
-            {/* User Categories Section */}
-            {categories.length > 0 && (
-              <>
-                <View style={styles.categorySectionHeader}>
-                  <Text style={styles.categorySectionTitle}>Suas Categorias</Text>
+              {/* User Categories Section */}
+              {categories.length > 0 && (
+                <>
+                  <View style={styles.categorySectionHeader}>
+                    <Text style={styles.categorySectionTitle}>Suas Categorias</Text>
+                  </View>
+                  
+                  {categories.map((category) => (
+                    <TouchableOpacity
+                      key={`user-${category.id}`}
+                      style={[
+                        styles.accountOption,
+                        selectedCategoryId === category.id && styles.accountOptionSelected
+                      ]}
+                      onPress={() => {
+                        setSelectedCategoryId(category.id);
+                        setShowCategoryPicker(false);
+                      }}
+                    >
+                      <View style={styles.accountOptionContent}>
+                        <View style={[
+                          styles.categoryColorIndicator,
+                          { backgroundColor: category.color || theme.colors.primary }
+                        ]} />
+                        <Text style={[
+                          styles.accountOptionText,
+                          selectedCategoryId === category.id && styles.accountOptionTextSelected
+                        ]}>
+                          {category.name}
+                        </Text>
+                      </View>
+                      {selectedCategoryId === category.id && (
+                        <Icon name="check" size={16} color={theme.colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+
+              {/* Add Category Button */}
+              <TouchableOpacity
+                style={styles.addAccountButton}
+                onPress={handleAddCategory}
+              >
+                <View style={styles.accountOptionContent}>
+                  <Icon name="plus" size={20} color={theme.colors.primary} />
+                  <Text style={styles.addAccountText}>
+                    Criar Nova Categoria
+                  </Text>
                 </View>
-                
-                {categories.map((category) => (
-                  <TouchableOpacity
-                    key={`user-${category.id}`}
-                    style={[
-                      styles.accountOption,
-                      selectedCategoryId === category.id && styles.accountOptionSelected
-                    ]}
-                    onPress={() => {
-                      setSelectedCategoryId(category.id);
-                      setShowCategoryPicker(false);
-                    }}
-                  >
-                    <View style={styles.accountOptionContent}>
-                      <View style={[
-                        styles.categoryColorIndicator,
-                        { backgroundColor: category.color || theme.colors.primary }
-                      ]} />
-                      <Text style={[
-                        styles.accountOptionText,
-                        selectedCategoryId === category.id && styles.accountOptionTextSelected
-                      ]}>
-                        {category.name}
-                      </Text>
-                    </View>
-                    {selectedCategoryId === category.id && (
-                      <Icon name="check" size={16} color={theme.colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </>
-            )}
-
-            {/* Add Category Button */}
-            <TouchableOpacity
-              style={styles.addAccountButton}
-              onPress={handleAddCategory}
-            >
-              <View style={styles.accountOptionContent}>
-                <Icon name="plus" size={20} color={theme.colors.primary} />
-                <Text style={styles.addAccountText}>
-                  Criar Nova Categoria
-                </Text>
-              </View>
-              <Icon name="chevron-right" size={16} color={theme.colors.primary} />
-            </TouchableOpacity>
+                <Icon name="chevron-right" size={16} color={theme.colors.primary} />
+              </TouchableOpacity>
+            </ScrollView>
 
             <TouchableOpacity
               style={styles.cancelAccountSelection}
