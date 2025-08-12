@@ -57,7 +57,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.white,
     letterSpacing: -0.5,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   // New metrics row styles
   metricsRow: {

@@ -344,7 +344,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         {/* Debts Overview */}
         <DashboardCard
           title="Dívidas a Receber"
-          onSeeAll={() => navigation.getParent()?.navigate("Debtors")}
+          onSeeAll={() => navigation.navigate("Debtors")}
           seeAllText="Ver todas"
         >
           <View style={styles.debtsStats}>
