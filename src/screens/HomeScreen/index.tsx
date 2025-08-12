@@ -194,12 +194,20 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     <View key={transaction.id} style={styles.transactionItem}>
       <View style={styles.transactionIcon}>
         <Icon
-          name={transaction.type === "RECEITA" ? "coins" : "wallet"}
+          name={
+            transaction.type === "RECEITA" 
+              ? "coins" 
+              : transaction.type === "PAGO" 
+                ? "check-circle" 
+                : "wallet"
+          }
           size={20}
           color={
             transaction.type === "RECEITA"
               ? theme.colors.success
-              : theme.colors.error
+              : transaction.type === "PAGO"
+                ? theme.colors.success
+                : theme.colors.error
           }
         />
       </View>

@@ -39,10 +39,37 @@ export default function TransactionItem({
   const isPaid = type === "PAGO";
   const amountColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
 
-  // Get category icon from predefined categories
+  // Get category icon from predefined categories, fallback to transaction type icons
   const predefinedCategory = getPredefinedCategoryByName(category);
-  const categoryIcon = (predefinedCategory?.icon || "list") as any;
-  const categoryColor = predefinedCategory?.color || theme.colors.text.secondary;
+  
+  // Use predefined category icon if available, otherwise use transaction type icons (same as filters)
+  let iconName: string;
+  let iconColor: string;
+  
+  if (predefinedCategory) {
+    iconName = predefinedCategory.icon;
+    iconColor = predefinedCategory.color;
+  } else {
+    // Use same icons as transaction filters for consistency
+    switch (type) {
+      case "RECEITA":
+        iconName = "coins";
+        iconColor = theme.colors.success;
+        break;
+      case "PAGO":
+        iconName = "check-circle";
+        iconColor = theme.colors.success;
+        break;
+      case "DESPESA":
+      default:
+        iconName = "wallet";
+        iconColor = theme.colors.error;
+        break;
+    }
+  }
+  
+  const categoryIcon = iconName as any;
+  const categoryColor = iconColor;
 
   const formattedAmount = new Intl.NumberFormat("pt-BR", {
     style: "currency",
