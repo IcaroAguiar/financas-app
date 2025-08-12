@@ -17,6 +17,7 @@ import Icon from "@/components/Icon";
 import QuickActionCard from "@/components/QuickActionCard";
 import DashboardCard from "@/components/DashboardCard";
 import DashboardHeader from "@/components/DashboardHeader";
+import SummaryMetricCard from "@/components/SummaryMetricCard";
 import MonthSelector, { MonthData } from "@/components/MonthSelector";
 import AddTransactionModal from "@/components/AddTransactionModal";
 import { CreateTransactionData, getMonthlySummary, MonthlySummary } from '@/api/transactionService';
@@ -116,6 +117,25 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const handleMonthSelect = (monthId: string) => {
     setSelectedMonth(monthId);
     fetchMonthlySummary(monthId);
+  };
+
+  // Year selector handler
+  const handleYearSelect = () => {
+    const currentYear = new Date().getFullYear();
+    const yearId = `year-${currentYear}`;
+    
+    // For now, just show current year summary (we could implement a full year view later)
+    Alert.alert(
+      "Total do Ano",
+      `Visualização anual para ${currentYear} será implementada em breve!`,
+      [{ text: "OK" }]
+    );
+  };
+
+  // Calendar press handler
+  const handleCalendarPress = () => {
+    // Calendar modal functionality is handled within MonthSelector
+    console.log("Calendar pressed - modal will open");
   };
 
   // Dashboard Header handlers
@@ -229,8 +249,6 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <DashboardHeader
           userName={user?.name || 'Usuário'}
-          isBalanceVisible={isBalanceVisible}
-          onToggleBalance={handleToggleBalance}
         />
 
         {/* Month Selector */}
@@ -238,12 +256,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
           months={monthsData}
           selectedMonth={selectedMonth}
           onMonthSelect={handleMonthSelect}
+          onYearSelect={handleYearSelect}
+          onCalendarPress={handleCalendarPress}
         />
 
-        {/* Balance Card */}
+        {/* Main Summary Card */}
         <View
           style={[
-            styles.balanceCard,
+            styles.mainSummaryCard,
             {
               backgroundColor: isBalanceNegative
                 ? theme.colors.error
@@ -251,26 +271,43 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             },
           ]}
         >
-          <Text style={styles.balanceLabel} numberOfLines={1} ellipsizeMode="tail">
-            {monthlySummary ? `Resultado ${monthlySummary.period.monthName}` : 'Saldo Atual'}
-          </Text>
-          <Text style={styles.balanceAmount} numberOfLines={1} ellipsizeMode="tail">
+          <View style={styles.summaryHeader}>
+            <Text style={styles.summaryTitle} numberOfLines={1} ellipsizeMode="tail">
+              {monthlySummary ? `Resultado ${monthlySummary.period.monthName}` : 'Saldo Atual'}
+            </Text>
+            <TouchableOpacity style={styles.visibilityToggle} onPress={handleToggleBalance}>
+              <Icon 
+                name={isBalanceVisible ? "eye" : "eye-off"} 
+                size={20} 
+                color={theme.colors.surface} 
+              />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.mainBalance} numberOfLines={1} ellipsizeMode="tail">
             {isBalanceVisible ? formatCurrency(displayData.balance) : "•••••"}
           </Text>
-          <View style={styles.balanceDetails}>
-            <View style={styles.balanceItem}>
-              <Text style={styles.incomeAmount} numberOfLines={1} ellipsizeMode="tail">
-                {isBalanceVisible ? `+${formatCurrency(displayData.totalIncome)}` : "•••••"}
-              </Text>
-              <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Recebimentos</Text>
-            </View>
-            <View style={styles.balanceItem}>
-              <Text style={styles.expenseAmount} numberOfLines={1} ellipsizeMode="tail">
-                {isBalanceVisible ? `-${formatCurrency(displayData.totalExpenses)}` : "•••••"}
-              </Text>
-              <Text style={styles.balanceItemLabel} numberOfLines={1} ellipsizeMode="tail">Despesas</Text>
-            </View>
-          </View>
+        </View>
+
+        {/* Summary Metrics Cards */}
+        <View style={styles.metricsRow}>
+          <SummaryMetricCard
+            title="Receitas"
+            value={`+${formatCurrency(displayData.totalIncome)}`}
+            color={theme.colors.success}
+            isVisible={isBalanceVisible}
+          />
+          <SummaryMetricCard
+            title="Despesas"
+            value={`-${formatCurrency(displayData.totalExpenses)}`}
+            color={theme.colors.error}
+            isVisible={isBalanceVisible}
+          />
+          <SummaryMetricCard
+            title="Resultado"
+            value={formatCurrency(displayData.balance)}
+            color={displayData.balance >= 0 ? theme.colors.success : theme.colors.error}
+            isVisible={isBalanceVisible}
+          />
         </View>
 
         {/* Quick Actions */}

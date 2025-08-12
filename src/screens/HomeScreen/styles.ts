@@ -24,51 +24,46 @@ export const styles = StyleSheet.create({
     ...theme.typography.body,
     color: theme.colors.textSecondary,
   },
-  balanceCard: {
+  // New main summary card styles
+  mainSummaryCard: {
     backgroundColor: theme.colors.primary,
     borderRadius: 12,
-    padding: theme.spacing.xl, // Reduced from sections (24 to 20)
-    marginBottom: theme.spacing.sections,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.lg,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  balanceLabel: {
-    ...theme.typography.body,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: theme.spacing.sm,
-  },
-  balanceAmount: {
-    fontSize: 28, // Reduced from 32 for smaller screens
-    fontWeight: '700',
-    color: theme.colors.white,
-    marginBottom: theme.spacing.xl,
-    letterSpacing: -0.5,
-  },
-  balanceDetails: {
+  summaryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  balanceItem: {
     alignItems: 'center',
+    marginBottom: theme.spacing.md,
   },
-  incomeAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.white, // Use white for contrast on primary background
-    marginBottom: theme.spacing.xs,
+  summaryTitle: {
+    ...theme.typography.body,
+    color: 'rgba(255, 255, 255, 0.9)',
+    flex: 1,
   },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.white, // Use white for contrast on primary background
-    marginBottom: theme.spacing.xs,
+  visibilityToggle: {
+    padding: theme.spacing.sm,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
-  balanceItemLabel: {
-    ...theme.typography.caption,
-    color: 'rgba(255, 255, 255, 0.8)',
+  mainBalance: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: theme.colors.white,
+    letterSpacing: -0.5,
+    textAlign: 'center',
+  },
+  // New metrics row styles
+  metricsRow: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.sections,
+    gap: theme.spacing.xs,
   },
   quickActionsSection: {
     marginBottom: theme.spacing.sections,

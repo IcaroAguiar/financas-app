@@ -24,6 +24,12 @@ import { useDebtors } from '@/contexts/DebtorContext';
 import { SubscriptionFrequency } from '@/api/subscriptionService';
 import { useCategories } from '@/contexts/CategoryContext';
 import { Category } from '@/types/category';
+import AddCategoryModal from '@/components/AddCategoryModal';
+
+interface CreateCategoryData {
+  name: string;
+  color?: string;
+}
 
 
 interface AddTransactionModalProps {
@@ -45,7 +51,7 @@ export default function AddTransactionModal({
 }: AddTransactionModalProps) {
   const { accounts, refreshData } = useAccounts();
   const { debts } = useDebtors();
-  const { categories } = useCategories();
+  const { categories, addCategory, refreshCategories } = useCategories();
   const toast = useToast();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -55,6 +61,7 @@ export default function AddTransactionModal({
   const [showAccountPicker, setShowAccountPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   
   // New states for subscription and debt payment options
   const [isRecurring, setIsRecurring] = useState(false);
@@ -286,6 +293,22 @@ export default function AddTransactionModal({
     setShowAddAccountModal(false);
     await refreshData(); // Refresh the accounts list
     setShowAccountPicker(true); // Reopen the account picker
+  };
+
+  const handleAddCategory = () => {
+    setShowCategoryPicker(false);
+    setShowAddCategoryModal(true);
+  };
+
+  const handleCategoryCreated = async (categoryData: CreateCategoryData) => {
+    try {
+      await addCategory(categoryData);
+      await refreshCategories(); // Refresh the categories list
+      // The new category will be available after refresh
+      toast.showSuccess({ message: "Categoria criada com sucesso!" });
+    } catch (error) {
+      toast.showError({ message: "Erro ao criar categoria" });
+    }
   };
 
   return (
@@ -771,6 +794,20 @@ export default function AddTransactionModal({
               </TouchableOpacity>
             ))}
 
+            {/* Add Category Button */}
+            <TouchableOpacity
+              style={styles.addAccountButton}
+              onPress={handleAddCategory}
+            >
+              <View style={styles.accountOptionContent}>
+                <Icon name="plus" size={20} color={theme.colors.primary} />
+                <Text style={styles.addAccountText}>
+                  Criar Nova Categoria
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={theme.colors.primary} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.cancelAccountSelection}
               onPress={() => setShowCategoryPicker(false)}
@@ -787,6 +824,13 @@ export default function AddTransactionModal({
         onClose={() => setShowAddAccountModal(false)}
         onAccountSaved={handleAccountCreated}
         account={null}
+      />
+
+      {/* Add Category Modal */}
+      <AddCategoryModal
+        visible={showAddCategoryModal}
+        onClose={() => setShowAddCategoryModal(false)}
+        onSave={handleCategoryCreated}
       />
     </Modal>
   );

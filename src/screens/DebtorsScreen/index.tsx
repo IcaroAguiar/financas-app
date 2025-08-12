@@ -8,6 +8,7 @@ import DebtDetailsModal from '@/components/DebtDetailsModal';
 import AddDebtorModal from '@/components/AddDebtorModal';
 import ChargeDebtModal from '@/components/ChargeDebtModal';
 import RegisterPaymentModal from '@/components/RegisterPaymentModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { useDebtors } from '@/contexts/DebtorContext';
 import { Debtor as ApiDebtor, Debt as ApiDebt, CreateDebtorData, CreateDebtData, UpdateDebtData, updateDebtor, updateDebt, deleteDebtor, updateDebtNotification, getDebtsByDebtor, createPayment, getDebtById, createDebt } from '@/api/debtorService';
 import { theme } from '@/styles/theme';
@@ -56,6 +57,7 @@ export default function DebtorsScreen() {
     getDebtsByDebtorId
   } = useDebtors();
   
+  const { token } = useAuth();
   const toast = useToast();
   const { showConfirmation } = useConfirmation();
 
@@ -145,8 +147,24 @@ export default function DebtorsScreen() {
     setShowDebtDetails(false);
     
     try {
-      // Call backend API to persist the status change
-      await updateDebt(debtId, { status: newStatus });
+      // If marking as PAID, use our enhanced API that creates a revenue transaction
+      if (newStatus === 'PAGA') {
+        const response = await fetch(`${process.env.API_BASE_URL}/payments/debts/${debtId}/mark-paid`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Erro ao marcar dívida como paga');
+        }
+      } else {
+        // For other status changes, use the regular API
+        await updateDebt(debtId, { status: newStatus });
+      }
       
       // Cancel notification if debt is marked as PAID
       if (newStatus === 'PAGA' && debt.notificationId) {
@@ -167,7 +185,7 @@ export default function DebtorsScreen() {
       
       // Show success message
       toast.showSuccess({ 
-        message: newStatus === 'PAGA' ? '✅ Dívida marcada como PAGA!' : '⏳ Dívida marcada como PENDENTE!' 
+        message: newStatus === 'PAGA' ? '✅ Dívida marcada como PAGA e transação de receita criada!' : '⏳ Dívida marcada como PENDENTE!' 
       });
       
     } catch (error) {

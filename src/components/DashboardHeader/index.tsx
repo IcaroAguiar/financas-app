@@ -5,14 +5,10 @@ import Icon from '@/components/Icon';
 
 interface DashboardHeaderProps {
   userName: string;
-  isBalanceVisible: boolean;
-  onToggleBalance: () => void;
 }
 
 export default function DashboardHeader({ 
-  userName, 
-  isBalanceVisible, 
-  onToggleBalance
+  userName
 }: DashboardHeaderProps) {
   // Função para pegar saudação baseada na hora
   const getGreeting = () => {
@@ -51,18 +47,6 @@ export default function DashboardHeader({
         </View>
       </View>
 
-      {/* Ícones de ação */}
-      <View style={styles.actionIcons}>
-        {/* Ícone de visibilidade do saldo */}
-        <TouchableOpacity style={styles.iconButton} onPress={onToggleBalance}>
-          <Icon 
-            name={isBalanceVisible ? "eye" : "eye-off"} 
-            size={24} 
-            color="#666" 
-          />
-        </TouchableOpacity>
-
-      </View>
     </View>
   );
 }
