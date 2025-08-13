@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { 
   View, 
   Text, 
-  Modal, 
   TextInput, 
   TouchableOpacity,
   Platform
 } from 'react-native';
+import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
@@ -169,10 +169,11 @@ export default function RegisterPaymentModal({
 
   return (
     <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
+      isVisible={visible}
+      onBackdropPress={handleClose}
+      onSwipeComplete={handleClose}
+      swipeDirection="down"
+      style={styles.modal}
     >
       <View style={styles.container}>
         <View style={styles.header}>

@@ -3,9 +3,15 @@ import { StyleSheet } from 'react-native';
 import { theme } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
   container: {
-    flex: 1,
     backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+    maxHeight: '90%',
   },
   
   // Header

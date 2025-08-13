@@ -1,5 +1,6 @@
 // App.tsx
 import React, { useEffect } from "react";
+import { View, Text } from "react-native";
 import AppNavigator from "./src/navigation/AppNavigator";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TransactionProvider } from "@/contexts/TransactionContext";
@@ -79,6 +80,76 @@ export default function App() {
                       topOffset={60}
                       visibilityTime={3000}
                       autoHide={true}
+                      config={{
+                        success: (props) => (
+                          <View style={{
+                            height: 70,
+                            width: '90%',
+                            backgroundColor: '#4CAF50',
+                            borderRadius: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 16,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}>
+                            <Text style={{ 
+                              color: 'white', 
+                              fontWeight: 'bold',
+                              fontSize: 16,
+                              flex: 1
+                            }}>
+                              {props.text1}
+                            </Text>
+                            {props.text2 && (
+                              <Text style={{ 
+                                color: 'white', 
+                                fontSize: 14,
+                                marginTop: 2
+                              }}>
+                                {props.text2}
+                              </Text>
+                            )}
+                          </View>
+                        ),
+                        error: (props) => (
+                          <View style={{
+                            height: 70,
+                            width: '90%',
+                            backgroundColor: '#F44336',
+                            borderRadius: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 16,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}>
+                            <Text style={{ 
+                              color: 'white', 
+                              fontWeight: 'bold',
+                              fontSize: 16,
+                              flex: 1
+                            }}>
+                              {props.text1}
+                            </Text>
+                            {props.text2 && (
+                              <Text style={{ 
+                                color: 'white', 
+                                fontSize: 14,
+                                marginTop: 2
+                              }}>
+                                {props.text2}
+                              </Text>
+                            )}
+                          </View>
+                        ),
+                      }}
                     />
                   </SubscriptionProvider>
                 </DebtorProvider>

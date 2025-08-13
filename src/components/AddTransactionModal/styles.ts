@@ -3,6 +3,11 @@ import { StyleSheet } from "react-native";
 import { theme } from "@/styles/theme";
 
 export const styles = StyleSheet.create({
+  modal: {
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 0,
+  },
   centeredView: {
     flex: 1,
     justifyContent: "center",

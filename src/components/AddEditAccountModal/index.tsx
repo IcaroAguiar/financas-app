@@ -1,7 +1,8 @@
 // src/components/AddEditAccountModal/index.tsx
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
@@ -172,10 +173,11 @@ export default function AddEditAccountModal({ visible, onClose, account, onAccou
 
   return (
     <Modal
-      visible={visible}
-      transparent={true}
-      animationType="slide"
-      onRequestClose={handleClose}
+      isVisible={visible}
+      onBackdropPress={handleClose}
+      onSwipeComplete={handleClose}
+      swipeDirection="down"
+      style={styles.modal}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>

@@ -28,7 +28,13 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
     
     // Filter to only include transactions that match predefined categories
     const predefinedCategoryTransactions = expenseTransactions.filter(transaction => {
-      return transaction.category && getPredefinedCategoryByName(transaction.category.name);
+      // Check if transaction has a regular category that matches predefined
+      const hasRegularCategory = transaction.category && getPredefinedCategoryByName(transaction.category.name);
+      
+      // Check if transaction has predefinedCategory field (for new transactions)
+      const hasPredefinedCategory = transaction.predefinedCategory;
+      
+      return hasRegularCategory || hasPredefinedCategory;
     });
     
     // Calculate total for percentage calculation
@@ -40,13 +46,23 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
     const categoryTotals: { [key: string]: number } = {};
     
     predefinedCategoryTransactions.forEach(transaction => {
-      const categoryName = transaction.category?.name;
-      if (categoryName) {
-        const predefinedCategory = getPredefinedCategoryByName(categoryName);
+      let categoryId: string | undefined;
+      
+      // Try to get category ID from regular category
+      if (transaction.category) {
+        const predefinedCategory = getPredefinedCategoryByName(transaction.category.name);
         if (predefinedCategory) {
-          const categoryId = predefinedCategory.id;
-          categoryTotals[categoryId] = (categoryTotals[categoryId] || 0) + transaction.amount;
+          categoryId = predefinedCategory.id;
         }
+      }
+      
+      // Try to get category ID from predefinedCategory field
+      if (!categoryId && transaction.predefinedCategory) {
+        categoryId = transaction.predefinedCategory.id;
+      }
+      
+      if (categoryId) {
+        categoryTotals[categoryId] = (categoryTotals[categoryId] || 0) + transaction.amount;
       }
     });
     
@@ -80,39 +96,35 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
   
   const renderCategoryItem = ({ item }: { item: CategorySummaryItem }) => (
     <View style={styles.categoryItem}>
-      <View style={styles.categoryHeader}>
-        <View style={styles.categoryIconWrapper}>
-          <Icon 
-            name={item.icon as any} 
-            size={20} 
-            color={item.color} 
-          />
-        </View>
-        <View style={styles.categoryInfo}>
-          <Text style={styles.categoryName} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={styles.categoryAmount}>
-            {formatCurrency(item.totalAmount)}
-          </Text>
-        </View>
-        <Text style={styles.categoryPercentage}>
-          {item.percentage.toFixed(1)}%
-        </Text>
-      </View>
-      
-      {/* Progress Bar */}
-      <View style={styles.progressBarContainer}>
+      {/* Vertical Bar Chart */}
+      <View style={styles.chartContainer}>
         <View 
           style={[
-            styles.progressBar, 
-            { 
-              width: `${Math.max(item.percentage, 5)}%`, // Minimum 5% width for visibility
-              backgroundColor: item.color 
+            styles.verticalBar,
+            {
+              height: `${Math.max(item.percentage, 15)}%`, // Minimum 15% height for visibility
+              backgroundColor: item.color, // Solid color, no translucid effect
             }
-          ]} 
+          ]}
         />
       </View>
+      
+      {/* Icon at bottom - separate from bar */}
+      <View style={styles.categoryIconWrapper}>
+        <Icon 
+          name={item.icon as any} 
+          size={16} 
+          color={item.color} 
+        />
+      </View>
+      
+      {/* Amount and percentage below icon */}
+      <Text style={styles.categoryAmount}>
+        {formatCurrency(item.totalAmount)}
+      </Text>
+      <Text style={styles.categoryPercentage}>
+        {item.percentage.toFixed(1)}%
+      </Text>
     </View>
   );
   

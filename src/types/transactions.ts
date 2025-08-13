@@ -22,6 +22,11 @@ export interface Transaction {
   type: TransactionType;
   category?: Category; // A categoria é opcional
   categoryId?: string | null;
+  predefinedCategory?: { // Para categorias pré-definidas
+    id: string;
+    name: string;
+    color: string;
+  };
   account?: Account; // A conta é opcional
   accountId?: string | null;
   userId: string;

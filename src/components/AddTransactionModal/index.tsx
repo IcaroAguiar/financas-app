@@ -1,13 +1,13 @@
 // @/components/AddTransactionModal/index.tsx
 import React, { useState, useEffect } from "react";
 import {
-  Modal,
   View,
   Text,
   Button,
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { styles } from "./styles";
 import CustomInput from "@/components/CustomInput";
@@ -323,12 +323,16 @@ export default function AddTransactionModal({
 
   return (
     <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
+      isVisible={visible}
+      onBackdropPress={onClose}
+      onSwipeComplete={onClose}
+      swipeDirection="down"
+      style={styles.modal}
+      useNativeDriver={false}
+      hideModalContentWhileAnimating={false}
+      avoidKeyboard={true}
+      coverScreen={false}
     >
-      <View style={styles.centeredView}>
         <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
@@ -605,7 +609,6 @@ export default function AddTransactionModal({
           </View>
           </View>
         </KeyboardAwareScrollView>
-      </View>
 
       {/* Account Picker Modal */}
       {showAccountPicker && (

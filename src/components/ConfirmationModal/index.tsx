@@ -1,6 +1,7 @@
 // src/components/ConfirmationModal/index.tsx
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import Modal from 'react-native-modal';
 import { styles } from './styles';
 import CustomButton from '@/components/CustomButton';
 import Icon from '@/components/Icon';
@@ -31,12 +32,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 }) => {
   return (
     <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onCancel}
+      isVisible={visible}
+      onBackdropPress={onCancel}
+      style={styles.modal}
     >
-      <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
@@ -73,7 +72,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             />
           </View>
         </View>
-      </View>
     </Modal>
   );
 };
