@@ -17,6 +17,8 @@ export const setGlobalBiometricReauth = (biometricReauthFunction: () => Promise<
   globalBiometricReauth = biometricReauthFunction;
 };
 
+console.log('🔄 AxiosConfig: Configurando API com baseURL:', API_BASE_URL);
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });

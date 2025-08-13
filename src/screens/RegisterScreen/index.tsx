@@ -24,21 +24,34 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { signUp } = useAuth();
 
   const handleRegister = async () => {
+    console.log('📝 RegisterScreen: Iniciando processo de registro');
+    
     if (!name || !email || !password || !confirmPassword) {
+      console.log('❌ RegisterScreen: Campos obrigatórios em falta');
       return Alert.alert("Erro", "Por favor, preencha todos os campos.");
     }
 
     if (password !== confirmPassword) {
+      console.log('❌ RegisterScreen: Senhas não coincidem');
       return Alert.alert("Erro", "As senhas não coincidem.");
     }
 
     if (password.length < 6) {
+      console.log('❌ RegisterScreen: Senha muito curta');
       return Alert.alert("Erro", "A senha deve ter pelo menos 6 caracteres.");
     }
+    
+    console.log('🔄 RegisterScreen: Validações OK, chamando signUp');
     setIsSigningUp(true);
     try {
       await signUp({ name, email, password });
+      console.log('✅ RegisterScreen: Registro concluído com sucesso!');
     } catch (error: any) {
+      console.log('❌ RegisterScreen: Erro no registro:', {
+        status: error.response?.status,
+        message: error.response?.data?.error || error.message,
+        fullError: error
+      });
       const errorMessage =
         error.response?.data?.error ||
         "Não foi possível criar a conta. Tente novamente.";

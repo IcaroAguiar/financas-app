@@ -25,8 +25,25 @@ export const signIn = async (
 };
 
 export const signUp = async (credentials: SignUpCredentials): Promise<User> => {
-  const response = await api.post<User>("/users", credentials);
-  return response.data;
+  console.log('🔄 AuthService: Iniciando signup com:', {
+    name: credentials.name,
+    email: credentials.email,
+    passwordLength: credentials.password?.length
+  });
+  
+  try {
+    const response = await api.post<User>("/users", credentials);
+    console.log('✅ AuthService: Signup bem-sucedido:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.log('❌ AuthService: Erro no signup:', {
+      status: error.response?.status,
+      message: error.response?.data?.error || error.message,
+      url: error.config?.url,
+      data: error.config?.data
+    });
+    throw error;
+  }
 };
 
 // Tipagem para atualização de perfil

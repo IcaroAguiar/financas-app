@@ -111,8 +111,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const signUp = async (credentials: authService.SignUpCredentials) => {
-    await authService.signUp(credentials);
-    await signIn({ email: credentials.email, password: credentials.password });
+    console.log('🔄 AuthContext: Iniciando processo de signup');
+    try {
+      await authService.signUp(credentials);
+      console.log('✅ AuthContext: Signup concluído, fazendo login automático');
+      await signIn({ email: credentials.email, password: credentials.password });
+      console.log('✅ AuthContext: Login automático após signup concluído');
+    } catch (error: any) {
+      console.log('❌ AuthContext: Erro no signup:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
