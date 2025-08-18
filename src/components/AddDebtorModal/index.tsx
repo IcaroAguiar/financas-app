@@ -8,6 +8,8 @@ import Icon from '@/components/Icon';
 import { CreateDebtorData, CreateDebtData, Debtor } from '@/api/debtorService';
 import { useConfirmation } from '@/contexts/ConfirmationContext';
 import { useToast } from '@/hooks/useToast';
+import { useCategories } from '@/contexts/CategoryContext';
+import { useAccounts } from '@/contexts/AccountContext';
 
 interface AddDebtorModalProps {
   visible: boolean;
@@ -31,10 +33,14 @@ interface Debt {
 export default function AddDebtorModal({ visible, editingDebtor, editingDebt, onClose, onSubmit }: AddDebtorModalProps) {
   const { showConfirmation } = useConfirmation();
   const toast = useToast();
+  const { categories } = useCategories();
+  const { accounts } = useAccounts();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [debtAmount, setDebtAmount] = useState('');
   const [debtDescription, setDebtDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -48,6 +54,10 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
   
   // Reminder state - default to true for better UX (opt-out)
   const [wantsReminder, setWantsReminder] = useState(true);
+  
+  // Picker states
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
 
   const isEditMode = !!editingDebtor;
   const isAddingDebtToExistingDebtor = isEditMode && !editingDebt;
@@ -58,6 +68,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
       setName(editingDebtor.name);
       setEmail(editingDebtor.email || '');
       setPhone(editingDebtor.phone || '');
+      setSelectedCategoryId(editingDebtor.categoryId || '');
       
       // Populate debt fields if editing debt
       if (editingDebt) {
@@ -65,6 +76,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         setDebtDescription(editingDebt.description);
         const dueDateFormatted = new Date(editingDebt.dueDate).toLocaleDateString('pt-BR');
         setDueDate(dueDateFormatted);
+        setSelectedAccountId(editingDebt.accountId || '');
         setIsInstallmentPlan(editingDebt.isInstallment || false);
         setInstallmentCount((editingDebt.installmentCount || 1).toString());
         setInstallmentFrequency(editingDebt.installmentFrequency || 'MONTHLY');
@@ -142,6 +154,8 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
     setName('');
     setEmail('');
     setPhone('');
+    setSelectedCategoryId('');
+    setSelectedAccountId('');
     setDebtAmount('');
     setDebtDescription('');
     setDueDate('');
@@ -237,6 +251,7 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         name: name.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
+        categoryId: selectedCategoryId || undefined,
       };
 
       // Create debt data - use actual form data for all debt creation/update cases
@@ -244,6 +259,8 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
         description: debtDescription.trim(),
         totalAmount: parseCurrencyToNumber(debtAmount),
         debtorId: editingDebt?.debtorId || editingDebtor?.id || '', // Use debtor ID, not debt ID
+        categoryId: selectedCategoryId || undefined,
+        accountId: selectedAccountId || undefined,
         isInstallment: isInstallmentPlan,
         installmentCount: isInstallmentPlan ? parseInt(installmentCount) || 1 : undefined,
         installmentFrequency: isInstallmentPlan ? installmentFrequency : undefined,
@@ -333,6 +350,22 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
               />
             </View>
 
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Categoria</Text>
+              <TouchableOpacity
+                style={[styles.input, styles.picker, isAddingDebtToExistingDebtor && styles.readOnlyInput]}
+                disabled={isAddingDebtToExistingDebtor}
+                onPress={() => setShowCategoryPicker(true)}
+              >
+                <Text style={[styles.pickerText, !selectedCategoryId && styles.placeholderText]}>
+                  {selectedCategoryId 
+                    ? categories.find(cat => cat.id === selectedCategoryId)?.name || 'Categoria não encontrada'
+                    : 'Selecione uma categoria (opcional)'}
+                </Text>
+                <Icon name="chevron-down" size={20} color="#666" />
+              </TouchableOpacity>
+            </View>
+
             {(!isEditMode || editingDebt || isAddingDebtToExistingDebtor) && (
               <>
                 <View style={styles.divider} />
@@ -362,6 +395,21 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
                     multiline
                     numberOfLines={2}
                   />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Conta de Recebimento</Text>
+                  <TouchableOpacity
+                    style={[styles.input, styles.picker]}
+                    onPress={() => setShowAccountPicker(true)}
+                  >
+                    <Text style={[styles.pickerText, !selectedAccountId && styles.placeholderText]}>
+                      {selectedAccountId 
+                        ? accounts.find(acc => acc.id === selectedAccountId)?.name || 'Conta não encontrada'
+                        : 'Selecione uma conta (opcional)'}
+                    </Text>
+                    <Icon name="chevron-down" size={20} color="#666" />
+                  </TouchableOpacity>
                 </View>
 
                 {!isInstallmentPlan && (
@@ -506,6 +554,89 @@ export default function AddDebtorModal({ visible, editingDebtor, editingDebt, on
             </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
+
+      {/* Category Selection Modal */}
+      <Modal visible={showCategoryPicker} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.modalTitle}>Selecionar Categoria</Text>
+            <TouchableOpacity onPress={() => setShowCategoryPicker(false)} style={styles.closeButton}>
+              <Icon name="x" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.content}>
+            <TouchableOpacity
+              style={[styles.input, { marginBottom: 10 }]}
+              onPress={() => {
+                setSelectedCategoryId('');
+                setShowCategoryPicker(false);
+              }}
+            >
+              <Text style={styles.pickerText}>Nenhuma categoria</Text>
+            </TouchableOpacity>
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={[styles.input, { marginBottom: 10 }]}
+                onPress={() => {
+                  setSelectedCategoryId(category.id);
+                  setShowCategoryPicker(false);
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  {category.color && (
+                    <View
+                      style={{
+                        width: 12,
+                        height: 12,
+                        borderRadius: 6,
+                        backgroundColor: category.color,
+                        marginRight: 10,
+                      }}
+                    />
+                  )}
+                  <Text style={styles.pickerText}>{category.name}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Account Selection Modal */}
+      <Modal visible={showAccountPicker} animationType="slide" presentationStyle="pageSheet">
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.modalTitle}>Selecionar Conta</Text>
+            <TouchableOpacity onPress={() => setShowAccountPicker(false)} style={styles.closeButton}>
+              <Icon name="x" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.content}>
+            <TouchableOpacity
+              style={[styles.input, { marginBottom: 10 }]}
+              onPress={() => {
+                setSelectedAccountId('');
+                setShowAccountPicker(false);
+              }}
+            >
+              <Text style={styles.pickerText}>Nenhuma conta</Text>
+            </TouchableOpacity>
+            {accounts.map((account) => (
+              <TouchableOpacity
+                key={account.id}
+                style={[styles.input, { marginBottom: 10 }]}
+                onPress={() => {
+                  setSelectedAccountId(account.id);
+                  setShowAccountPicker(false);
+                }}
+              >
+                <Text style={styles.pickerText}>{account.name} ({account.type})</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </Modal>
   );
 }

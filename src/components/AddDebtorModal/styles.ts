@@ -174,4 +174,17 @@ export const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginRight: 15,
   },
+  picker: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  pickerText: {
+    fontSize: 16,
+    color: theme.colors.textPrimary,
+    flex: 1,
+  },
+  placeholderText: {
+    color: theme.colors.textSecondary,
+  },
 });

@@ -1,11 +1,26 @@
 // src/api/debtorService.ts
 import api from './axiosConfig';
 
+export interface Category {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+export interface Account {
+  id: string;
+  name: string;
+  type: string;
+  balance?: number;
+}
+
 export interface Debtor {
   id: string;
   name: string;
   email?: string;
   phone?: string;
+  categoryId?: string;
+  category?: Category;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,7 +34,11 @@ export interface Debt {
   createdAt: string;
   updatedAt: string;
   debtorId: string;
+  categoryId?: string;
+  accountId?: string;
   debtor?: Debtor;
+  category?: Category;
+  account?: Account;
   payments?: Payment[];
   // Notification management
   notificationId?: string;
@@ -42,6 +61,7 @@ export interface CreateDebtorData {
   name: string;
   email?: string;
   phone?: string;
+  categoryId?: string;
 }
 
 export interface CreateDebtData {
@@ -49,6 +69,8 @@ export interface CreateDebtData {
   totalAmount: number;
   dueDate?: string;
   debtorId: string;
+  categoryId?: string;
+  accountId?: string;
   isInstallment?: boolean;
   installmentCount?: number;
   installmentFrequency?: 'MONTHLY' | 'WEEKLY';
@@ -65,6 +87,8 @@ export interface UpdateDebtData {
   totalAmount?: number;
   dueDate?: string;
   status?: 'PENDENTE' | 'PAGA' | 'DELETED';
+  categoryId?: string;
+  accountId?: string;
   isInstallment?: boolean;
   installmentCount?: number;
   installmentFrequency?: 'MONTHLY' | 'WEEKLY';
