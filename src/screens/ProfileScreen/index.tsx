@@ -1,6 +1,6 @@
 // @/screens/ProfileScreen/index.tsx
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { styles } from './styles';
@@ -122,7 +122,11 @@ export default function ProfileScreen() {
         {/* --- Card Principal --- */}
         <View style={styles.profileCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+            {user?.profilePicture ? (
+              <Image source={{ uri: user.profilePicture }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarText}>{user?.name?.charAt(0).toUpperCase() || 'U'}</Text>
+            )}
           </View>
           <Text style={styles.userName}>{user?.name}</Text>
           <Text style={styles.userEmail}>{user?.email}</Text>
@@ -131,7 +135,7 @@ export default function ProfileScreen() {
             <CustomButton
               title="Editar Perfil"
               variant="primary"
-              onPress={() => Alert.alert('Editar Perfil', 'Navegar para a tela de edição.')}
+              onPress={() => navigation.getParent()?.navigate('EditProfile')}
             />
           </View>
         </View>

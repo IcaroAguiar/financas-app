@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { styles } from './styles';
 import Icon from '@/components/Icon';
 
 interface DashboardHeaderProps {
   userName: string;
+  profilePicture?: string | null;
 }
 
 export default function DashboardHeader({ 
-  userName
+  userName,
+  profilePicture
 }: DashboardHeaderProps) {
   // Função para pegar saudação baseada na hora
   const getGreeting = () => {
@@ -33,7 +35,15 @@ export default function DashboardHeader({
       <View style={styles.leftSection}>
         {/* Avatar circular */}
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{getInitial()}</Text>
+          {profilePicture ? (
+            <Image 
+              source={{ uri: profilePicture }} 
+              style={styles.profileImage} 
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={styles.avatarText}>{getInitial()}</Text>
+          )}
         </View>
         
         {/* Saudação */}

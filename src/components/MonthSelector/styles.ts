@@ -43,18 +43,24 @@ export const styles = StyleSheet.create({
   separator: {
     width: 6,
   },
-  yearButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: theme.colors.success,
+  yearButtonModal: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: theme.colors.surface,
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 12,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  yearButtonText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  yearButtonModalText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: theme.colors.text.primary,
+    flex: 1,
   },
   calendarButton: {
     padding: 8,

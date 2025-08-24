@@ -50,10 +50,16 @@ export const signUp = async (credentials: SignUpCredentials): Promise<User> => {
 export interface UpdateProfileData {
   name?: string;
   email?: string;
+  profilePicture?: string;
 }
 
-export const updateProfile = async (data: UpdateProfileData): Promise<User> => {
-  const response = await api.patch<User>("/users/profile", data);
+export interface UpdateProfileResponse {
+  message: string;
+  user: User;
+}
+
+export const updateProfile = async (data: UpdateProfileData): Promise<UpdateProfileResponse> => {
+  const response = await api.put<UpdateProfileResponse>("/users/profile", data);
   return response.data;
 };
 
@@ -125,5 +131,23 @@ export const verifyPassword = async (
   request: VerifyPasswordRequest
 ): Promise<VerifyPasswordResponse> => {
   const response = await api.post<VerifyPasswordResponse>("/users/verify-password", request);
+  return response.data;
+};
+
+// Change password interfaces
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}
+
+// Change password function
+export const changePassword = async (
+  request: ChangePasswordRequest
+): Promise<ChangePasswordResponse> => {
+  const response = await api.put<ChangePasswordResponse>("/users/change-password", request);
   return response.data;
 };

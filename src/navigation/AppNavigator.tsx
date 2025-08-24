@@ -31,6 +31,7 @@ import RemindersScreen from "@/screens/RemindersScreen";
 import DebtorsScreen from "@/screens/DebtorsScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
 import AccountsScreen from "@/screens/AccountsScreen";
+import EditProfileScreen from "@/screens/EditProfileScreen";
 import { AuthStackParamList, AppTabParamList, AppStackParamList } from "./types";
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -212,6 +213,14 @@ function AppRoutes() {
       <AppStack.Screen 
         name="Accounts" 
         component={AccountsScreen}
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+      <AppStack.Screen 
+        name="EditProfile" 
+        component={EditProfileScreen}
         options={{
           headerShown: false,
           presentation: 'modal',

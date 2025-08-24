@@ -268,6 +268,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       >
         <DashboardHeader
           userName={user?.name || 'Usuário'}
+          profilePicture={user?.profilePicture}
         />
 
         {/* Month Selector */}

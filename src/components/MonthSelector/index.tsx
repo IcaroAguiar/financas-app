@@ -106,14 +106,6 @@ export default function MonthSelector({
           style={styles.monthList}
         />
         
-        {/* Year Total Button */}
-        <TouchableOpacity
-          style={styles.yearButton}
-          onPress={handleYearSelect}
-        >
-          <Text style={styles.yearButtonText}>Total do Ano</Text>
-        </TouchableOpacity>
-        
         {/* Calendar Icon */}
         <TouchableOpacity
           style={styles.calendarButton}
@@ -140,6 +132,18 @@ export default function MonthSelector({
               <Icon name="x" size={24} color={theme.colors.text.primary} />
             </TouchableOpacity>
           </View>
+          
+          {/* Total do Ano option */}
+          <TouchableOpacity
+            style={styles.yearButtonModal}
+            onPress={() => {
+              handleYearSelect();
+              setShowFullCalendar(false);
+            }}
+          >
+            <Icon name="calendar" size={20} color={theme.colors.primary} />
+            <Text style={styles.yearButtonModalText}>Total do Ano</Text>
+          </TouchableOpacity>
           
           <FlatList
             data={months}

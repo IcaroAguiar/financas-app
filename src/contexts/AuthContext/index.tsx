@@ -25,6 +25,7 @@ interface AuthContextData {
   authenticateWithBiometrics(): Promise<boolean>;
   silentBiometricReauth(): Promise<boolean>;
   setIsBiometricEnabled(enabled: boolean): Promise<void>;
+  updateUserProfile(updatedUser: User): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -286,6 +287,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const updateUserProfile = async (updatedUser: User) => {
+    try {
+      console.log('🔄 [AuthContext] Atualizando perfil do usuário:', {
+        hasProfilePicture: !!updatedUser.profilePicture,
+        profilePictureSize: updatedUser.profilePicture?.length || 0,
+        name: updatedUser.name,
+        email: updatedUser.email
+      });
+      
+      // Atualiza o estado local
+      setUser(updatedUser);
+      
+      // Persiste os dados atualizados no AsyncStorage
+      await AsyncStorage.setItem("@FinancasApp:user", JSON.stringify(updatedUser));
+      
+      console.log('✅ [AuthContext] Perfil atualizado com sucesso no contexto');
+      
+      // Se necessário, atualiza as credenciais biométricas armazenadas com o novo email
+      const biometricEnabled = await AsyncStorage.getItem("@FinancasApp:biometricEnabled");
+      if (biometricEnabled === "true" && isBiometricSupported) {
+        try {
+          // Atualiza o email armazenado para biometria
+          await SecureStore.setItemAsync('FinancasApp_userEmail', updatedUser.email);
+        } catch (error) {
+          // Silent error handling para biometria
+        }
+      }
+    } catch (error) {
+      console.error('❌ [AuthContext] Erro ao atualizar perfil do usuário no contexto:', error);
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -300,6 +334,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         authenticateWithBiometrics,
         silentBiometricReauth,
         setIsBiometricEnabled: setBiometricEnabled,
+        updateUserProfile,
       }}
     >
       {children}

@@ -26,6 +26,12 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: theme.spacing.sides,
   },
+  backButton: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   title: {
     fontSize: theme.typography.subheader.fontSize,
     fontWeight: theme.typography.subheader.fontWeight,

@@ -112,7 +112,7 @@ export default function AccountsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <GlobalHeader title="Minhas Contas" />
+        <GlobalHeader title="Minhas Contas" isModal={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>Carregando contas...</Text>
@@ -123,7 +123,7 @@ export default function AccountsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <GlobalHeader title="Minhas Contas" />
+      <GlobalHeader title="Minhas Contas" isModal={true} />
       
       <View style={styles.content}>
         <FlatList

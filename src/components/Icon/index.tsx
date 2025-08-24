@@ -7,9 +7,9 @@ export interface IconProps {
         'trending-up' | 'trending-down' | 'bar-chart' | 'mail' | 'phone' | 'calendar' | 
         'dollar-sign' | 'receipt' | 'wallet' | 'coins' | 'close' | 'alert-circle' | 'alert-triangle' | 'checkmark-circle' | 'clock' | 
         'help-circle' | 'minus' | 'brief-case' | 'brief-case-filled' | 'check-circle' | 'x' | 'credit-card' |
-        'lock' | 'chevron-right' | 'log-out' | 'message-circle' | 'check' | 'chevron-down' | 'eye' | 'eye-off' |
+        'lock' | 'chevron-right' | 'chevron-left' | 'log-out' | 'message-circle' | 'check' | 'chevron-down' | 'eye' | 'eye-off' |
         'edit-2' | 'trash-2' | 'pause' | 'play' | 'refresh-cw' | 'arrow-up-circle' | 'arrow-down-circle' | 'repeat' | 'more-horizontal' |
-        'coffee' | 'truck' | 'heart' | 'book' | 'smile' | 'shopping-bag' | 'file-text' | 'briefcase' | 'tag' | 'gift' | 'pie-chart';
+        'coffee' | 'truck' | 'heart' | 'book' | 'smile' | 'shopping-bag' | 'file-text' | 'briefcase' | 'tag' | 'gift' | 'pie-chart' | 'camera';
   size?: number;
   color?: string;
 }
@@ -48,6 +48,7 @@ const iconMap = {
   'credit-card': FeatherIcons.CreditCard,
   'lock': FeatherIcons.Lock,
   'chevron-right': FeatherIcons.ChevronRight,
+  'chevron-left': FeatherIcons.ChevronLeft,
   'log-out': FeatherIcons.LogOut,
   'message-circle': FeatherIcons.MessageCircle,
   'check': FeatherIcons.Check,
@@ -74,6 +75,7 @@ const iconMap = {
   'tag': FeatherIcons.Tag,
   'gift': FeatherIcons.Gift,
   'pie-chart': FeatherIcons.PieChart,
+  'camera': FeatherIcons.Camera,
 };
 
 export default function Icon({ name, size = 24, color = '#000', ...props }: IconProps) {

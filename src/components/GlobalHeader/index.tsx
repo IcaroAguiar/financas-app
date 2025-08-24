@@ -9,9 +9,12 @@ import { styles } from './styles';
 
 interface GlobalHeaderProps {
   title: string;
+  showBack?: boolean;
+  onBackPress?: () => void;
+  isModal?: boolean;
 }
 
-export default function GlobalHeader({ title }: GlobalHeaderProps) {
+export default function GlobalHeader({ title, showBack, onBackPress, isModal }: GlobalHeaderProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -21,10 +24,16 @@ export default function GlobalHeader({ title }: GlobalHeaderProps) {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: isModal ? 0 : insets.top }]}>
       <View style={styles.content}>
         <View style={styles.logo}>
-          <AscendLogo width={30} height={30} color="#1c1c1c" />
+          {showBack ? (
+            <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+              <Icon name="chevron-left" size={24} color="#1c1c1c" />
+            </TouchableOpacity>
+          ) : (
+            <AscendLogo width={30} height={30} color="#1c1c1c" />
+          )}
         </View>
         <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
         <TouchableOpacity 

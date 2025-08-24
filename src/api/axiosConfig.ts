@@ -21,6 +21,7 @@ console.log('🔄 AxiosConfig: Configurando API com baseURL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000, // 30 segundos de timeout para operações lentas como bcrypt
 });
 
 // --- INTERCEPTOR DE REQUISIÇÃO ---
