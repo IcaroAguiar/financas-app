@@ -516,28 +516,62 @@ export default function DebtorsScreen() {
     
     const subject = 'Lembrete - Dívida Pendente';
     const body = `Olá, ${debtorName}! Este é um lembrete sobre sua(s) dívida(s) pendente(s) no valor total de ${formattedAmount}.${debtDetails}\nPor favor, entre em contato para acertarmos os detalhes do pagamento. Obrigado!\n\n(Mensagem enviada via Ascend, meu app de controle financeiro!)`;
-    const url = `mailto:${email.trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     
-    console.log('📧 Email URL:', url);
+    // First try with full message
+    let url = `mailto:${email.trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    console.log('📧 Email URL length:', url.length);
     console.log('📧 Subject:', subject);
-    console.log('📧 Body:', body);
+    console.log('📧 Body preview:', body.substring(0, 100) + '...');
     
-    Linking.canOpenURL(url).then((supported) => {
-      console.log('📧 Email supported:', supported);
-      if (supported) {
-        console.log('📧 Opening email app...');
-        return Linking.openURL(url).then(() => {
-          console.log('📧 Email app opened successfully');
-          toast.showSuccess({ message: '✅ Email aberto no aplicativo padrão!' });
-        });
-      } else {
-        console.log('📧 Email not supported, showing error');
-        toast.showError({ message: 'Não foi possível abrir o aplicativo de email' });
+    // If URL is too long (some email apps have limits), try simplified version
+    if (url.length > 2048) {
+      console.log('📧 URL too long, trying simplified version...');
+      const simplifiedBody = `Olá, ${debtorName}! Lembrete sobre dívida pendente de ${formattedAmount}. Entre em contato para acertarmos o pagamento. Obrigado!`;
+      url = `mailto:${email.trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(simplifiedBody)}`;
+    }
+    
+    const tryOpenEmail = async () => {
+      try {
+        // Try direct opening first (sometimes canOpenURL fails unnecessarily)
+        console.log('📧 Trying direct email open...');
+        await Linking.openURL(url);
+        console.log('📧 Email app opened successfully via direct method');
+        toast.showSuccess({ message: '✅ Email aberto no aplicativo padrão!' });
+      } catch (directError) {
+        console.log('📧 Direct method failed, trying canOpenURL check...', directError);
+        
+        try {
+          const supported = await Linking.canOpenURL(url);
+          console.log('📧 Email supported:', supported);
+          
+          if (supported) {
+            console.log('📧 Opening email app after support check...');
+            await Linking.openURL(url);
+            console.log('📧 Email app opened successfully after support check');
+            toast.showSuccess({ message: '✅ Email aberto no aplicativo padrão!' });
+          } else {
+            console.log('📧 Email not supported');
+            // Try fallback with even simpler URL
+            const fallbackUrl = `mailto:${email.trim()}`;
+            console.log('📧 Trying fallback URL:', fallbackUrl);
+            
+            try {
+              await Linking.openURL(fallbackUrl);
+              toast.showSuccess({ message: '✅ App de email aberto! Complete a mensagem manualmente.' });
+            } catch (fallbackError) {
+              console.error('📧 All methods failed:', fallbackError);
+              toast.showError({ message: 'Não foi possível abrir o aplicativo de email. Verifique se há um app de email instalado.' });
+            }
+          }
+        } catch (supportError) {
+          console.error('📧 Support check error:', supportError);
+          toast.showError({ message: 'Erro ao verificar suporte de email: ' + supportError.message });
+        }
       }
-    }).catch((error) => {
-      console.error('📧 Error checking email support:', error);
-      toast.showError({ message: 'Erro ao abrir app de email: ' + error.message });
-    });
+    };
+    
+    tryOpenEmail();
   };
 
   const showContactOptions = (debtor: ApiDebtor) => {
