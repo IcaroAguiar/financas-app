@@ -2,9 +2,9 @@
   "expo": {
     "name": "Ascend",
     "slug": "ascend",
-    "version": "1.4.1",
+    "version": "1.5.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/icon.png",
+    "icon": "./src/assets/images/ascend_icon_novo.jpg",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/images/splash.png",
@@ -22,10 +22,10 @@
       }
     },
     "android": {
-      "icon": "./src/assets/images/icon.png",
+      "icon": "./src/assets/images/ascend_icon_novo.jpg",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/images/icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/images/ascend_icon_novo.jpg",
+        "backgroundColor": "#1DB584"
       },
       "package": "com.ic03aguiar.ascend"
     },
@@ -38,7 +38,7 @@
       ]
     ],
     "web": {
-      "favicon": "./src/assets/images/icon.png"
+      "favicon": "./src/assets/images/ascend_icon_novo.jpg"
     },
     "extra": {
       "eas": {

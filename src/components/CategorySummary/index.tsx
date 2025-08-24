@@ -26,62 +26,84 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
     // Filter transactions to only include DESPESA type
     const expenseTransactions = transactions.filter(transaction => transaction.type === 'DESPESA');
     
-    // Filter to only include transactions that match predefined categories
-    const predefinedCategoryTransactions = expenseTransactions.filter(transaction => {
-      // Check if transaction has a regular category that matches predefined
-      const hasRegularCategory = transaction.category && getPredefinedCategoryByName(transaction.category.name);
-      
-      // Check if transaction has predefinedCategory field (for new transactions)
+    // Filter to include transactions that have ANY category (predefined or user-created)
+    const categorizedTransactions = expenseTransactions.filter(transaction => {
+      // Has predefined category
       const hasPredefinedCategory = transaction.predefinedCategory;
+      // Has user-created category
+      const hasUserCategory = transaction.category;
+      // Has predefined category by name match (legacy)
+      const hasLegacyPredefined = transaction.category && getPredefinedCategoryByName(transaction.category.name);
       
-      return hasRegularCategory || hasPredefinedCategory;
+      return hasPredefinedCategory || hasUserCategory || hasLegacyPredefined;
     });
     
     // Calculate total for percentage calculation
-    const totalExpenseAmount = predefinedCategoryTransactions.reduce((sum, transaction) => {
+    const totalExpenseAmount = categorizedTransactions.reduce((sum, transaction) => {
       return sum + transaction.amount;
     }, 0);
     
-    // Group transactions by predefined category and calculate totals
-    const categoryTotals: { [key: string]: number } = {};
+    // Group transactions by category and calculate totals
+    const categoryTotals: { [key: string]: { amount: number; category: any } } = {};
     
-    predefinedCategoryTransactions.forEach(transaction => {
-      let categoryId: string | undefined;
+    categorizedTransactions.forEach(transaction => {
+      let categoryKey: string | undefined;
+      let categoryData: any;
       
-      // Try to get category ID from regular category
-      if (transaction.category) {
-        const predefinedCategory = getPredefinedCategoryByName(transaction.category.name);
-        if (predefinedCategory) {
-          categoryId = predefinedCategory.id;
+      // Priority 1: predefinedCategory field (new format)
+      if (transaction.predefinedCategory) {
+        categoryKey = `predefined_${transaction.predefinedCategory.id}`;
+        categoryData = {
+          type: 'predefined',
+          ...transaction.predefinedCategory,
+          icon: predefinedCategories.find(cat => cat.id === transaction.predefinedCategory!.id)?.icon || 'tag'
+        };
+      }
+      // Priority 2: user-created category
+      else if (transaction.category) {
+        // Check if it's a legacy predefined category by name
+        const predefinedMatch = getPredefinedCategoryByName(transaction.category.name);
+        if (predefinedMatch) {
+          categoryKey = `predefined_${predefinedMatch.id}`;
+          categoryData = {
+            ...predefinedMatch,
+            type: 'predefined'
+          };
+        } else {
+          // It's a genuine user-created category
+          categoryKey = `user_${transaction.category.id}`;
+          categoryData = {
+            type: 'user',
+            id: transaction.category.id,
+            name: transaction.category.name,
+            color: transaction.category.color || theme.colors.primary,
+            icon: 'tag' // Default icon for user categories
+          };
         }
       }
       
-      // Try to get category ID from predefinedCategory field
-      if (!categoryId && transaction.predefinedCategory) {
-        categoryId = transaction.predefinedCategory.id;
-      }
-      
-      if (categoryId) {
-        categoryTotals[categoryId] = (categoryTotals[categoryId] || 0) + transaction.amount;
+      if (categoryKey && categoryData) {
+        if (!categoryTotals[categoryKey]) {
+          categoryTotals[categoryKey] = { amount: 0, category: categoryData };
+        }
+        categoryTotals[categoryKey].amount += transaction.amount;
       }
     });
     
     // Convert to array and add category details
-    const summaryItems: CategorySummaryItem[] = Object.entries(categoryTotals).map(([categoryId, totalAmount]) => {
-      const predefinedCategory = predefinedCategories.find(cat => cat.id === categoryId);
-      if (!predefinedCategory) return null;
-      
+    const summaryItems: CategorySummaryItem[] = Object.entries(categoryTotals).map(([categoryKey, data]) => {
+      const { amount: totalAmount, category } = data;
       const percentage = totalExpenseAmount > 0 ? (totalAmount / totalExpenseAmount) * 100 : 0;
       
       return {
-        id: categoryId,
-        name: predefinedCategory.name,
-        icon: predefinedCategory.icon,
-        color: predefinedCategory.color,
+        id: categoryKey,
+        name: category.name,
+        icon: category.icon,
+        color: category.color,
         totalAmount,
         percentage,
       };
-    }).filter(Boolean) as CategorySummaryItem[];
+    });
     
     // Sort by totalAmount descending
     return summaryItems.sort((a, b) => b.totalAmount - a.totalAmount);
@@ -137,7 +159,7 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
         </View>
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
-            Nenhuma despesa em categorias principais este mês
+            Nenhuma despesa categorizada este mês
           </Text>
         </View>
       </View>

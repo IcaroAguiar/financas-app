@@ -24,6 +24,11 @@ interface TransactionWithInstallments {
   date: Date;
   account?: { name: string };
   category?: { name: string };
+  predefinedCategory?: { 
+    id: string;
+    name: string;
+    color: string;
+  };
   isInstallmentPlan: boolean;
   installmentCount?: number;
   installmentFrequency?: 'MONTHLY' | 'WEEKLY';
@@ -218,9 +223,9 @@ export default function TransactionDetailsModal({
               <Text style={styles.transactionDate}>
                 {transaction.date.toLocaleDateString('pt-BR')}
               </Text>
-              {transaction.category && (
+              {(transaction.category || transaction.predefinedCategory) && (
                 <Text style={styles.transactionCategory}>
-                  Categoria: {transaction.category.name}
+                  Categoria: {transaction.category?.name || transaction.predefinedCategory?.name}
                 </Text>
               )}
               {transaction.account && (

@@ -83,7 +83,7 @@ export default function TransactionBottomSheet({
                 {transaction.description}
               </Text>
               <Text style={styles.transactionCategory}>
-                {transaction.category?.name || 'Sem categoria'}
+                {transaction.category?.name || transaction.predefinedCategory?.name || 'Sem categoria'}
               </Text>
             </View>
           </View>
