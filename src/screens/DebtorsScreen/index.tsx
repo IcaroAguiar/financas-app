@@ -566,7 +566,7 @@ export default function DebtorsScreen() {
           }
         } catch (supportError) {
           console.error('📧 Support check error:', supportError);
-          toast.showError({ message: 'Erro ao verificar suporte de email: ' + supportError.message });
+          toast.showError({ message: 'Erro ao verificar suporte de email: ' + (supportError instanceof Error ? supportError.message : 'Erro desconhecido') });
         }
       }
     };
