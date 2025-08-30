@@ -9,7 +9,8 @@ export interface IconProps {
         'help-circle' | 'minus' | 'brief-case' | 'brief-case-filled' | 'check-circle' | 'x' | 'credit-card' |
         'lock' | 'chevron-right' | 'chevron-left' | 'log-out' | 'message-circle' | 'check' | 'chevron-down' | 'eye' | 'eye-off' |
         'edit-2' | 'trash-2' | 'pause' | 'play' | 'refresh-cw' | 'arrow-up-circle' | 'arrow-down-circle' | 'repeat' | 'more-horizontal' |
-        'coffee' | 'truck' | 'heart' | 'book' | 'smile' | 'shopping-bag' | 'file-text' | 'briefcase' | 'tag' | 'gift' | 'pie-chart' | 'camera';
+        'coffee' | 'truck' | 'heart' | 'book' | 'smile' | 'shopping-bag' | 'file-text' | 'briefcase' | 'tag' | 'gift' | 'pie-chart' | 'camera' |
+        'wifi' | 'activity' | 'map-pin' | 'shield' | 'navigation' | 'zap' | 'play-circle' | 'folder' | 'bookmark' | 'star' | 'hash' | 'award' | 'hexagon' | 'octagon';
   size?: number;
   color?: string;
 }
@@ -76,6 +77,20 @@ const iconMap = {
   'gift': FeatherIcons.Gift,
   'pie-chart': FeatherIcons.PieChart,
   'camera': FeatherIcons.Camera,
+  'wifi': FeatherIcons.Wifi,
+  'activity': FeatherIcons.Activity,
+  'map-pin': FeatherIcons.MapPin,
+  'shield': FeatherIcons.Shield,
+  'navigation': FeatherIcons.Navigation,
+  'zap': FeatherIcons.Zap,
+  'play-circle': FeatherIcons.Play, // PlayCircle may not exist, using Play
+  'folder': FeatherIcons.Folder,
+  'bookmark': FeatherIcons.Bookmark,
+  'star': FeatherIcons.Star,
+  'hash': FeatherIcons.Hash,
+  'award': FeatherIcons.Award,
+  'hexagon': FeatherIcons.Circle, // Hexagon may not exist, using Circle
+  'octagon': FeatherIcons.Square, // Octagon may not exist, using Square
 };
 
 export default function Icon({ name, size = 24, color = '#000', ...props }: IconProps) {

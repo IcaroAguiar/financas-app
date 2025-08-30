@@ -433,7 +433,13 @@ export default function TransactionsScreen() {
                   key={item.id}
                   id={item.id}
                   description={item.description}
-                  category={item.category?.name || "Sem Categoria"}
+                  category={
+                    item.predefinedCategory?.name || 
+                    item.category?.name || 
+                    "Sem Categoria"
+                  }
+                  categoryId={item.categoryId}
+                  predefinedCategory={item.predefinedCategory}
                   amount={item.amount}
                   type={item.type}
                   onPress={handleTransactionPress}

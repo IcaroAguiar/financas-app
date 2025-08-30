@@ -6,6 +6,7 @@ import { theme } from '@/styles/theme';
 import Icon from '@/components/Icon';
 import { predefinedCategories, getPredefinedCategoryByName } from '@/data/categories';
 import { Transaction } from '@/types/transactions';
+import { getUniqueIconForCustomCategory } from '@/utils/categoryIconMapper';
 
 interface CategorySummaryProps {
   transactions: Transaction[];
@@ -72,12 +73,14 @@ export default function CategorySummary({ transactions }: CategorySummaryProps) 
         } else {
           // It's a genuine user-created category
           categoryKey = `user_${transaction.category.id}`;
+          const customIcon = getUniqueIconForCustomCategory(transaction.category.name);
+          console.log(`CategorySummary - Custom category: ${transaction.category.name}, assigned icon: ${customIcon}`);
           categoryData = {
             type: 'user',
             id: transaction.category.id,
             name: transaction.category.name,
             color: transaction.category.color || theme.colors.primary,
-            icon: 'tag' // Default icon for user categories
+            icon: customIcon // Dynamic icon for user categories
           };
         }
       }

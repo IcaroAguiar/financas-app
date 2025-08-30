@@ -33,6 +33,7 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
   const [date, setDate] = useState(new Date());
   const [type, setType] = useState<'payment' | 'transaction' | 'custom'>('custom');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
@@ -40,6 +41,8 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
     setDescription('');
     setDate(new Date());
     setType('custom');
+    setShowDatePicker(false);
+    setShowTimePicker(false);
   };
 
   const handleClose = () => {
@@ -105,9 +108,37 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setDate(selectedDate);
+    try {
+      setShowDatePicker(false);
+      
+      if (event?.type === 'set' && selectedDate) {
+        const newDate = new Date(date);
+        newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+        setDate(newDate);
+        
+        // No Android, abrir time picker após selecionar a data
+        if (Platform.OS === 'android') {
+          setTimeout(() => setShowTimePicker(true), 100);
+        }
+      }
+    } catch (error) {
+      console.warn('Error handling date change:', error);
+      setShowDatePicker(false);
+    }
+  };
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    try {
+      setShowTimePicker(false);
+      
+      if (event?.type === 'set' && selectedTime) {
+        const newDate = new Date(date);
+        newDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+        setDate(newDate);
+      }
+    } catch (error) {
+      console.warn('Error handling time change:', error);
+      setShowTimePicker(false);
     }
   };
 
@@ -245,13 +276,32 @@ export default function AddReminderModal({ visible, onClose, onSubmit }: AddRemi
           </View>
         </KeyboardAwareScrollView>
 
-        {showDatePicker && (
+        {showDatePicker && Platform.OS === 'ios' && (
           <DateTimePicker
             value={date}
             mode="datetime"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            display="spinner"
             onChange={handleDateChange}
             minimumDate={new Date()}
+          />
+        )}
+        
+        {showDatePicker && Platform.OS === 'android' && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+          />
+        )}
+        
+        {showTimePicker && Platform.OS === 'android' && (
+          <DateTimePicker
+            value={date}
+            mode="time"
+            display="default"
+            onChange={handleTimeChange}
           />
         )}
       </View>

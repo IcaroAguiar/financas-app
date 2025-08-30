@@ -3,7 +3,8 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 import { theme } from "@/styles/theme";
 import Icon from "@/components/Icon";
-import { getPredefinedCategoryByName } from '@/data/categories';
+import { getPredefinedCategoryByName, getPredefinedCategoryById } from '@/data/categories';
+import { getUniqueIconForCustomCategory } from '@/utils/categoryIconMapper';
 
 
 type TransactionType = "RECEITA" | "DESPESA" | "PAGO";
@@ -20,6 +21,8 @@ interface TransactionItemProps {
   currentInstallment?: number; // Current installment number
   totalInstallments?: number; // Total number of installments
   isRecurring?: boolean; // Recurring transaction indicator
+  categoryId?: string | null; // ID da categoria para buscar ícone correto
+  predefinedCategory?: { id: string; name: string; color: string }; // Categoria pré-definida
 }
 
 export default function TransactionItem({
@@ -34,23 +37,44 @@ export default function TransactionItem({
   currentInstallment,
   totalInstallments,
   isRecurring,
+  categoryId,
+  predefinedCategory,
 }: TransactionItemProps) {
   const isRevenue = type === "RECEITA";
   const isPaid = type === "PAGO";
   const amountColor = isRevenue ? theme.colors.success : isPaid ? theme.colors.success : theme.colors.error;
 
   // Get category icon from predefined categories, fallback to transaction type icons
-  const predefinedCategory = getPredefinedCategoryByName(category);
+  let categoryData = null;
   
-  // Use predefined category icon if available, otherwise use transaction type icons (same as filters)
+  // Priority 1: If predefinedCategory is provided, get full data by ID to include icon
+  if (predefinedCategory?.id) {
+    categoryData = getPredefinedCategoryById(predefinedCategory.id);
+  }
+  // Priority 2: Try to get predefined category by categoryId
+  else if (categoryId) {
+    categoryData = getPredefinedCategoryById(categoryId);
+  }
+  // Priority 3: Try to get predefined category by category name (legacy)
+  else if (category && category !== "Sem Categoria") {
+    categoryData = getPredefinedCategoryByName(category);
+  }
+  
+  // Use predefined category icon if available, check for custom category, or use transaction type icons
   let iconName: string;
   let iconColor: string;
   
-  if (predefinedCategory) {
-    iconName = predefinedCategory.icon;
-    iconColor = predefinedCategory.color;
+  if (categoryData) {
+    // Predefined category found
+    iconName = categoryData.icon;
+    iconColor = categoryData.color;
+  } else if (category && category !== "Sem Categoria") {
+    // This is a custom user category - use unique icon based on name
+    iconName = getUniqueIconForCustomCategory(category);
+    iconColor = theme.colors.primary; // Use primary color for custom categories
+    console.log(`Custom category: ${category}, assigned icon: ${iconName}`);
   } else {
-    // Use same icons as transaction filters for consistency
+    // No category or "Sem Categoria" - use transaction type icons
     switch (type) {
       case "RECEITA":
         iconName = "coins";
