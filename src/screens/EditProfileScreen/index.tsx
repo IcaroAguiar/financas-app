@@ -76,20 +76,65 @@ export default function EditProfileScreen() {
         return;
       }
 
-      // Mostrar opções para o usuário
-      Alert.alert(
-        'Foto de Perfil',
-        'Escolha uma opção',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          { text: 'Câmera', onPress: () => openCamera() },
-          { text: 'Galeria', onPress: () => openGallery() },
-          ...(profilePicture ? [{ text: 'Remover Foto', style: 'destructive', onPress: () => setProfilePicture('') }] : [])
-        ]
-      );
+      // Mostrar opções baseadas se já tem foto ou não
+      if (profilePicture) {
+        // Usuário já tem foto - mostrar opções de trocar ou remover
+        Alert.alert(
+          'Foto de Perfil',
+          'O que deseja fazer com sua foto atual?',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Trocar Foto', onPress: () => handleChangePhoto() },
+            { text: 'Remover Foto', style: 'destructive', onPress: () => handleRemovePhoto() }
+          ]
+        );
+      } else {
+        // Usuário não tem foto - mostrar opções de adicionar
+        Alert.alert(
+          'Adicionar Foto de Perfil',
+          'Escolha de onde selecionar sua foto',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Câmera', onPress: () => openCamera() },
+            { text: 'Galeria', onPress: () => openGallery() }
+          ]
+        );
+      }
     } catch (error) {
       showError({ message: 'Erro ao acessar a galeria.' });
     }
+  };
+
+  // Função para trocar foto existente
+  const handleChangePhoto = () => {
+    Alert.alert(
+      'Trocar Foto',
+      'Escolha de onde selecionar sua nova foto',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Câmera', onPress: () => openCamera() },
+        { text: 'Galeria', onPress: () => openGallery() }
+      ]
+    );
+  };
+
+  // Função para remover foto com confirmação
+  const handleRemovePhoto = () => {
+    Alert.alert(
+      'Remover Foto',
+      'Tem certeza que deseja remover sua foto de perfil?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Remover', 
+          style: 'destructive', 
+          onPress: () => {
+            setProfilePicture('');
+            showSuccess({ message: 'Foto removida. Lembre-se de salvar as alterações.' });
+          }
+        }
+      ]
+    );
   };
 
   const openCamera = async () => {
@@ -105,7 +150,7 @@ export default function EditProfileScreen() {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.3,
+        quality: 0.1, // Reduzir qualidade para evitar base64 muito grandes
         base64: true,
       });
 
@@ -113,6 +158,7 @@ export default function EditProfileScreen() {
         const base64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
         console.log('📷 [EditProfile] Foto capturada da câmera - tamanho base64:', base64.length, 'caracteres');
         setProfilePicture(base64);
+        showSuccess({ message: 'Foto selecionada! Lembre-se de salvar as alterações.' });
       }
     } catch (error) {
       showError({ message: 'Erro ao abrir a câmera.' });
@@ -125,7 +171,7 @@ export default function EditProfileScreen() {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.3,
+        quality: 0.1, // Reduzir qualidade para evitar base64 muito grandes
         base64: true,
       });
 
@@ -133,6 +179,7 @@ export default function EditProfileScreen() {
         const base64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
         console.log('🖼️ [EditProfile] Foto selecionada da galeria - tamanho base64:', base64.length, 'caracteres');
         setProfilePicture(base64);
+        showSuccess({ message: 'Foto selecionada! Lembre-se de salvar as alterações.' });
       }
     } catch (error) {
       showError({ message: 'Erro ao abrir a galeria.' });
@@ -260,9 +307,22 @@ export default function EditProfileScreen() {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
-        message: error.message
+        message: error.message,
+        code: error.code,
+        isTimeout: error.code === 'ECONNABORTED',
+        isNetworkError: error.message === 'Network Error'
       });
-      const errorMessage = error.response?.data?.error || 'Erro ao atualizar perfil. Tente novamente.';
+      
+      let errorMessage = 'Erro ao atualizar perfil. Tente novamente.';
+      
+      if (error.message === 'Network Error') {
+        errorMessage = 'Problema de conexão. Verifique sua internet e tente novamente.';
+      } else if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Tempo limite excedido. A imagem pode ser muito grande. Tente uma foto menor.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
       showError({ message: errorMessage });
     } finally {
       setIsLoadingProfile(false);
@@ -357,7 +417,9 @@ export default function EditProfileScreen() {
                   <Icon name="camera" size={20} color="#ffffff" />
                 </View>
               </TouchableOpacity>
-              <Text style={styles.profilePictureLabel}>Toque para alterar foto</Text>
+              <Text style={styles.profilePictureLabel}>
+                {profilePicture ? 'Toque para trocar ou remover' : 'Toque para adicionar foto'}
+              </Text>
             </View>
 
             <View style={styles.inputContainer}>
@@ -518,16 +580,17 @@ export default function EditProfileScreen() {
               style={styles.sectionButton}
             />
           </View>
-        </ScrollView>
 
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            title="Fechar"
-            variant="secondary"
-            onPress={handleCancel}
-            style={styles.button}
-          />
-        </View>
+          {/* Botão Fechar movido para dentro do ScrollView */}
+          <View style={styles.buttonContainer}>
+            <CustomButton
+              title="Fechar"
+              variant="secondary"
+              onPress={handleCancel}
+              style={styles.button}
+            />
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
