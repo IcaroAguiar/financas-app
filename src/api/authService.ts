@@ -50,7 +50,7 @@ export const signUp = async (credentials: SignUpCredentials): Promise<User> => {
 export interface UpdateProfileData {
   name?: string;
   email?: string;
-  profilePicture?: string;
+  profilePicture?: string | null;
 }
 
 export interface UpdateProfileResponse {
@@ -59,7 +59,10 @@ export interface UpdateProfileResponse {
 }
 
 export const updateProfile = async (data: UpdateProfileData): Promise<UpdateProfileResponse> => {
-  const response = await api.put<UpdateProfileResponse>("/users/profile", data);
+  // Aumentar timeout para upload de imagem (60 segundos)
+  const response = await api.put<UpdateProfileResponse>("/users/profile", data, {
+    timeout: 60000 // 60 segundos para uploads de imagem
+  });
   return response.data;
 };
 
